@@ -42,7 +42,7 @@
 #'
 #' vcf <- system.file("extdata",
 #'                    file="common_snps_dbsnp151_example.vcf.gz",
-#'                    package="crisprDesignS4")
+#'                    package="crisprDesign")
 #' guideSet <- addSNPAnnotation(guideSetExample, vcf=vcf)
 #' 
 #' @export

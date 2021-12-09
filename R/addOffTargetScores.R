@@ -23,7 +23,7 @@
 #' 
 #' # Creating a bowtie index:
 #' library(Rbowtie)
-#' fasta <- system.file(package="crisprDesignS4", "fasta/chr12.fa")
+#' fasta <- system.file(package="crisprDesign", "fasta/chr12.fa")
 #' outdir <- tempdir()
 #' Rbowtie::bowtie_build(fasta,
 #'                       outdir=outdir,
