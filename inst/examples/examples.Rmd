@@ -40,11 +40,11 @@ Let's find guides for Cas9 that target both of the human genes SMARCA2 and SMARC
 <!-- is this process similar to targeting specific/all isoforms of a gene? if not, should that be a use case? -->
 
 ```{r, collapse=TRUE, eval=FALSE,results='hide'}
-smarca2 <- crisprDesignS4::searchIgis(data="cds", column="gene_symbol", value="SMARCA2")
-smarca4 <- crisprDesignS4::searchIgis(data="cds", column="gene_symbol", value="SMARCA4")
+smarca2 <- crisprDesign::searchIgis(data="cds", column="gene_symbol", value="SMARCA2")
+smarca4 <- crisprDesign::searchIgis(data="cds", column="gene_symbol", value="SMARCA4")
 
-smarca2 <- crisprDesignS4::getGuides(smarca2, nuclease="Cas9")
-smarca4 <- crisprDesignS4::getGuides(smarca4, nuclease="Cas9")
+smarca2 <- crisprDesign::getGuides(smarca2, nuclease="Cas9")
+smarca4 <- crisprDesign::getGuides(smarca4, nuclease="Cas9")
 
 common <- intersect(smarca2$spacer, smarca4$spacer)
 ```
@@ -53,9 +53,9 @@ common <- intersect(smarca2$spacer, smarca4$spacer)
 We find two guides that have on-targets in both SMARCA2 and SMARCA4. Let's see if these guides have any off-targets or additional on-targets. We'll search up to 1 mismatch:
 
 ```{r, collapse=TRUE, eval=FALSE,results='hide'}
-common_aln <- crisprDesignS4::getSpacerAlignments(common, v=1, nuclease="Cas9")
-# common_aln <- crisprDesignS4::addGeneOverlapInfo(common_aln, species="human")
-# summary <- crisprDesignS4::getAlignmentsSummary(common_aln, possibleGuides=common)
+common_aln <- crisprDesign::getSpacerAlignments(common, v=1, nuclease="Cas9")
+# common_aln <- crisprDesign::addGeneOverlapInfo(common_aln, species="human")
+# summary <- crisprDesign::getAlignmentsSummary(common_aln, possibleGuides=common)
 ```
 
 
@@ -77,7 +77,7 @@ library(dplyr)
 
 ```{r, collapse=TRUE, warning=FALSE, eval=FALSE,results='hide'}
 # get transcript IDs for TRRAP gene having CDS
-trrap <- crisprDesignS4::searchIgis(data="cds", column="gene_symbol", value="TRRAP")
+trrap <- crisprDesign::searchIgis(data="cds", column="gene_symbol", value="TRRAP")
 trrap <- unique(trrap$tx_id)
 ```
 
@@ -87,14 +87,14 @@ trrap
 
 ```{r, collapse=TRUE, warning=FALSE, eval=FALSE,results='hide'}
 # work with first transcript
-trrap <- crisprDesignS4::searchIgis(data="cds", column="tx_id", value="ENST00000359863")
+trrap <- crisprDesign::searchIgis(data="cds", column="tx_id", value="ENST00000359863")
 trrap <- trrap[order(trrap$exon_rank)]
 
 # get guides in cDNA
 genome <- BSgenome.Hsapiens.UCSC.hg38
 seq <- getSeq(genome, trrap) %>% unlist %>% as.character
-guides <- crisprDesignS4::getGuides(seq, nuclease="Cas9")
-# guides <- crisprDesignS4::addSpacerAlignments(guides, v=1, nuclease="Cas9")
+guides <- crisprDesign::getGuides(seq, nuclease="Cas9")
+# guides <- crisprDesign::addSpacerAlignments(guides, v=1, nuclease="Cas9")
 
 # look for guides that don't align to genome
 # guides <- dplyr::filter(guides, sapply(aln, is.null))
@@ -141,17 +141,17 @@ For CRISPR activation (CRISPRa), optimal gene activation can be obtained for gui
 We illustrate the design of CRISPRa guides using TIGIT as an example. TIGIT has one annotated TSS. Let's get all possible Cas9 guides within 200bp upstream of and including the TSS (a [-200,1] window relative to the TSS):
 
 ```{r,results='hide'}
-tss <- crisprDesignS4::searchIgis(data='promoters', column='gene_symbol', value='TIGIT', species='human')
+tss <- crisprDesign::searchIgis(data='promoters', column='gene_symbol', value='TIGIT', species='human')
 # need to add promoters to acceptable data arg
-guides.cas9 <- crisprDesignS4::getGuides(tss, nuclease='Cas9')
+guides.cas9 <- crisprDesign::getGuides(tss, nuclease='Cas9')
 ```
 
 Let's annotate the guides as before:
 
 ```{r,results='hide'}
-aln.cas9 <- crisprDesignS4::getSpacerAlignments(guides.cas9$spacer, v=1)
-guides.cas9 <- crisprDesignS4::addSeqStats(guides.cas9)
-guides.cas9 <- crisprDesignS4::addRestrictionSites(guides.cas9)
+aln.cas9 <- crisprDesign::getSpacerAlignments(guides.cas9$spacer, v=1)
+guides.cas9 <- crisprDesign::addSeqStats(guides.cas9)
+guides.cas9 <- crisprDesign::addRestrictionSites(guides.cas9)
 ```
 
 It is useful to add a column indicating the distance of the guide PAM site to the TSS:
@@ -169,10 +169,10 @@ We can also add a column indicating if the guides were included in our whole-gen
 TIGIT is one example where few Cas9 guides can be found in the optimal activation window; the promoter region of TIGIT is AT rich, and therefore NGG PAM sites are not common. Would we have better luck with Cas12a? 
 
 ```{r,results='hide'}
-guides.cas12a  <- crisprDesignS4::getGuides(tss, nuclease='Cas12a')
-aln.cas12a  <- crisprDesignS4::getSpacerAlignments(guides.cas12a$spacer, v=1, nuclease='Cas12a')
-guides.cas12a  <- crisprDesignS4::addSeqStats(guides.cas12a, nuclease='Cas12a')
-guides.cas12a  <- crisprDesignS4::addRestrictionSites(guides.cas12a, nuclease='Cas12a')
+guides.cas12a  <- crisprDesign::getGuides(tss, nuclease='Cas12a')
+aln.cas12a  <- crisprDesign::getSpacerAlignments(guides.cas12a$spacer, v=1, nuclease='Cas12a')
+guides.cas12a  <- crisprDesign::addSeqStats(guides.cas12a, nuclease='Cas12a')
+guides.cas12a  <- crisprDesign::addRestrictionSites(guides.cas12a, nuclease='Cas12a')
 # guides.cas12a$dist_to_tss <- guides.cas12a$pam_site-tss$tss_pos
 ```
 

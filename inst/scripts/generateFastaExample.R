@@ -1,4 +1,4 @@
-#library(crisprDesignS4)
+#library(crisprDesign)
 #library(GenomicRanges)
 #library(GenomeInfoDb)
 library(BSgenome)
