@@ -1,4 +1,4 @@
-library(crisprDesignS4)
+library(crisprDesign)
 library(crisprDesignDataS4)
 library(BSgenome.Hsapiens.UCSC.hg38)
 library(BSgenome.Hsapiens.UCSC.hg38.dbSNP151.major)

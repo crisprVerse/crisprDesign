@@ -1,5 +1,5 @@
 library(crisprBase)
-library(crisprDesignS4)
+library(crisprDesign)
 nuc <- CrisprNuclease(nucleaseName="JP",
                       metadata="My nuc",
                       pams="^N",

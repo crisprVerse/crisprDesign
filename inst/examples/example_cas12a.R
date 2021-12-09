@@ -1,14 +1,14 @@
-library(crisprDesignS4)
+library(crisprDesign)
 library(crisprBase)
 library(BSgenome.Hsapiens.UCSC.hg38)
-txObject  <- crisprDesignS4::grListExample
-tssObject <- crisprDesignS4::tssObjectExample
+txObject  <- crisprDesign::grListExample
+tssObject <- crisprDesign::tssObjectExample
 bsgenome  <- BSgenome.Hsapiens.UCSC.hg38
 crisprNuclease <- crisprBase::enAsCas12a
 
 vcf <- system.file("extdata",
                    file="common_snps_dbsnp151_example.vcf.gz",
-                   package="crisprDesignS4")
+                   package="crisprDesign")
 
 gr <- queryTxObject(txObject,
                     queryColumn="gene_symbol",

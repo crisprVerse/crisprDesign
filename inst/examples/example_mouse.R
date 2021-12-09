@@ -1,4 +1,4 @@
-library(crisprDesignS4)
+library(crisprDesign)
 library(crisprDesignDataS4)
 library(GenomeInfoDb)
 bsgenome <- BSgenome.Mmusculus.UCSC.mm10::BSgenome.Mmusculus.UCSC.mm10 

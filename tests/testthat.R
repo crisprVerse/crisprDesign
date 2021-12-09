@@ -1,4 +1,4 @@
 library(testthat)
-library(crisprDesignS4)
+library(crisprDesign)
 
-test_check("crisprDesignS4")
+test_check("crisprDesign")
