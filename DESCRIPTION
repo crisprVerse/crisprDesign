@@ -1,12 +1,10 @@
 Package: crisprDesign
 Title: Core functions for CRISPR design
-Version: 0.99.153
+Version: 0.99.0
 Authors@R: c(
     person("Jean-Philippe", "Fortin", email = "fortin946@gmail.com", role = c("aut", "cre")),
     person("Luke", "Hoberecht", email = "hoberchl@gene.com", role = c("aut"))
     )
-Depends: R (>= 3.6.0),
-    crisprBase (>= 0.99.5)
 Description: 
     Provides a comprehensive suite of functions to design and annotate CRISPR guide RNA (gRNAs) sequences. This 
     includes on- and off-target search, on-target efficiency scoring, off-target scoring, full gene and TSS
@@ -14,12 +12,14 @@ Description:
     modalities (modes of perturbations): CRISPR knockout, CRISPR activation, CRISPR inhibition, and 
     CRISPR base editing (CRISPRbe). All types of CRISPR nucleases are supported. gRNA design can be performed
     on both reference genomes and custom DNA sequences.
+Depends: R (>= 3.6.0),
+    crisprBase (>= 0.99.5)
 Imports:
     AnnotationDbi,
     BiocGenerics,
     Biostrings,
     BSgenome,
-    crisprBowtie (>= 1.1.36),
+    crisprBowtie (>= 0.99.0),
     dplyr,
     GenomeInfoDb,
     GenomicFeatures,
