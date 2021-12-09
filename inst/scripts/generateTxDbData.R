@@ -1,4 +1,4 @@
-library(crisprDesignS4)
+library(crisprDesign)
 library(GenomicRanges)
 txdb <- getTxDb(organism="Homo sapiens")
 grList <- TxDb2GRangesList(txdb)

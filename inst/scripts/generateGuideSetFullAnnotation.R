@@ -1,4 +1,4 @@
-library(crisprDesignS4)
+library(crisprDesign)
 library(crisprDesignDataS4)
 library(crisprScore)
 library(biomaRt)
