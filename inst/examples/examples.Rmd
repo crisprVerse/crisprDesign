@@ -1,0 +1,266 @@
+---
+title: "Use cases for crisprDesign"
+author: 
+- name: Jean-Philippe Fortin
+  affiliation: OMNI Bioinformatics, gRED
+  email: fortinj2@gene.com
+- name: Luke Hoberecht
+  affiliation: OMNI Bioinformatics, gRED
+  email: hoberecl@gene.com
+date: "`r Sys.Date()`"
+output: 
+  BiocStyle::html_document:
+    toc_float: true
+    theme: paper
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{Use cases for crisprDesign}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+bibliography: references.bib
+---
+
+
+## This vignette contains several CRISPR-related problems that can be solved using ```crisprDesign```.
+
+<!-- example intro (short): in this vignette are several more in-depth tutorials displaying the utility of crisprDesign... -->
+<!-- note that each example will mostly contain steps for finding guides and omit details used to select the best quality guides (see intro vignette for functions to help with these steps) -->
+
+
+<!-- include use case for targeting custom (non-gene) region in genome, such as enhancer regions for epigenetic modification [source]? ...or append short explanation/description to crispra/i use case (since this specific instance also affects gene regulation)? -->
+
+# Use case 1: Find guides common to multiple genes (SMARCA2 and SMARCA4)
+
+```{r}
+library(crisprDesign)
+```
+
+Let's find guides for Cas9 that target both of the human genes SMARCA2 and SMARCA4, genes with sequence similarity. We will focus on the CDS of both genes.
+<!-- similary to paralogous knockout (combinatorial screens)? (don't need example, can mention that process is similar, or MEK1/MEK2, ERK1/ERK2) -->
+<!-- is this process similar to targeting specific/all isoforms of a gene? if not, should that be a use case? -->
+
+```{r, collapse=TRUE, eval=FALSE,results='hide'}
+smarca2 <- crisprDesignS4::searchIgis(data="cds", column="gene_symbol", value="SMARCA2")
+smarca4 <- crisprDesignS4::searchIgis(data="cds", column="gene_symbol", value="SMARCA4")
+
+smarca2 <- crisprDesignS4::getGuides(smarca2, nuclease="Cas9")
+smarca4 <- crisprDesignS4::getGuides(smarca4, nuclease="Cas9")
+
+common <- intersect(smarca2$spacer, smarca4$spacer)
+```
+
+
+We find two guides that have on-targets in both SMARCA2 and SMARCA4. Let's see if these guides have any off-targets or additional on-targets. We'll search up to 1 mismatch:
+
+```{r, collapse=TRUE, eval=FALSE,results='hide'}
+common_aln <- crisprDesignS4::getSpacerAlignments(common, v=1, nuclease="Cas9")
+# common_aln <- crisprDesignS4::addGeneOverlapInfo(common_aln, species="human")
+# summary <- crisprDesignS4::getAlignmentsSummary(common_aln, possibleGuides=common)
+```
+
+
+Our two guides only have on-targets in SMARCA2 and SMARCA4 and no off-targets having fewer than three mismatches. From these results, both guides appear to be good candidates for simultaneous targeting of SMARCA2 and SMARCA4.
+
+-------------------------------------------
+
+
+
+# Use case 2: Finding guides that target cDNA of TRRAP gene, but not endogenous gene locus
+
+[additional context] Here we will want to find a guide that spans multiple exons. This ensures that the cDNA is targeted while the intron in the endogenous gene occludes it from being targeted. We will also want to validate our results to ensure our guide does not incidently target another location in the host genome.
+We will use the human TRRAP gene. The gene has four coding exons, each having more than 60 exons [Ensembl], so there are many opportunities to work with. For the sake of simplicity, we will limit our analysis to a single transcript.
+
+```{r, warning=FALSE, message=FALSE, echo=TRUE,results='hide'}
+library(dplyr)
+```
+
+
+```{r, collapse=TRUE, warning=FALSE, eval=FALSE,results='hide'}
+# get transcript IDs for TRRAP gene having CDS
+trrap <- crisprDesignS4::searchIgis(data="cds", column="gene_symbol", value="TRRAP")
+trrap <- unique(trrap$tx_id)
+```
+
+```{r,eval=FALSE}
+trrap
+```
+
+```{r, collapse=TRUE, warning=FALSE, eval=FALSE,results='hide'}
+# work with first transcript
+trrap <- crisprDesignS4::searchIgis(data="cds", column="tx_id", value="ENST00000359863")
+trrap <- trrap[order(trrap$exon_rank)]
+
+# get guides in cDNA
+genome <- BSgenome.Hsapiens.UCSC.hg38
+seq <- getSeq(genome, trrap) %>% unlist %>% as.character
+guides <- crisprDesignS4::getGuides(seq, nuclease="Cas9")
+# guides <- crisprDesignS4::addSpacerAlignments(guides, v=1, nuclease="Cas9")
+
+# look for guides that don't align to genome
+# guides <- dplyr::filter(guides, sapply(aln, is.null))
+```
+
+```{r,eval=FALSE}
+nrow(guides)
+```
+
+Our initial search has yielded 27 candidate guides. We will next want to apply criteria that filter for our best guides. For example, for some of these guides the splice junction may occur at a PAM distal location, thereby retaining some residual Cas9 activity at the endogenous gene locus. Let's determine where in our guides the splice sites occur.
+
+```{r, collapse=TRUE, eval=FALSE, results='hide'}
+# find where splice junctions occur relative to PAM sites
+splice_site <- trrap$cDNA_start
+splice_site <- splice_site - min(splice_site) + 1 # adjust to pam_site (base 1)
+jct <- sapply(guides$pam_site, function(x){
+  temp <- abs(splice_site - x)
+  order(temp)[1]
+}) %>% unlist
+splice_site <- splice_site[jct]
+guides$splice_site <- splice_site - guides$pam_site
+neg <- guides$strand=="-"         # reverse orientation for negative strand
+guides$splice_site[neg] <- guides$pam_site[neg] - splice_site[neg]
+```
+
+```{r,eval=FALSE}
+head(guides)
+
+table(guides$splice_site)
+```
+
+Our original hypothesis that optimal target sites are located −60 to −100 bases upstream of the TSS was based on an experiment with scRNA 
+
+
+-------------------------------------------
+
+
+# Use case 3:  Designing CRISPRa guides for TIGIT
+
+For CRISPR activation (CRISPRa), optimal gene activation can be obtained for guides located -150 to -75 bases upstream of the transcription starting site (TSS); accurate TSS annotation is therefore crucial. A given gene can have more than one TSS, in some cases corresponding to different isoforms.  
+
+<!-- also similar process for using CRISPR for altering methylation status of promoter regions... -->
+
+We illustrate the design of CRISPRa guides using TIGIT as an example. TIGIT has one annotated TSS. Let's get all possible Cas9 guides within 200bp upstream of and including the TSS (a [-200,1] window relative to the TSS):
+
+```{r,results='hide'}
+tss <- crisprDesignS4::searchIgis(data='promoters', column='gene_symbol', value='TIGIT', species='human')
+# need to add promoters to acceptable data arg
+guides.cas9 <- crisprDesignS4::getGuides(tss, nuclease='Cas9')
+```
+
+Let's annotate the guides as before:
+
+```{r,results='hide'}
+aln.cas9 <- crisprDesignS4::getSpacerAlignments(guides.cas9$spacer, v=1)
+guides.cas9 <- crisprDesignS4::addSeqStats(guides.cas9)
+guides.cas9 <- crisprDesignS4::addRestrictionSites(guides.cas9)
+```
+
+It is useful to add a column indicating the distance of the guide PAM site to the TSS:
+```{r,results='hide'}
+# guides.cas9$dist_to_tss <- guides.cas9$pam_site-tss$tss_pos
+# no tss_pos
+```
+
+We can also add a column indicating if the guides were included in our whole-genome hCRISPRa library (named Sonata):
+
+```{r,results='hide'}
+# guides.cas9$inSonata <- addLibraryUsage(guides.cas9)$lib_crispra.cas9.human.sonata.wholegenome
+```
+
+TIGIT is one example where few Cas9 guides can be found in the optimal activation window; the promoter region of TIGIT is AT rich, and therefore NGG PAM sites are not common. Would we have better luck with Cas12a? 
+
+```{r,results='hide'}
+guides.cas12a  <- crisprDesignS4::getGuides(tss, nuclease='Cas12a')
+aln.cas12a  <- crisprDesignS4::getSpacerAlignments(guides.cas12a$spacer, v=1, nuclease='Cas12a')
+guides.cas12a  <- crisprDesignS4::addSeqStats(guides.cas12a, nuclease='Cas12a')
+guides.cas12a  <- crisprDesignS4::addRestrictionSites(guides.cas12a, nuclease='Cas12a')
+# guides.cas12a$dist_to_tss <- guides.cas12a$pam_site-tss$tss_pos
+```
+
+Let's visualize the possible guides within 150bp upstream of the TSS for each nuclease:
+
+```{r, fig.width=8, fig.height=5, fig.align='center', echo=FALSE}
+library(shape)
+plot(NA,NA, xlim=c(-150,0), ylim=c(-1,1), col="white", yaxt="n",
+     xlab='Distance to TSS', ylab='', main='Possible guides targeting TIGIT TSS')
+abline(h=0, lwd=5)
+Arrows(guides.cas9$dist_to_tss, 0.5, guides.cas9$dist_to_tss, 0.1,
+       arr.type='triangle', col='steelblue')
+Arrows(guides.cas12a$dist_to_tss, -0.5, guides.cas12a$dist_to_tss, -0.1,
+       arr.type='triangle', col='firebrick')
+legend('topleft', legend=c('Cas9', 'cas12a'), col=c('steelblue', 'firebrick'), lwd=2)
+
+```
+
+-------------------------------------------
+
+# Use case 4:  CRISPRko near-saturation mutagenesis of TRRAP
+
+[some intro]
+
+First, let's get all possible Cas9 guides targeting the principal isoform of TRAPP:
+
+```{r,results='hide'}
+df <- searchIgis(data="cds", column="gene_symbol", value="TRRAP")
+df <- df[df$tx_id=="ENST00000355540"]
+guides <- getGuides(df)
+```
+
+```{r,results='hide'}
+guides <- addGeneAnnotation(guides)
+```
+
+-------------------------------------------
+
+# Use case 5: Searching for off-targets in DNA sequences other than reference genomes 
+
+There are applications of CRISPR for which users need to check if a given sgRNA spacer sequence has off-targets located on a DNA sequence other than reference genomes. For instance, designing sgRNAs with no off-targets to an exogenous construct, for instance a transgene expressed from a plasmid vector. 
+Suppose the DNA sequence of the transgene (say a cDNA construct for a gene of interest) is 
+
+```{r}
+transgene <- "ACGAAACTCTGCTAGACATGTGGCGGTTTAGCCAGCTCCCCACATGTCTAGCACAGTTTTGTATGTAT"
+```
+
+and supposed that we want to test whether or not two sgRNAs designed for CRISPR/Cas9 as potental off-targets located on the transgene. Let 
+
+
+```{r}
+spacers = c("ACAAAACTGTGCTAGACATG","ACTAAACTGTGCTAGACAAC")
+```
+be the two spacer 20mer sequences. The function `getSpacerAlignments` enables this. The following command
+
+```{r}
+aln <- getSpacerAlignments(spacers, v=5, nuclease="Cas9", custom_seq=transgene, canonical=TRUE, both_strands=TRUE)
+head(aln, n=5)
+```
+
+returns a data.frame putative off-targets with up to $v=5$ mismatches, consdering only canonical PAM sequences for Cas9. The option `both_strands=TRUE` specifies that both strands should be considered when searching for off-targets. The `pam_site` column specifes the PAM location of the protospacers on the custom DNA sequence, where 1 denotes the first nucleotide of the user-provided DNA sequence.
+
+### Calculating cutting likelihood at off-targets located on a custom DNA sequence
+
+Using `crisprScore`, it is easy to calculate off-target scores that predict the likelihood that a given sgRNA cuts at a putative off-target located on a custom DNA sequence. Users can directly use the functions `getMitScores` and `getCFDScores` from `crisprScore` on the alignment summary returned by `getSpacerAlignments`:
+
+```{r}
+protospacers.wt  <- paste0(aln$spacer_20mer, "AGG")
+protospacers.mut <- paste0(aln$protospacer_20mer, aln$pam)
+aln$score_mit <- crisprScore:::getMitScores(spacers.pam.wt = protospacers.wt, spacers.pam.off = protospacers.mut)$score
+aln$score_cfd <- crisprScore:::getCFDScores(spacers.pam.wt = protospacers.wt, spacers.pam.off = protospacers.mut)$score
+head(aln)
+
+```
+
+See the `crisprScore` vignette for more information about the different off-target scoring algorithms. 
+
+-------------------------------------------
+
+# Use case 6: CRISPRbe
+
+
+
+# References
+
+<!-- footnotes -->
+
+[^1]: An sgRNA spacer sequence does not always uniquely target the host genome (a given sgRNA spacer can map to multiple protospacers in the genome). Here, we define sgRNA uniqueness by its spacer sequence, even though it can map to multiple loci. The list of multiple targets for a given sgRNA will be annotated further downstream. 
+
+[^2]: Since there are multiple gRNA:DNA alignments for a given sgRNA spacer, this is best represented by a list-column supported by a `tibble` object. Other than printing, `tibble` objects behave largely similar to `data.frame` objects. 
+

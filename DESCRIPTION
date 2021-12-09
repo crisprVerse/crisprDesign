@@ -1,0 +1,56 @@
+Package: crisprDesign
+Title: Core functions for CRISPR design
+Version: 0.99.153
+Authors@R: c(
+    person("Jean-Philippe", "Fortin", email = "fortin946@gmail.com", role = c("aut", "cre")),
+    person("Luke", "Hoberecht", email = "hoberchl@gene.com", role = c("aut"))
+    )
+Depends: R (>= 3.6.0),
+    crisprBase (>= 0.99.5)
+Description: 
+    Provides a comprehensive suite of functions to design and annotate CRISPR guide RNA (gRNAs) sequences. This 
+    includes on- and off-target search, on-target efficiency scoring, off-target scoring, full gene and TSS
+    contextual annotations, and SNP annotation (human only). It currently support four types of CRISPR 
+    modalities (modes of perturbations): CRISPR knockout, CRISPR activation, CRISPR inhibition, and 
+    CRISPR base editing (CRISPRbe). All types of CRISPR nucleases are supported. gRNA design can be performed
+    on both reference genomes and custom DNA sequences.
+Imports:
+    AnnotationDbi,
+    BiocGenerics,
+    Biostrings,
+    BSgenome,
+    crisprBowtie (>= 1.1.36),
+    dplyr,
+    GenomeInfoDb,
+    GenomicFeatures,
+    GenomicRanges (>= 1.38.0),
+    IRanges,
+    MatrixGenerics,
+    methods,
+    Rbowtie,
+    S4Vectors,
+    stats,
+    utils,
+    VariantAnnotation
+Suggests:
+    biomaRt,
+    BSgenome.Hsapiens.UCSC.hg38,
+    BSgenome.Mmusculus.UCSC.mm10,
+    crisprAnnotation (>= 1.1.31),
+    crisprScore (>= 0.99.11),
+    BiocStyle,
+    knitr,
+    rmarkdown,
+    shape,
+    testthat
+biocViews:
+    CRISPR,
+    FunctionalGenomics,
+    GeneTarget
+License: MIT + file LICENSE
+Encoding: UTF-8
+RoxygenNote: 7.1.2
+VignetteBuilder: knitr
+BugReports: https://github.com/Jfortin1/crisprDesign/issues
+URL: https://github.com/Jfortin1/crisprDesign
+LazyData: TRUE

@@ -1,0 +1,4 @@
+vignettes/deprecated/*
+R/todo.txt
+R/old/
+inst/tss/source
