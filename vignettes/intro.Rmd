@@ -295,9 +295,27 @@ annotate genomic alignments with a gene model annotation. This is useful
 to understand whether or not off-targets are located in the CDS of
 another gene, for instance. 
 
+First, we will build a bowtie index using the toy example fasta file
+provided in `crisprDesign` representing the beginning of chr12 on which 
+the gene IQSEC3 is located. We use the `RBowtie` package to build the index:
+
+```{r}
+library(Rbowtie)
+fasta <- system.file(package="crisprDesign", "fasta/chr12.fa")
+outdir <- tempdir()
+Rbowtie::bowtie_build(fasta,
+                      outdir=outdir,
+                      force=TRUE,
+                      prefix="chr12")
+bowtie_index <- file.path(outdir, "chr12")
+```
+
+and we pass the bowtie index path to the `addSpacerAlignments` function:
+
 ```{r, results='hide', warning=FALSE}
 guideSet <- addSpacerAlignments(guideSet,
                                 txObject=grListExample,
+                                bowtie_index=bowtie_index,
                                 n_mismatches=1)
 ```
 

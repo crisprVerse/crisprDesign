@@ -42,3 +42,4 @@ guideSetExampleFullAnnotation <- gs
 use_data(guideSetExampleFullAnnotation,
          compress="xz",
          overwrite=TRUE)
+
