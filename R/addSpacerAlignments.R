@@ -996,7 +996,7 @@ getSpacerAlignments <- function(spacers,
 
     # Create summary columns:
     cols <- c('', '_c', '_nc', '_p')
-    nn <- ifelse(max_mm<=3,3 max_mm)
+    nn <- ifelse(max_mm<=3,3, max_mm)
     cols <- lapply(cols, function(x){
         paste0('n', c(0,seq_len(nn)), x)
     })
