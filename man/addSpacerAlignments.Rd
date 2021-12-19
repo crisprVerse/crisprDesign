@@ -9,13 +9,14 @@
 \usage{
 addSpacerAlignmentsIterative(
   guideSet,
-  aligner = c("bowtie", "blast", "biostrings"),
+  aligner = c("bowtie", "bwa", "biostrings"),
   columnName = "alignments",
   addSummary = TRUE,
   txObject = NULL,
   tssObject = NULL,
   custom_seq = NULL,
   bowtie_index = NULL,
+  bwa_index = NULL,
   seqlevelsStyle = c("UCSC", "NCBI"),
   bsgenome = NULL,
   n_mismatches = 0,
@@ -33,13 +34,14 @@ addSpacerAlignmentsIterative(
 
 addSpacerAlignments(
   guideSet,
-  aligner = c("bowtie", "blast", "biostrings"),
+  aligner = c("bowtie", "bwa", "biostrings"),
   columnName = "alignments",
   addSummary = TRUE,
   txObject = NULL,
   tssObject = NULL,
   custom_seq = NULL,
   bowtie_index = NULL,
+  bwa_index = NULL,
   seqlevelsStyle = c("UCSC", "NCBI"),
   bsgenome = NULL,
   n_mismatches = 0,
@@ -55,9 +57,10 @@ addSpacerAlignments(
 
 getSpacerAlignments(
   spacers,
-  aligner = c("bowtie", "blast", "biostrings"),
+  aligner = c("bowtie", "bwa", "biostrings"),
   custom_seq = NULL,
   bowtie_index = NULL,
+  bwa_index = NULL,
   seqlevelsStyle = c("UCSC", "NCBI"),
   bsgenome = NULL,
   n_mismatches = 0,
@@ -75,7 +78,7 @@ getSpacerAlignments(
 \item{guideSet}{A \linkS4class{GuideSet} object.}
 
 \item{aligner}{Which genomic alignment method should be used?
- Must be one of "bowtie", "blast", and "biostrings".
+ Must be one of "bowtie", "bwa", and "biostrings".
 "bowtie" by default.}
 
 \item{columnName}{String specifying the columm name storing the alignments
@@ -94,7 +97,9 @@ on-target and off-target alignments using gene annotation.}
 the search space. This will limit the off-target
 search to the specified custom sequence.}
 
-\item{bowtie_index}{Path to the bowtie index to be used for alignment.}
+\item{bowtie_index}{String specifying bowtie index when \code{aligner=="bowtie"}.}
+
+\item{bwa_index}{String specifying BWA index when \code{aligner=="bwa"}.}
 
 \item{seqlevelsStyle}{String specifying which type of seqnames
 should be used. Default is "UCSC" (e.g. "chr7"; "NCBI"

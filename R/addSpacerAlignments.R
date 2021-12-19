@@ -6,7 +6,7 @@
 #' 
 #' @param guideSet A \linkS4class{GuideSet} object.
 #' @param aligner Which genomic alignment method should be used?
-#'     Must be one of "bowtie", "blast", and "biostrings".
+#'     Must be one of "bowtie", "bwa", and "biostrings".
 #'    "bowtie" by default.
 #' @param columnName String specifying the columm name storing the alignments
 #'     in \code{mcols(guideSet)}. "alignments" by default.
@@ -21,7 +21,8 @@
 #' @param custom_seq Optional string specifying the target DNA sequence for
 #'     the search space. This will limit the off-target
 #'     search to the specified custom sequence. 
-#' @param bowtie_index Path to the bowtie index to be used for alignment.
+#' @param bowtie_index String specifying bowtie index when \code{aligner=="bowtie"}.
+#' @param bwa_index String specifying BWA index when \code{aligner=="bwa"}.
 #' @param seqlevelsStyle String specifying which type of seqnames
 #'     should be used. Default is "UCSC" (e.g. "chr7"; "NCBI"
 #'     style would be "7").
@@ -146,13 +147,14 @@ NULL
 #' @rdname addSpacerAlignments
 #' @export
 addSpacerAlignmentsIterative <- function(guideSet,
-                                         aligner=c("bowtie", "blast", "biostrings"),
+                                         aligner=c("bowtie", "bwa", "biostrings"),
                                          columnName="alignments",
                                          addSummary=TRUE,
                                          txObject=NULL,
                                          tssObject=NULL,
                                          custom_seq=NULL,
                                          bowtie_index=NULL,
+                                         bwa_index=NULL,
                                          seqlevelsStyle=c("UCSC", "NCBI"),
                                          bsgenome=NULL,
                                          n_mismatches=0,
@@ -177,6 +179,7 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                         addSummary=TRUE,
                                         custom_seq=custom_seq,
                                         bowtie_index=bowtie_index,
+                                        bwa_index=bwa_index,
                                         seqlevelsStyle=seqlevelsStyle,
                                         bsgenome=bsgenome,
                                         n_mismatches=0,
@@ -206,6 +209,7 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                                                 tssObject=tssObject,
                                                                 custom_seq=custom_seq,
                                                                 bowtie_index=bowtie_index,
+                                                                bwa_index=bwa_index,
                                                                 seqlevelsStyle=seqlevelsStyle,
                                                                 bsgenome=bsgenome, 
                                                                 n_mismatches=1,
@@ -227,6 +231,7 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                                                 tssObject=tssObject,
                                                                 custom_seq=custom_seq,
                                                                 bowtie_index=bowtie_index,
+                                                                bwa_index=bwa_index,
                                                                 seqlevelsStyle=seqlevelsStyle,
                                                                 bsgenome=bsgenome, 
                                                                 n_mismatches=2,
@@ -248,6 +253,7 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                                                 tssObject=tssObject,
                                                                 custom_seq=custom_seq,
                                                                 bowtie_index=bowtie_index,
+                                                                bwa_index=bwa_index,
                                                                 seqlevelsStyle=seqlevelsStyle,
                                                                 bsgenome=bsgenome, 
                                                                 n_mismatches=3,
@@ -268,11 +274,18 @@ addSpacerAlignmentsIterative <- function(guideSet,
 
 
 
-.aln_cols <- function(excludePromoter=FALSE){
-    cols <- c("n0", "n0_c", "n0_p",
-              "n1", "n1_c", "n1_p",
-              "n2", "n2_c", "n2_p",
-              "n3", "n3_c", "n3_p")
+.aln_cols <- function(n_mismatches,
+                      excludePromoter=FALSE
+){
+    if (n_mismatches<=3){
+        n_mismatches=3
+    }
+    cols <- c()
+    for (k in c(0,seq_len(n_mismatches))){
+        temp <- paste0("n", k, c("", "_c", "_p"))
+        cols <- c(cols, temp)
+    }
+    
     if (excludePromoter){
         cols <- cols[!grepl("_p", cols)]
     }
@@ -287,13 +300,14 @@ addSpacerAlignmentsIterative <- function(guideSet,
 #' @export
 #' @importFrom S4Vectors split
 addSpacerAlignments <- function(guideSet,
-                                aligner=c("bowtie", "blast", "biostrings"),
+                                aligner=c("bowtie", "bwa", "biostrings"),
                                 columnName="alignments",
                                 addSummary=TRUE,
                                 txObject=NULL,
                                 tssObject=NULL,
                                 custom_seq=NULL,
                                 bowtie_index=NULL,
+                                bwa_index=NULL,
                                 seqlevelsStyle=c("UCSC", "NCBI"),
                                 bsgenome=NULL,
                                 n_mismatches=0,
@@ -306,15 +320,14 @@ addSpacerAlignments <- function(guideSet,
                                 both_strands=TRUE,
                                 tss_window=NULL
 ){
-    #if (is.null(txObject) & aligner != "biostrings"){
-    #    stop("txObject must be provided.")
-    #}
+    aligner <- match.arg(aligner)
     tssObject <- .validateTssObject(tssObject)
     guideSet  <- .validateGuideSet(guideSet)
     crisprNuclease <- crisprNuclease(guideSet)
     seqlevelsStyle <- match.arg(seqlevelsStyle)
     tss_window   <- .validateTssWindow(tss_window)
-    n_mismatches <- .validateNumberOfMismatches(n_mismatches)
+    n_mismatches <- .validateNumberOfMismatches(n_mismatches,
+                                                isBowtie=aligner=="bowtie")
     spacers <- spacers(guideSet,
                        as.character=TRUE)
     uniqueSpacers <- unique(spacers)
@@ -323,6 +336,7 @@ addSpacerAlignments <- function(guideSet,
                                n_mismatches=n_mismatches,
                                custom_seq=custom_seq,
                                bowtie_index=bowtie_index,
+                               bwa_index=bwa_index,
                                seqlevelsStyle=seqlevelsStyle,
                                bsgenome=bsgenome,
                                n_max_alignments=n_max_alignments,
@@ -350,7 +364,7 @@ addSpacerAlignments <- function(guideSet,
                                          possibleGuides=spacers)           
         summary <- summary[, !grepl("_nc$", colnames(summary))]
         summary <- summary[match(spacers, summary$spacer),, drop=FALSE]
-        cols <- .aln_cols()
+        cols <- .aln_cols(n_mismatches)
         if (sum(cols %in% colnames(mcols(guideSet)))>0){
             warning("Overwriting existing alignments summary. To ",
                     "avoid overwriting, set addSummary=FALSE.")
@@ -381,9 +395,10 @@ addSpacerAlignments <- function(guideSet,
 #' @export
 #' @importFrom GenomeInfoDb seqlevelsStyle<-
 getSpacerAlignments <- function(spacers,
-                                aligner=c("bowtie", "blast", "biostrings"),
+                                aligner=c("bowtie", "bwa", "biostrings"),
                                 custom_seq=NULL,
                                 bowtie_index=NULL,
+                                bwa_index=NULL,
                                 seqlevelsStyle=c("UCSC", "NCBI"),
                                 bsgenome=NULL,
                                 n_mismatches=0,
@@ -419,6 +434,16 @@ getSpacerAlignments <- function(spacers,
                                                ignore_pam=ignore_pam,
                                                cut_offset=cut_offset,
                                                standard_chr_only=standard_chr_only)
+    } else if (aligner=="bwa"){
+        results <- .getSpacerAlignments_bwa(spacers,
+                                            bwa_index=bwa_index,
+                                            bsgenome=bsgenome,
+                                            n_mismatches=n_mismatches,
+                                            crisprNuclease=crisprNuclease,
+                                            canonical=canonical,
+                                            ignore_pam=ignore_pam,
+                                            cut_offset=cut_offset,
+                                            standard_chr_only=standard_chr_only)
     } else if (aligner=="biostrings"){
         results <- .getSpacerAlignments_biostrings(spacers,
                                                    custom_seq=custom_seq,
@@ -427,10 +452,8 @@ getSpacerAlignments <- function(spacers,
                                                    canonical=canonical,
                                                    both_strands=both_strands,
                                                    cut_offset=cut_offset)
-    } else {
-        results <- .getSpacerAlignments_blast(spacers)
     }
-    if (aligner =="bowtie"){
+    if (aligner %in% c("bowtie", "bwa")){
         seqlevelsStyle(results) <- seqlevelsStyle
     }
     return(results)
@@ -484,7 +507,8 @@ getSpacerAlignments <- function(spacers,
 
     #If no alignments, return empty data frame:
     if (nrow(results)==0){
-        emptyDF <- .returnEmptyAlignments(spacers)
+        emptyDF <- .returnEmptyAlignments(spacers,
+                                          n_mismatches=n_mismatches)
         return(emptyDF)
     }
 
@@ -561,6 +585,115 @@ getSpacerAlignments <- function(spacers,
 
 
 
+#' @importFrom crisprBwa runCrisprBwa
+#' @importFrom crisprBase pamLength pamSide
+#' @importFrom GenomeInfoDb keepStandardChromosomes
+#' @importFrom GenomeInfoDb isCircular<- isCircular
+#' @importFrom GenomeInfoDb seqinfo<- seqinfo Seqinfo
+#' @importFrom GenomeInfoDb genome<- genome
+.getSpacerAlignments_bwa <- function(spacers,
+                                     bwa_index=NULL,
+                                     bsgenome=NULL,
+                                     n_mismatches=0,
+                                     crisprNuclease=NULL,
+                                     canonical=TRUE,
+                                     ignore_pam=FALSE,
+                                     cut_offset=NULL,
+                                     standard_chr_only=TRUE
+){
+    crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
+    spacers    <- as.character(spacers)
+    spacer_len <- unique(nchar(spacers))
+    pamside <- pamSide(crisprNuclease)
+    pamlen  <- pamLength(crisprNuclease)
+    if (length(spacer_len) > 1){
+        stop("All spacer sequences must have the same length.")
+    }
+
+    #Performing alignment:
+    results <- runCrisprBwa(spacers=spacers,
+                            bwa_index=bwa_index,
+                            n_mismatches=n_mismatches,
+                            crisprNuclease=crisprNuclease,
+                            canonical=canonical,
+                            ignore_pam=ignore_pam,
+                            force_spacer_length=TRUE)
+
+    #If no alignments, return empty data frame:
+    if (nrow(results)==0){
+        emptyDF <- .returnEmptyAlignments(spacers,
+                                          n_mismatches=n_mismatches)
+        return(emptyDF)
+    }
+
+    #Filter and rename chromosomes:
+    results <- results[results$chr!="chrEBV",,drop=FALSE]
+    results$chr[results$chr=="chrMT"] <- "chrM"
+    results$cut_site <- getCutSiteFromPamSite(pam_site=results$pam_site,
+                                              strand=results$strand,
+                                              crisprNuclease=crisprNuclease,
+                                              cut_offset=cut_offset)
+    
+    #Setting mismatch locations relative to PAM site:
+    wh <- which(results$n_mismatches!=0)
+    if (pamside=="3prime"){
+        rel.pam <- -(spacer_len + 1)
+    } else {
+        rel.pam <- pamlen-1
+    }
+    if (n_mismatches>0){
+        for (k in seq_len(n_mismatches)){
+            col <- paste0("mm", k)
+            results[[col]][wh] <- results[[col]][wh] + rel.pam
+        }
+    }
+  
+    #Transforming to a GRanges:
+    results <- .as_gr(results)
+    results$query  <- DNAStringSet(results$spacer)
+    results$spacer <- DNAStringSet(results$protospacer)
+    results$protospacer <- NULL
+    results$pam         <- DNAStringSet(results$pam)
+
+    # Adding metadata:
+    metadata(results)$crisprNuclease <- crisprNuclease
+    metadata(results)$aligner  <- "bwa"
+    if (exists("n_mismatches")){
+        metadata(results)$n_mismatches <- n_mismatches
+    } 
+    metadata(results)$spacer_len <- unique(nchar(as.character(results$spacer)))
+    names(results) <- paste0("aln_", seq_along(results))
+
+
+
+    if (!is.null(bsgenome)){
+        info <- seqinfo(bsgenome)
+    } else {
+        levs <- unique(as.character(seqnames(results)))
+        info <- GenomeInfoDb::Seqinfo(levs)
+    }
+
+
+    if (standard_chr_only){
+        info <- keepStandardChromosomes(info)
+        valid <- as.character(seqnames(results)) %in% seqnames(info)
+        results <- results[valid]
+        results <- keepStandardChromosomes(results)
+    }
+    
+    if (!is.null(bsgenome)){
+        genome(results)  <- genome(info)[1]
+        lens  <- seqlengths(info)[as.character(seqnames(seqinfo(results)))]
+        circs <- isCircular(info)[as.character(seqnames(seqinfo(results)))]
+        seqlengths(seqinfo(results)) <- lens
+        isCircular(seqinfo(results)) <- circs
+    }
+     
+    return(results)
+}
+
+
+
 
 
 #spacers = c("ACAAAACTGTGCTAGACATG","ACTAAACTGTGCTAGACAAC")
@@ -590,11 +723,6 @@ getSpacerAlignments <- function(spacers,
                                                 len=1,
                                                 nullOk=FALSE,
                                                 exactBases=FALSE)
-    # if (length(custom_seq)>1){
-    #     stop("custom_seq must be a character vector of length 1")
-    # }
-    # custom_seq <- as.character(custom_seq)
-
 
     # Iterating over spacers:
     results <- lapply(spacers, function(spacer){
@@ -626,9 +754,11 @@ getSpacerAlignments <- function(spacers,
         locs <- .removeInvalidProtospacers(df=locs,
                                            canonical=canonical,
                                            crisprNuclease=crisprNuclease,
-                                           custom_seq=custom_seq)
+                                           custom_seq=custom_seq,
+                                           n_mismatches=n_mismatches)
         if (is.null(locs)){
-            locs <- .returnEmptyAlignments(spacers)
+            locs <- .returnEmptyAlignments(spacers,
+                                           n_mismatches=n_mismatches)
         }
         return(locs)
     })
@@ -636,7 +766,8 @@ getSpacerAlignments <- function(spacers,
     # Combining
     ns <- vapply(results, nrow, FUN.VALUE=1)
     if (sum(ns==0)==length(ns)){
-        locs <- .returnEmptyAlignments(spacers)
+        locs <- .returnEmptyAlignments(spacers,
+                                       n_mismatches=n_mismatches)
         return(locs)
     } else {
         locs <- results[ns>0]
@@ -697,7 +828,7 @@ getSpacerAlignments <- function(spacers,
     words2 <- Biostrings::DNAStringSet(words2)
     x1 <- as.matrix(words1)
     x2 <- as.matrix(words2)
-    whs <- apply(x1!=x2,1,which)
+    whs <- apply(x1!=x2,1,which, simplify=FALSE)
     mm <- lapply(whs, function(wh){
         wh <- c(wh, rep(NA, n_mismatches-length(wh)))
         return(wh)
@@ -713,7 +844,8 @@ getSpacerAlignments <- function(spacers,
 .removeInvalidProtospacers <- function(df,
                                        canonical,
                                        custom_seq,
-                                       crisprNuclease
+                                       crisprNuclease,
+                                       n_mismatches
 ){
     if (is.null(df)) {
         return(df)
@@ -730,7 +862,8 @@ getSpacerAlignments <- function(spacers,
     }
     good <- good_fwd | good_rev
     if (sum(good)==0){
-        df <- .returnEmptyAlignments(spacers)
+        df <- .returnEmptyAlignments(spacers,
+                                     n_mismatches=n_mismatches)
         return(df)
     } else {
         df <- df[good,,drop=FALSE]
@@ -800,12 +933,11 @@ getSpacerAlignments <- function(spacers,
 
 
 
-.getSpacerAlignments_blast <- function(spacers){
-    stop("Blast alignment not yet implemented.")
-}
 
 
-.returnEmptyAlignments <- function(spacers){
+.returnEmptyAlignments <- function(spacers,
+                                   n_mismatches
+){
     spacer_len <- unique(nchar(spacers))
     spacer_col <- paste0('spacer_', spacer_len, 'mer')
     protospacer_col <- paste0('protospacer_', spacer_len, 'mer')
@@ -815,10 +947,13 @@ getSpacerAlignments <- function(spacers,
                           pam=character(0),
                           cut_site=numeric(0),
                           canonical=logical(0),
-                          n_mismatches=numeric(0),
-                          mm1=numeric(0),
-                          mm2=numeric(0),
-                          mm3=numeric(0))
+                          n_mismatches=numeric(0))
+    if (n_mismatches>0){
+        for (k in seq_len(n_mismatches)){
+            col <- paste0("mm", k)
+            emptyDF[[col]] <- numeric(0)
+        }
+    }
 
     emptyDF[[spacer_col]] <- character(0)
     emptyDF[[protospacer_col]] <- character(0)
@@ -861,8 +996,9 @@ getSpacerAlignments <- function(spacers,
 
     # Create summary columns:
     cols <- c('', '_c', '_nc', '_p')
+    nn <- ifelse(max_mm<=3,3 max_mm)
     cols <- lapply(cols, function(x){
-        paste0('n', 0:3, x)
+        paste0('n', c(0,seq_len(nn)), x)
     })
     cols <- unlist(cols)
     df[cols] <- NA
@@ -923,10 +1059,15 @@ getSpacerAlignments <- function(spacers,
 
 
 
-.validateNumberOfMismatches <- function(n_mismatches){
+.validateNumberOfMismatches <- function(n_mismatches,
+                                        isBowtie=FALSE
+){
     stopifnot(is.numeric(n_mismatches))
-    if (!n_mismatches %in% c(0, 1,2,3)){
-        stop('"n_mismatches" must be an integer between 0 and 3, inclusive.')
+    if (isBowtie){
+        if (!n_mismatches %in% c(0, 1, 2, 3)){
+            stop('For bowtie, "n_mismatches" must be an integer ',
+                 'between 0 and 3, inclusive.')
+        }
     }
     return(n_mismatches)
 }

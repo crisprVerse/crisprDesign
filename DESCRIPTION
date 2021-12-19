@@ -1,6 +1,6 @@
 Package: crisprDesign
 Title: Core functions for CRISPR design
-Version: 0.99.0
+Version: 0.99.1
 Authors@R: c(
     person("Jean-Philippe", "Fortin", email = "fortin946@gmail.com", role = c("aut", "cre")),
     person("Luke", "Hoberecht", email = "hoberchl@gene.com", role = c("aut"))
@@ -20,6 +20,7 @@ Imports:
     Biostrings,
     BSgenome,
     crisprBowtie (>= 0.99.0),
+    crisprBwa,
     dplyr,
     GenomeInfoDb,
     GenomicFeatures,

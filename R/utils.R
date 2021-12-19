@@ -429,21 +429,17 @@ compact <- function(x) {
 
 
 .identicalNucleases <- function(nuc1, nuc2){
-    cond1 <- identical(nucleaseName(nuc1),
-                       nucleaseName(nuc2))
-    cond2 <- identical(metadata(nuc1),
-                       metadata(nuc2))
-    cond3 <- identical(cutSites(nuc1),
+    cond1 <- identical(cutSites(nuc1),
                        cutSites(nuc2))
-    cond4 <- identical(spacerLength(nuc1),
+    cond2 <- identical(spacerLength(nuc1),
                        spacerLength(nuc2))
-    cond5 <- identical(pams(nuc1, as.character=TRUE),
+    cond3 <- identical(pams(nuc1, as.character=TRUE),
                        pams(nuc2, as.character=TRUE))
-    cond6 <- identical(weights(nuc1),
+    cond4 <- identical(weights(nuc1),
                        weights(nuc2))
-    cond7 <- identical(motifs(nuc1, as.character=TRUE),
+    cond5 <- identical(motifs(nuc1, as.character=TRUE),
                        motifs(nuc2, as.character=TRUE))
-    cond1 & cond2 & cond3 & cond4 & cond5 & cond6 & cond7
+    cond1 & cond2 & cond3 & cond4 & cond5 
 }  
 
 
