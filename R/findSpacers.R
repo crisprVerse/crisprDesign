@@ -74,7 +74,7 @@
 #' @importFrom GenomeInfoDb isCircular isCircular<- 
 #' @importFrom GenomeInfoDb genome genome<- seqinfo seqinfo<-
 #' @importFrom GenomeInfoDb keepStandardChromosomes
-#' @importFrom crisprBase hasSpacerGap isCutting
+#' @importFrom crisprBase hasSpacerGap isCutting isRnase
 #' @export
 findSpacers <- function(x,
                         bsgenome=NULL,
@@ -91,6 +91,10 @@ findSpacers <- function(x,
     crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
     if (hasSpacerGap(crisprNuclease)){
         stop("CRISPR nucleases with spacer gaps are not ",
+             "supported at the moment.")
+    }
+    if (isRnase(crisprNuclease)){
+        stop("RNA-targeting CRISPR nucleases are not ",
              "supported at the moment.")
     }
     if (!isCutting(crisprNuclease)){
