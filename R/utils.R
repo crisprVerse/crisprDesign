@@ -429,6 +429,8 @@ compact <- function(x) {
 
 
 .identicalNucleases <- function(nuc1, nuc2){
+    cond0 <- identical(pamSide(nuc1),
+                       pamSide(nuc2))
     cond1 <- identical(cutSites(nuc1),
                        cutSites(nuc2))
     cond2 <- identical(spacerLength(nuc1),
@@ -439,7 +441,7 @@ compact <- function(x) {
                        weights(nuc2))
     cond5 <- identical(motifs(nuc1, as.character=TRUE),
                        motifs(nuc2, as.character=TRUE))
-    cond1 & cond2 & cond3 & cond4 & cond5 
+    cond0 & cond1 & cond2 & cond3 & cond4 & cond5 
 }  
 
 

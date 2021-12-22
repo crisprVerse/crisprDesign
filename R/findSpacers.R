@@ -278,7 +278,7 @@ findSpacers <- function(x,
 
 
 
-#' @importFrom crisprBase pams spacerSide
+#' @importFrom crisprBase pams
 .findSpacersFromDNAStringSet <- function(dna,
                                          crisprNuclease=NULL,
                                          canonical=TRUE,
@@ -300,7 +300,7 @@ findSpacers <- function(x,
                                    name){
         pam_ir <- matchPDict(pams,dna_string) 
         pam_ir <- Reduce(c, pam_ir)
-        if (spacerSide(crisprNuclease)=="5prime"){
+        if (pamSide(crisprNuclease)=="3prime"){
             spacer_ir <- flank(pam_ir,
                                width=spacer_len,
                                start=TRUE)

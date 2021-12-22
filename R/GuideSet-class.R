@@ -10,8 +10,6 @@
 #'     \item{\code{spacers}:}{To get spacer sequences.}
 #'     \item{\code{protospacers}:}{To get protospacer sequences.}
 #'     \item{\code{spacerLength}:}{To get spacer length.}
-#'     \item{\code{spacerSide}:}{To return the side of the spacer sequence
-#'         with respect to the PAM sequence.}
 #'     \item{\code{protospacerLength}:}{To get protospacer length.}
 #'     \item{\code{pams}:}{To get PAM sequences.}
 #'     \item{\code{pamSites}:}{To get PAM site coordinates.}
@@ -242,15 +240,6 @@ setMethod("spacerLength", "GuideSet",
     return(out)
 })
 
-#' @rdname GuideSet-class
-#' @export
-#' @importFrom crisprBase spacerSide
-setMethod("spacerSide", "GuideSet", 
-    function(object){
-    nuc <- metadata(object)$CrisprNuclease
-    out <- spacerSide(nuc)
-    return(out)
-})
 
 
 

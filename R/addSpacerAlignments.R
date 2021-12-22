@@ -21,8 +21,10 @@
 #' @param custom_seq Optional string specifying the target DNA sequence for
 #'     the search space. This will limit the off-target
 #'     search to the specified custom sequence. 
-#' @param bowtie_index String specifying bowtie index when \code{aligner=="bowtie"}.
-#' @param bwa_index String specifying BWA index when \code{aligner=="bwa"}.
+#' @param bowtie_index String specifying bowtie index.
+#'     Must be provided when \code{aligner=="bowtie"}.
+#' @param bwa_index String specifying BWA index.
+#'     Must be provided when \code{aligner=="bwa"}.
 #' @param seqlevelsStyle String specifying which type of seqnames
 #'     should be used. Default is "UCSC" (e.g. "chr7"; "NCBI"
 #'     style would be "7").
@@ -130,9 +132,23 @@
 #'                       prefix="chr12")
 #' bowtieIndex <- file.path(outdir, "chr12")
 #' 
-#' # Adding spacer alignments:
+#' # Adding spacer alignments with bowtie:
 #' guideSet <- addSpacerAlignments(guideSetExample,
+#'                                 aligner="bowtie",
 #'                                 bowtie_index=bowtieIndex,
+#'                                 n_mismatches=2,
+#'                                 txObject=grListExample)
+#' 
+#' # Creating a bwa index:
+#' library(Rbwa)
+#' bwaIndex <- file.path(outdir, "chr12")
+#' Rbwa::bwa_build_index(fasta,
+#'                       index_prefix=bwaIndex)
+#' 
+#' # Adding spacer alignments with bowtie:
+#' guideSet <- addSpacerAlignments(guideSetExample,
+#'                                 aligner="bwa",
+#'                                 bwa_index=bwaIndex,
 #'                                 n_mismatches=2,
 #'                                 txObject=grListExample)
 #' 
