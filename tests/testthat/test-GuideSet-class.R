@@ -42,7 +42,6 @@
 # cutSites(object)
 # protospacers(object, as.character = FALSE)
 # spacerLength(object)
-# spacerSide(object)
 # protospacerLength(object)
 # prototypeSequence(object)
 # pamLength(object)
@@ -72,7 +71,6 @@ test_that("object argument is required to have type 'GuideSet'", {
                       cutSites,
                       protospacers,
                       spacerLength,
-                      spacerSide,
                       protospacerLength,
                       prototypeSequence,
                       pamLength,
@@ -109,7 +107,7 @@ test_that("annotation accessors return NULL when lacking that annotation", {
 
 
 # accessors that depend(?) on crisprNuclease ... compare with SpCas9 for example, make GuideSet using AsCas12a
-# accessors: crisprNuclease, pamLength, pamSide, spacerSide, spacerLength
+# accessors: crisprNuclease, pamLength, pamSide, spacerLength
 
 
 

@@ -119,10 +119,10 @@ NULL
 #' @rdname rankSpacers
 #' @export
 filterSpacers <- function(guideSet,
-                         criteria,
-                         txId=NULL,
-                         geneId=NULL,
-                         isoformAggFun=c('max', 'mean', 'min')
+                          criteria,
+                          txId=NULL,
+                          geneId=NULL,
+                          isoformAggFun=c('max', 'mean', 'min')
 ){
     guideSet <- .validateGuideSet(guideSet) 
     .checkCriteriaIsNamedList(criteria)
@@ -132,10 +132,10 @@ filterSpacers <- function(guideSet,
     isoformAggFun <- match.arg(isoformAggFun)
   
     guideRankings <- .rankSpacersOnCriteria(guideSet = guideSet,
-                                           criteria = criteria,
-                                           txId = txId,
-                                           geneId = geneId,
-                                           isoformAggFun = isoformAggFun)
+                                            criteria = criteria,
+                                            txId = txId,
+                                            geneId = geneId,
+                                            isoformAggFun = isoformAggFun)
   
     guideSet <- guideSet[guideRankings$rank == 1]
     return(guideSet)
@@ -145,10 +145,10 @@ filterSpacers <- function(guideSet,
 #' @rdname rankSpacers
 #' @export
 rankSpacers <- function(guideSet,
-                       criteria,
-                       txId=NULL,
-                       geneId=NULL,
-                       isoformAggFun=c('max', 'mean', 'min')
+                        criteria,
+                        txId=NULL,
+                        geneId=NULL,
+                        isoformAggFun=c('max', 'mean', 'min')
 ){
     guideSet <- .validateGuideSet(guideSet) # why return value?
     .checkCriteriaIsNamedList(criteria)
@@ -158,10 +158,10 @@ rankSpacers <- function(guideSet,
     isoformAggFun <- match.arg(isoformAggFun)
   
     guideRankings <- .rankSpacersOnCriteria(guideSet=guideSet,
-                                           criteria=criteria,
-                                           txId=txId,
-                                           geneId=geneId,
-                                           isoformAggFun=isoformAggFun)
+                                            criteria=criteria,
+                                            txId=txId,
+                                            geneId=geneId,
+                                            isoformAggFun=isoformAggFun)
   
     guideRankings <- guideRankings[order(guideRankings$rank), , drop=FALSE]
     guideSet <- guideSet[row.names(guideRankings)]
@@ -171,8 +171,7 @@ rankSpacers <- function(guideSet,
 }
 
 
-.checkCriteriaIsNamedList <- function(criteria
-){
+.checkCriteriaIsNamedList <- function(criteria){
     isList <- is.list(criteria)
     hasNames <- length(names(criteria)) > 0
     hasNoEmptyNames <- all(names(criteria) != '')

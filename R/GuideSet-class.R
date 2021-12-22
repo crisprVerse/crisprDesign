@@ -435,7 +435,7 @@ setMethod("geneAnnotation", "GuideSet",
         out <- out[wh,,drop=FALSE]
 
         if (!unlist){
-            out <- split(out, f=factor(out$ID,
+            out <- split(out, f=factor(rownames(out),
                                        levels=unique(names(object))))
             out <- out[names(object)]
             names(out) <- names(object)
@@ -478,7 +478,7 @@ setMethod("tssAnnotation", "GuideSet",
         out <- out[wh,,drop=FALSE]
 
         if (!unlist){
-            out <- split(out, f=factor(out$ID,
+            out <- split(out, f=factor(rownames(out),
                                        levels=unique(names(object))))
             out <- out[names(object)]
             names(out) <- names(object)

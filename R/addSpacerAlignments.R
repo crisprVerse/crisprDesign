@@ -209,7 +209,7 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                         txObject=txObject,
                                         tssObject=tssObject)
 
-    cols <- .aln_cols()
+    cols <- .aln_cols(n_mismatches=n_mismatches)
             
     for (col in cols){
         mcols(guideSetTemp)[[col]] <- as.numeric(mcols(guideSetTemp)[[col]])
