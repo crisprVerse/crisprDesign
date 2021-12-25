@@ -7,7 +7,8 @@
 #' @param guideSet A \linkS4class{GuideSet} object.
 #' @param aligner Which genomic alignment method should be used?
 #'     Must be one of "bowtie", "bwa", and "biostrings".
-#'    "bowtie" by default.
+#'    "bowtie" by default. Note that "bwa" is not availble for 
+#'     Windows machines. 
 #' @param columnName String specifying the columm name storing the alignments
 #'     in \code{mcols(guideSet)}. "alignments" by default.
 #' @param addSummary Should summary columns be added to \code{guideSet}?
@@ -141,12 +142,15 @@
 #' 
 #' # Creating a bwa index:
 #' library(Rbwa)
+#' library(BSgenome.Hsapiens.UCSC.hg38)
+#' bsgenome <- BSgenome.Hsapiens.UCSC.hg38
 #' bwaIndex <- file.path(outdir, "chr12")
 #' Rbwa::bwa_build_index(fasta,
 #'                       index_prefix=bwaIndex)
 #' 
 #' # Adding spacer alignments with bowtie:
 #' guideSet <- addSpacerAlignments(guideSetExample,
+#'                                 bsgenome=bsgenome,
 #'                                 aligner="bwa",
 #'                                 bwa_index=bwaIndex,
 #'                                 n_mismatches=2,
@@ -436,6 +440,9 @@ getSpacerAlignments <- function(spacers,
         message("Setting aligner to biostrings since a custom_seq is provided.")
 
     }
+    if (aligner=="bwa" & .Platform$OS.type=="windows"){
+        stop("BWA aligner is not available for Windows machines. Choose bowtie instead. ")   
+    }
     spacers <- as.character(spacers)
     seqlevelsStyle <- match.arg(seqlevelsStyle)
     if (aligner=="bowtie"){
@@ -629,6 +636,7 @@ getSpacerAlignments <- function(spacers,
     #Performing alignment:
     results <- runCrisprBwa(spacers=spacers,
                             bwa_index=bwa_index,
+                            bsgenome=bsgenome,
                             n_mismatches=n_mismatches,
                             crisprNuclease=crisprNuclease,
                             canonical=canonical,

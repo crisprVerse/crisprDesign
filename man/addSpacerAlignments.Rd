@@ -79,7 +79,8 @@ getSpacerAlignments(
 
 \item{aligner}{Which genomic alignment method should be used?
  Must be one of "bowtie", "bwa", and "biostrings".
-"bowtie" by default.}
+"bowtie" by default. Note that "bwa" is not availble for 
+ Windows machines.}
 
 \item{columnName}{String specifying the columm name storing the alignments
 in \code{mcols(guideSet)}. "alignments" by default.}
@@ -240,12 +241,15 @@ guideSet <- addSpacerAlignments(guideSetExample,
 
 # Creating a bwa index:
 library(Rbwa)
+library(BSgenome.Hsapiens.UCSC.hg38)
+bsgenome <- BSgenome.Hsapiens.UCSC.hg38
 bwaIndex <- file.path(outdir, "chr12")
 Rbwa::bwa_build_index(fasta,
                       index_prefix=bwaIndex)
 
 # Adding spacer alignments with bowtie:
 guideSet <- addSpacerAlignments(guideSetExample,
+                                bsgenome=bsgenome,
                                 aligner="bwa",
                                 bwa_index=bwaIndex,
                                 n_mismatches=2,
