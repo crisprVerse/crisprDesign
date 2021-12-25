@@ -1,5 +1,4 @@
 #' @importFrom methods is
-#' @importFrom Rbowtie bowtie_build
 NULL
 
 utils::globalVariables(c("restrictionEnzymes",
