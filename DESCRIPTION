@@ -36,7 +36,6 @@ Suggests:
     biomaRt,
     BSgenome.Hsapiens.UCSC.hg38,
     BSgenome.Mmusculus.UCSC.mm10,
-    crisprAnnotation (>= 1.1.31),
     crisprScore (>= 0.99.11),
     BiocStyle,
     knitr,

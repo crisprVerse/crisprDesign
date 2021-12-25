@@ -3,7 +3,6 @@
 export(GuideSet)
 export(TxDb2GRangesList)
 export(addGeneAnnotation)
-export(addLibraryUsage)
 export(addOffTargetScores)
 export(addOnTargetScores)
 export(addPamScores)
