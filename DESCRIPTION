@@ -12,7 +12,7 @@ Description:
     modalities (modes of perturbations): CRISPR knockout, CRISPR activation, CRISPR inhibition, and 
     CRISPR base editing (CRISPRbe). All types of CRISPR nucleases are supported. gRNA design can be performed
     on both reference genomes and custom DNA sequences.
-Depends: R (>= 3.6.0),
+Depends: R (>= 4.1.0),
     crisprBase (>= 0.99.8)
 Imports:
     AnnotationDbi,
