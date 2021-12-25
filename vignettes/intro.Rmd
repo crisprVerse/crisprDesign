@@ -438,6 +438,7 @@ The function `addGeneAnnotation` adds transcript- and gene-level
 contextual information to gRNAs from a `TxDb`-like object:
 
 ```{r, eval=TRUE,warning=FALSE, message=FALSE, results='hide'} 
+data(grListExample, package="crisprDesign")
 guideSet <- addGeneAnnotation(guideSet,
                               txObject=grListExample)
 ``` 
@@ -474,6 +475,7 @@ Similarly, one might want to know which protospacer sequences are located
 within promoter regions of known genes: 
 
 ```{r}
+data(tssObjectExample, package="crisprDesign")
 guideSet <- addTssAnnotation(guideSet,
                              tssObject=tssObjectExample)
 tssAnnotation(guideSet)
