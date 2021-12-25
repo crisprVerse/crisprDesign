@@ -20,7 +20,7 @@
 #' @seealso \code{\link{queryTss}} for querying TSS annotations.
 #' 
 #' @examples
-#' 
+#' data(grListExample, package="crisprDesign")
 #' queryTxObject(grListExample,
 #'               featureType="cds",
 #'               queryColumn="gene_symbol",
