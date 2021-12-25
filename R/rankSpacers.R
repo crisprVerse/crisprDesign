@@ -83,6 +83,7 @@
 #'      
 #' @examples
 #' \dontrun{
+#' data(guideSetExample, package="crisprDesign")
 #' guides <- guideSetExample
 #' 
 #' # annotate guides

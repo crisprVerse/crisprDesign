@@ -41,6 +41,7 @@
 #' }
 #' 
 #' @examples 
+#' data(guideSetExample, package="crisprDesign")
 #' guideSet <- addTssAnnotation(guideSetExample,
 #'                              tssObject=tssObjectExample)
 #' 

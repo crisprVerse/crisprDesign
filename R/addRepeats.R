@@ -17,7 +17,8 @@
 #' @seealso \code{link{removeRepeats}}.
 #' 
 #' @examples 
-#' 
+#' data(guideSetExample, package="crisprDesign")
+#' data(grRepeatsExample, package="crisprDesign")
 #' guideSet <- addRepeats(guideSetExample,
 #'                        gr.repeats=grRepeatsExample)
 #' 
@@ -60,7 +61,8 @@ addRepeats <- function(guideSet,
 #' @seealso \code{link{addRepeats}}.
 #' 
 #' @examples 
-#' 
+#' data(guideSetExample, package="crisprDesign")
+#' data(grRepeatsExample, package="crisprDesign")
 #' guideSet <- removeRepeats(guideSetExample,
 #'                           gr.repeats=grRepeatsExample)
 #' 

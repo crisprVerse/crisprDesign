@@ -114,6 +114,7 @@ Use \code{validCriteria(guideSet)} for information on expected values
 }
 \examples{
 \dontrun{
+data(guideSetExample, package="crisprDesign")
 guides <- guideSetExample
 
 # annotate guides

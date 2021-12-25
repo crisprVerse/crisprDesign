@@ -46,6 +46,7 @@ Rbowtie::bowtie_build(fasta,
 bowtieIndex <- file.path(outdir, "chr12")
 
 # Adding spacer alignments:
+data(guideSetExample, package="crisprDesign")
 guideSetExample <- guideSetExample[1:3]
 guideSet <- addSpacerAlignments(guideSetExample,
                                 bowtie_index=bowtieIndex,

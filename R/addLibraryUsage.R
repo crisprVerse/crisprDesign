@@ -13,6 +13,7 @@
 #' 
 #' @examples 
 #' \dontrun{
+#'     data(guideSetExample, package="crisprDesign")
 #'     guideSet <- addLibraryUsage(guideSetExample)
 #' }
 #' @export

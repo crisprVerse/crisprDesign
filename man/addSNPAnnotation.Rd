@@ -46,6 +46,7 @@ The different columns stored in
 }
 \examples{
 
+data(guideSetExample, package="crisprDesign")
 vcf <- system.file("extdata",
                    file="common_snps_dbsnp151_example.vcf.gz",
                    package="crisprDesign")

@@ -25,7 +25,8 @@ Add an annotation column to a \linkS4class{GuideSet} object
     that identifies spacer sequences overlapping repeat elements.
 }
 \examples{
-
+data(guideSetExample, package="crisprDesign")
+data(grRepeatsExample, package="crisprDesign")
 guideSet <- addRepeats(guideSetExample,
                        gr.repeats=grRepeatsExample)
 

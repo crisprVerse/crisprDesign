@@ -105,6 +105,7 @@ The different columns stored in
 }
 }
 \examples{
+data(guideSetExample, package="crisprDesign")
 guideSet <- addGeneAnnotation(guideSetExample,
                               txObject=grListExample)
 

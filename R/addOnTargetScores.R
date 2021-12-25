@@ -22,9 +22,9 @@
 #' @seealso \code{\link{addOffTargetScores}} to add off-target scores.
 #' 
 #' @examples
-#' \dontrun{
-#' gs <- findSpacers("CCAACATAGTGAAACCACGTCTCTATAAAGAATACAAAAAATTAGCCGGGTTA")
-#' gs <- addOnTargetScores(gs)
+#' if (interactive()){
+#'     gs <- findSpacers("CCAACATAGTGAAACCACGTCTCTATAAAGAATACAAAAAATTAGCCGGGTTA")
+#'     gs <- addOnTargetScores(gs)
 #' }
 #' 
 #' @export

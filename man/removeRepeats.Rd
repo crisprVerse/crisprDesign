@@ -25,7 +25,8 @@ Remove \linkS4class{GuideSet} gRNAs that overlap repeat
     elements.
 }
 \examples{
-
+data(guideSetExample, package="crisprDesign")
+data(grRepeatsExample, package="crisprDesign")
 guideSet <- removeRepeats(guideSetExample,
                           gr.repeats=grRepeatsExample)
 

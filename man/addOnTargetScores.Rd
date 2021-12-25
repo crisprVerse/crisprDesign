@@ -37,9 +37,9 @@ Add on-target scores to a \linkS4class{GuideSet} object
 See \pkg{crisprScore} package for a description of each score.
 }
 \examples{
-\dontrun{
-gs <- findSpacers("CCAACATAGTGAAACCACGTCTCTATAAAGAATACAAAAAATTAGCCGGGTTA")
-gs <- addOnTargetScores(gs)
+if (interactive()){
+    gs <- findSpacers("CCAACATAGTGAAACCACGTCTCTATAAAGAATACAAAAAATTAGCCGGGTTA")
+    gs <- addOnTargetScores(gs)
 }
 
 }

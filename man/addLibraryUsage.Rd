@@ -22,6 +22,7 @@ Function to add annotation to a \linkS4class{GuideSet} object
 }
 \examples{
 \dontrun{
+    data(guideSetExample, package="crisprDesign")
     guideSet <- addLibraryUsage(guideSetExample)
 }
 }

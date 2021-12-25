@@ -134,6 +134,7 @@
 #' bowtieIndex <- file.path(outdir, "chr12")
 #' 
 #' # Adding spacer alignments with bowtie:
+#' data(guideSetExample, package="crisprDesign")
 #' guideSet <- addSpacerAlignments(guideSetExample,
 #'                                 aligner="bowtie",
 #'                                 bowtie_index=bowtieIndex,

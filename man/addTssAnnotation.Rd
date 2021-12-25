@@ -61,6 +61,7 @@ Add transcription start site (TSS) context annotation to
 }
 }
 \examples{
+data(guideSetExample, package="crisprDesign")
 guideSet <- addTssAnnotation(guideSetExample,
                              tssObject=tssObjectExample)
 
