@@ -8,7 +8,7 @@
 A \linkS4class{GRanges} object.
 }
 \usage{
-grRepeatsExample
+data(grRepeatsExample, package="crisprDesign")
 }
 \description{
 Example of a \linkS4class{GRanges} object containing genomic coordinates

@@ -9,7 +9,7 @@
    TSSs of gene IQSEC3.
 }
 \usage{
-tssObjectExample
+data(tssObjectExample, package="crisprDesign")
 }
 \description{
 Example of a \linkS4class{GRanges} containing transcription starting

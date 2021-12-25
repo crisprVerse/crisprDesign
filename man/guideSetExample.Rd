@@ -9,7 +9,7 @@
 A \linkS4class{GuideSet} object.
 }
 \usage{
-guideSetExample
+data(guideSetExample, package="crisprDesign")
 }
 \description{
 Example of a \linkS4class{GuideSet} object storing gRNA sequences targeting

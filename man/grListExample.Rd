@@ -12,7 +12,7 @@ Named \linkS4class{GRangesList} with 7 elements:
     and \code{tss}.
 }
 \usage{
-grListExample
+data(grListExample, package="crisprDesign")
 }
 \description{
 Example of a \linkS4class{TxDb} object converted to a

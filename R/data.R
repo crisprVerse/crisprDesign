@@ -16,6 +16,7 @@
 #'     \code{\link{TxDb2GRangesList}} function and subsequently subsetted
 #'     to only contain the IQSEC3 gene (ENSG00000120645) located
 #'     at the start of chr12 in the human genome (hg38 build).
+#' @usage data(grListExample, package="crisprDesign")
 "grListExample"
 
 
@@ -32,7 +33,7 @@
 #' 
 #' @details The TSS coordinates were obtained from the two transcript
 #'     stored in the \code{grListExample} object for gene IQSEC3.
-#' 
+#' @usage data(tssObjectExample, package="crisprDesign")
 "tssObjectExample"
 
 
@@ -49,7 +50,7 @@
 #' @details The object was obtained by calling \code{\link{findSpacers}} on the
 #'     CDS region of human gene IQSEC3. See code in
 #'     \code{inst/scripts/generateGuideSet.R}.
-#' 
+#' @usage data(guideSetExample, package="crisprDesign")
 "guideSetExample"
 
 
@@ -69,7 +70,7 @@
 #'     \code{addSequenceFeatures}) to a randomly selected 20-guide subset of
 #'      \code{guideSetExample}. See code in
 #'     \code{inst/scripts/generateGuideSetFullAnnotation.R}.
-#' 
+#' @usage data(guideSetExampleFullAnnotation, package="crisprDesign")
 "guideSetExampleFullAnnotation"
 
 
@@ -82,5 +83,5 @@
 #'     (ENSG00000120645).
 #' 
 #' @format A \linkS4class{GRanges} object. 
-#' 
+#' @usage data(grRepeatsExample, package="crisprDesign")
 "grRepeatsExample"

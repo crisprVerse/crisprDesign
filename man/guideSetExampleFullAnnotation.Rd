@@ -9,7 +9,7 @@
 A \linkS4class{GuideSet} object.
 }
 \usage{
-guideSetExampleFullAnnotation
+data(guideSetExampleFullAnnotation, package="crisprDesign")
 }
 \description{
 Example of a fully-annotated \linkS4class{GuideSet} object storing gRNA

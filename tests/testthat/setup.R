@@ -1,0 +1,5 @@
+data(grListExample, package="crisprDesign")
+data(grRepeatsExample, package="crisprDesign")
+data(guideSetExample, package="crisprDesign")
+data(guideSetExampleFullAnnotation, package="crisprDesign")
+data(tssObjectExample, package="crisprDesign")
