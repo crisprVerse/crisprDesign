@@ -239,21 +239,6 @@ guideSet <- addSpacerAlignments(guideSetExample,
                                 n_mismatches=2,
                                 txObject=grListExample)
 
-# Creating a bwa index:
-library(Rbwa)
-library(BSgenome.Hsapiens.UCSC.hg38)
-bsgenome <- BSgenome.Hsapiens.UCSC.hg38
-bwaIndex <- file.path(outdir, "chr12")
-Rbwa::bwa_build_index(fasta,
-                      index_prefix=bwaIndex)
-
-# Adding spacer alignments with bowtie:
-guideSet <- addSpacerAlignments(guideSetExample,
-                                bsgenome=bsgenome,
-                                aligner="bwa",
-                                bwa_index=bwaIndex,
-                                n_mismatches=2,
-                                txObject=grListExample)
 
 }
 \author{
