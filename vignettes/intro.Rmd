@@ -159,6 +159,10 @@ coordinates in hg38 for exons of all human IQSEC3 isoforms, and was
 obtained by converting an Ensembl `TxDb` object into a `GRangesList`
 object using the `TxDb2GRangesList` convenience function in `crisprDesign`. 
 
+```{r}
+data(grListExample, package="crisprDesign")
+```
+
 The `queryTxObject` function allows us to query such objects for a specific
 gene and feature. Here, we obtain a `GRanges` object containing the CDS
 coordinates of IQSEC3:
@@ -369,6 +373,7 @@ not of interest due to their low specificity, we provide the convenience
 function `removeRepeats`:
 
 ```{r, eval=TRUE}
+data(grRepeatsExample, package="crisprDesign")
 guideSet <- removeRepeats(guideSet,
                           gr.repeats=grRepeatsExample)
 ```
@@ -438,7 +443,6 @@ The function `addGeneAnnotation` adds transcript- and gene-level
 contextual information to gRNAs from a `TxDb`-like object:
 
 ```{r, eval=TRUE,warning=FALSE, message=FALSE, results='hide'} 
-data(grListExample, package="crisprDesign")
 guideSet <- addGeneAnnotation(guideSet,
                               txObject=grListExample)
 ``` 
