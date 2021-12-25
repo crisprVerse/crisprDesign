@@ -122,7 +122,6 @@
 #' 
 #' @examples 
 #' 
-#' 
 #' # Creating a bowtie index:
 #' library(Rbowtie)
 #' fasta <- system.file(package="crisprDesign", "fasta/chr12.fa")
@@ -135,6 +134,7 @@
 #' 
 #' # Adding spacer alignments with bowtie:
 #' data(guideSetExample, package="crisprDesign")
+#' data(grListExample, package="crisprDesign")
 #' guideSet <- addSpacerAlignments(guideSetExample,
 #'                                 aligner="bowtie",
 #'                                 bowtie_index=bowtieIndex,

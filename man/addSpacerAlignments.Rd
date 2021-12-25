@@ -221,7 +221,6 @@ The differential columns stored in
 }
 \examples{
 
-
 # Creating a bowtie index:
 library(Rbowtie)
 fasta <- system.file(package="crisprDesign", "fasta/chr12.fa")
@@ -234,6 +233,7 @@ bowtieIndex <- file.path(outdir, "chr12")
 
 # Adding spacer alignments with bowtie:
 data(guideSetExample, package="crisprDesign")
+data(grListExample, package="crisprDesign")
 guideSet <- addSpacerAlignments(guideSetExample,
                                 aligner="bowtie",
                                 bowtie_index=bowtieIndex,
