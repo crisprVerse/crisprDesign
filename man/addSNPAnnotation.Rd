@@ -45,7 +45,7 @@ The different columns stored in
 
 vcf <- system.file("extdata",
                    file="common_snps_dbsnp151_example.vcf.gz",
-                   package="crisprDesignS4")
+                   package="crisprDesign")
 data(guideSetExample, package="crisprDesign")
 guideSet <- addSNPAnnotation(guideSetExample, vcf=vcf)
 

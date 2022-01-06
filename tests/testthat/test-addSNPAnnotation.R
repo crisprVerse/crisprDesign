@@ -1,7 +1,7 @@
 # VCF_PATH <- "~/crisprIndices/snps/dbsnp151.grch38/00-common_all.vcf.gz"
 VCF_PATH <- system.file("extdata",
                         file="common_snps_dbsnp151_example.vcf.gz",
-                        package="crisprDesignS4")
+                        package="crisprDesign")
 
 
 test_that("guideSet argument must be a GuideSet object", {

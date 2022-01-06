@@ -197,8 +197,7 @@ S4Vectors::mcols
 
 
 
-.validateTssWindow <- function(tss_window=NULL
-){
+.validateTssWindow <- function(tss_window=NULL){
     if (is.null(tss_window)){
         tss_window <- .default_tss_window
     } else {

@@ -212,8 +212,12 @@ test_that("tss_window argument must be a integer vector of length 2 or NULL", {
         expect_error(queryTss(tssObjectExample, "gene_id", "", tss_window=x))
     })
     good_input <- list(NULL,
+                       c(-150, -75),
+                       c(-150, 0),
                        c(0, 0),
-                       c(-250, 50))
+                       c(-150, 75),
+                       c(0, 75),
+                       c(75, 150))
     lapply(good_input, function(x){
         expect_error(queryTss(tssObjectExample, "gene_id", "", tss_window=x),
                      regexp=NA)
@@ -221,15 +225,19 @@ test_that("tss_window argument must be a integer vector of length 2 or NULL", {
 })
 
 
-test_that("tss_window must be a non-positive and non-negative value pair", {
-    bad_input <- list(c(-500, -100),
-                      c(100, 500),
+test_that("tss_window must be an ordered value pair", {
+    bad_input <- list(c(-100, -500),
+                      c(500, 100),
                       c(500, -500))
     lapply(bad_input, function(x){
         expect_error(queryTss(tssObjectExample, "gene_id", "", tss_window=x))
     })
-    good_input <- list(c(0, 0),
-                       c(-250, 50))
+    good_input <- list(c(-150, -75),
+                       c(-150, 0),
+                       c(0, 0),
+                       c(-150, 75),
+                       c(0, 75),
+                       c(75, 150))
     lapply(good_input, function(x){
         expect_error(queryTss(tssObjectExample, "gene_id", "", tss_window=x),
                      regexp=NA)
@@ -269,7 +277,7 @@ test_that("queryTss returns unique row results", {
 
 test_that("queryTss returns only and all specific hits", {
     id <- "IQSEC3_P1"
-    results_from_query <- queryTss(tssObjectExample, "ID", id)
+    results_from_query <- queryTss(tssObjectExample, "ID", id, tss_window=c(0,1))
     names(results_from_query) <- NULL
     results_from_subset <- tssObjectExample[tssObjectExample$ID==id]
     names(results_from_subset) <- NULL
@@ -292,10 +300,17 @@ test_that("queryTss permits searches of NULL and empty values", {
 
 
 test_that("queryTss sets ranges of all results to tss_window range", {
-    tss_window <- c(-250, 155)
-    tss_window_width <- tss_window[2] - tss_window[1]
-    results <- queryTss(tssObjectExample, "gene_id", "ENSG00000120645",
-                        tss_window)
-    expect_equal(tss_window_width, unique(width(results)))
+    tss_window <- list(c(-150, -75),
+                       c(-150, 0),
+                       c(0, 0),
+                       c(-150, 75),
+                       c(0, 75),
+                       c(75, 150))
+    lapply(tss_window, function(x){
+        tss_window_width <- x[2] - x[1]
+        results <- queryTss(tssObjectExample, "gene_id", "ENSG00000120645",
+                            tss_window=x)
+        expect_equal(tss_window_width, unique(width(results)))
+    })
 })
 
