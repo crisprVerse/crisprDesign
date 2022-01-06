@@ -21,6 +21,7 @@
 #' 
 #' @examples
 #' 
+#' data(grListExample, package="crisprDesign")
 #' queryTxObject(grListExample,
 #'               featureType="cds",
 #'               queryColumn="gene_symbol",
