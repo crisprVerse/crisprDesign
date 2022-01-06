@@ -16,14 +16,16 @@ should be searched for.}
 \item{queryValue}{Character vector specifying the values to search for
 in \code{tssObject[[queryColumn]]}.}
 
-\item{tss_window}{Window size of genomic region flanking TSS to return.
-Must be a numeric vector of length 2 consisting of the upstream limit
-and downstream limit. Default is \code{c(-500, 500)}, which includes
-500bp upstream and downstream of the TSS.}
+\item{tss_window}{Numeric vector of length 2 establishing the genomic
+region to return. The value pair sets the 5′ and 3′ limits,
+respectively, of the genomic region with respect to the TSS. Use
+negative value(s) to set limit(s) upstream of the TSS. Default is
+\code{c(-500, 500)}, which includes 500bp upstream and downstream of
+the TSS.}
 }
 \value{
 A \linkS4class{GRanges} object. Searches yielding no results will
-    return \code{NULL}.
+    return an empty \linkS4class{GRanges} object.
 }
 \description{
 Convenience function to search for TSS coordinates.

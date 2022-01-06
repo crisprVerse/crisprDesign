@@ -4,53 +4,51 @@
 \alias{addSNPAnnotation}
 \title{Add SNP annotation to a \linkS4class{GuideSet} object}
 \usage{
-addSNPAnnotation(guideSet, maf = 0.01, vcf = NULL, verbose = TRUE)
+addSNPAnnotation(guideSet, vcf, maf = 0.01)
 }
 \arguments{
 \item{guideSet}{A \linkS4class{GuideSet} object.}
 
-\item{maf}{Minimum minor allele frequency to report
-(for a least one source among 1000Genomes and TOPMED).
-Default value of 0.01.}
-
-\item{vcf}{Either string specfying path to a VCF file,
+\item{vcf}{Either a character string specfying path to a VCF file
 or a \linkS4class{VCF} object.}
 
-\item{verbose}{Should messages be printed? 
-TRUE by default.}
+\item{maf}{Minimum minor allele frequency to report (for a least one source
+among 1000Genomes and TOPMED). Must be between 0 and 1 (exclusive).}
 }
 \value{
-The original \linkS4class{GuideSet} object with an additional
-    list-column stored in \code{mcols{guideSet}} named \code{snpAnnotation}.
+\code{guideSet} appended with \code{hasSNP} column and \code{snps}
+    list-column, both stored in \code{mcols{guideSet}}.
 }
 \description{
 Add SNP annotation to a \linkS4class{GuideSet} object.
-   Only available for gRNAs designed for human genome.
+   Only available for sgRNAs designed for human genome.
 }
 \details{
 The different columns stored in
 \code{mcols(guideSet)[["snps"]]} are:
 
 \itemize{
-\item \code{ID} gRNA ID.
+\item \code{ID} sgRNA ID.
 \item \code{rs} Reference SNP cluster ID (e.g. rs17852242) 
 \item \code{rs_site} Genomic coordinate of the SNP.
-\item \code{rs_site_rel} SNP position relative to the PAM site.
-\item \code{allele_ref} String specifying the reference allele of the SNP.
-\item \code{allele_minor} String specifying the minor allele of the SNP.
+\item \code{rs_site_rel} Position of SNP relative to the PAM site.
+\item \code{allele_ref} DNAString specifying the SNP reference allele.
+\item \code{allele_minor} DNAString specifying the SNP minor allele.
 \item \code{MAF_1000G} Minor allele frequency in the 1000 Genomes project.
 \item \code{MAF_TOPMED} Minor allele frequency in the TOPMed project.
-\item \code{snp_type} Character specifying the type of the SNP.
-\item \code{snp_length} Character specifying the length of the SNP.
+\item \code{type} Type of SNP (\code{"ins"}: insertion, \code{"del"}:
+    deletion).
+\item \code{length} Length of SNP in nucleotides.
 }
 }
 \examples{
 
-data(guideSetExample, package="crisprDesign")
 vcf <- system.file("extdata",
                    file="common_snps_dbsnp151_example.vcf.gz",
-                   package="crisprDesign")
+                   package="crisprDesignS4")
 guideSet <- addSNPAnnotation(guideSetExample, vcf=vcf)
+
+
 
 }
 \seealso{

@@ -20,7 +20,7 @@
 #' @seealso \code{\link{queryTss}} for querying TSS annotations.
 #' 
 #' @examples
-#' data(grListExample, package="crisprDesign")
+#' 
 #' queryTxObject(grListExample,
 #'               featureType="cds",
 #'               queryColumn="gene_symbol",
@@ -47,8 +47,8 @@ queryTxObject <- function(txObject,
              "\"\n  Choices are: ", choices)
     }
     results <- txObject[[featureType]]
-    .validateQueryColumn(queryColumn, results)
-    .validateQueryValue(queryValue)
+    .checkQueryColumn(queryColumn, results)
+    .checkQueryValue(queryValue)
     hits <- S4Vectors::mcols(results)[[queryColumn]] %in% queryValue
     results <- results[hits]
     results <- .nameQueryResults(results)
@@ -72,13 +72,15 @@ queryTxObject <- function(txObject,
 #'     should be searched for.
 #' @param queryValue Character vector specifying the values to search for
 #'     in \code{tssObject[[queryColumn]]}.
-#' @param tss_window Window size of genomic region flanking TSS to return.
-#'     Must be a numeric vector of length 2 consisting of the upstream limit
-#'     and downstream limit. Default is \code{c(-500, 500)}, which includes
-#'     500bp upstream and downstream of the TSS.
+#' @param tss_window Numeric vector of length 2 establishing the genomic
+#'     region to return. The value pair sets the 5′ and 3′ limits,
+#'     respectively, of the genomic region with respect to the TSS. Use
+#'     negative value(s) to set limit(s) upstream of the TSS. Default is
+#'     \code{c(-500, 500)}, which includes 500bp upstream and downstream of
+#'     the TSS.
 #' 
 #' @return A \linkS4class{GRanges} object. Searches yielding no results will
-#'     return \code{NULL}.
+#'     return an empty \linkS4class{GRanges} object.
 #' 
 #' @author Luke Hoberecht, Jean-Philippe Fortin
 #' 
@@ -87,25 +89,20 @@ queryTxObject <- function(txObject,
 #' @export
 #' @importFrom methods is
 #' @importFrom S4Vectors mcols
-#' @importFrom GenomicRanges promoters
 queryTss <- function(tssObject,
                      queryColumn,
                      queryValue,
-                     tss_window=NULL # different behavior from documentation
+                     tss_window=NULL
 ){
     stopifnot("tssObject must be a GRanges object" = {
         is(tssObject, "GRanges")
     })
-    .validateQueryColumn(queryColumn, tssObject)
-    .validateQueryValue(queryValue)
+    .checkQueryColumn(queryColumn, tssObject)
+    .checkQueryValue(queryValue)
+    tss_window <- .validateTssWindow(tss_window)
     hits <- S4Vectors::mcols(tssObject)[[queryColumn]] %in% queryValue
     results <- tssObject[hits]
-    if (!is.null(tss_window)){
-        tss_window <- .validateTssWindow(tss_window)
-        results <- GenomicRanges::promoters(results,
-                                            upstream=(-1 * tss_window[1]),
-                                            downstream=tss_window[2])
-    }
+    results <- .applyTssWindow(results, tss_window)
     results <- .nameQueryResults(results)
     return(results)
 }
@@ -117,8 +114,8 @@ queryTss <- function(tssObject,
 
 
 #' @importFrom S4Vectors mcols
-.validateQueryColumn <- function(queryColumn,
-                                 annotationObject
+.checkQueryColumn <- function(queryColumn,
+                              annotationObject
 ){
     stopifnot("queryColumn must be a character string" = {
         is.vector(queryColumn, mode="character")
@@ -134,7 +131,7 @@ queryTss <- function(tssObject,
 
 
 
-.validateQueryValue <- function(queryValue
+.checkQueryValue <- function(queryValue
 ){
     stopifnot("queryValue must be an atomic vector" = {
         is.null(queryValue) ||
@@ -151,5 +148,30 @@ queryTss <- function(tssObject,
 ){
     resultsNames <- paste0("region_", seq_along(results))
     names(results) <- resultsNames[seq_along(results)]
+    return(results)
+}
+
+
+
+#' @importFrom BiocGenerics strand
+#' @importFrom GenomicRanges promoters
+.applyTssWindow <- function(results,
+                            tss_window
+){
+    if (all(tss_window > 0) || all(tss_window < 0)){
+        if (all(tss_window > 0)){
+            shift <- tss_window[1]
+        } else {
+            shift <- tss_window[2]
+        }
+        tss_window <- tss_window - shift
+        shift <- rep(shift, length(results))
+        minusStrand <- as.character(BiocGenerics::strand(results)) == "-"
+        shift[minusStrand] <- -1 * shift[minusStrand]
+        results <- shift(results, shift=shift)
+    }
+    results <- GenomicRanges::promoters(results,
+                                        upstream=abs(tss_window[1]),
+                                        downstream=abs(tss_window[2]))
     return(results)
 }

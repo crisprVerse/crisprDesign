@@ -28,7 +28,8 @@ sequences if a \linkS4class{GRanges} object is provided as input.}
 \item{crisprNuclease}{A \linkS4class{CrisprNuclease} object.}
 
 \item{canonical}{Whether to return only guide sequences having canonical
-PAM sequences.}
+PAM sequences. If TRUE (default), only PAM sequences with the highest
+weights stored in the \code{crisprNuclease} object will be considered.}
 
 \item{spacer_len}{Length of spacer to be used if different from
 default length specified in \code{crisprNuclease}.}
@@ -85,9 +86,10 @@ if (requireNamespace("BSgenome.Hsapiens.UCSC.hg38")){
     genome(gr_input) <- "hg38"
     guideSet <- findSpacers(gr_input, bsgenome=bsgenome)
 
-    # Designing guides for enCas12a nuclease:
+    # Designing guides for enAsCas12a nuclease:
     data(enAsCas12a, package="crisprBase")
     guideSet <- findSpacers(gr_input, 
+                            canonical=FALSE,
                             bsgenome=bsgenome,
                             crisprNuclease=enAsCas12a)
 }

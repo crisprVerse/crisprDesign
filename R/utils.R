@@ -196,19 +196,19 @@ S4Vectors::mcols
 }
 
 
-.validateTssWindow <- function(tss_window=NULL){
+
+.validateTssWindow <- function(tss_window=NULL
+){
     if (is.null(tss_window)){
         tss_window <- .default_tss_window
     } else {
-        cond1 <- length(tss_window) == 2
-        cond2 <- is.numeric(tss_window)
-        cond3 <- sum(tss_window%%1 != 0) <= 0 
-        cond4 <- tss_window[1] <= 0 
-        cond5 <- tss_window[2] >= 0
-        if (!(cond1 & cond2 & cond3 & cond4 & cond5)){
-            stop("Invalid values for argument tss_window.",
-                 " See documentation.")
-        }
+        validLength <- length(tss_window) == 2
+        validType <- is.vector(tss_window, mode="numeric")
+        validIntegers <- all(unlist(tss_window) %% 1 == 0)
+        validOrder <- tss_window[[1]] <= tss_window[[2]]
+        stopifnot("Invalid values for tss_window. See documentation." = {
+            all(c(validLength, validType, validIntegers, validOrder))
+        })
     }
     return(tss_window)
 }

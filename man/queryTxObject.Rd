@@ -33,7 +33,7 @@ A \linkS4class{GRanges} object. Searches yielding no results will
 Convenience function to search for gene coordinates.
 }
 \examples{
-data(grListExample, package="crisprDesign")
+
 queryTxObject(grListExample,
               featureType="cds",
               queryColumn="gene_symbol",
