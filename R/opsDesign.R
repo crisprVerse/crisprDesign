@@ -174,6 +174,243 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 
 
 
+
+
+
+
+
+
+# data("guideSetExample")
+# guideSet <- guideSetExample
+# guideSet <- addOpsBarcodes(guideSet)
+# df <- data.frame(ID=names(guideSet),
+#                  spacer=spacers(guideSet, as.character=TRUE),
+#                  opsBarcode=as.character(guideSet$opsBarcode))
+# df$group <- rep(paste0("gene",1:40),each=20)
+# df$rank <- rep(1:20,40)
+# opsLib <- buildOpsLibrary(df)
+
+
+
+#' Design gRNA library for optical pooled screening
+#' 
+#' Design gRNA library for optical pooled screening
+#' 
+#' @param df data.frame containing information about candidate
+#'     gRNAs from which to build the OPS library. See details. 
+#' @param n_guides Integer specifying how many gRNAs per
+#'     gene should be selected. 4 by default.
+#' @param gene_field String specifying the column in \code{df}
+#'     specifying gene names.
+#' @param min_dist_edit Integer specifying the minimum distance edit
+#'     required for barcodes to be different. 
+#' @param dist_method String specifying distance method. Must be
+#'     either "hamming" (default) or "levenstein". 
+#' 
+#' @examples
+#' data("guideSetExample")
+#' guideSet <- guideSetExample
+#' guideSet <- addOpsBarcodes(guideSet)
+#' df <- data.frame(ID=names(guideSet),
+#'                  spacer=spacers(guideSet, as.character=TRUE),
+#'                  opsBarcode=as.character(guideSet$opsBarcode))
+#' df$group <- rep(paste0("gene",1:40),each=20)
+#' df$rank <- rep(1:20,40)
+#' opsLib <- buildOpsLibrary(df)
+
+#' @author Jean-Philippe Fortin
+#'
+#' @export
+designOpsLibrary <- function(df,
+                             n_guides=4,
+                             gene_field="group",
+                             min_dist_edit=3,
+                             dist_method=c("hamming","levenstein")
+){
+    dist_method <- match.arg(dist_method)
+    coreCols <- c("ID", "spacer", "opsBarcode")
+    if (!all(coreCols %in% colnames(df))){
+        diff <- setdiff(coreCols, colnames(df))
+        diff <- paste0(diff, collapse=", ")
+        stop("The following mandatory columns are missing: ",
+             diff, ".")
+    }
+    if (!gene_field %in% colnames(df)){
+        stop("The column specified by gene_field is missing.")
+    }
+    if (any(duplicated(df[["ID"]]))){
+        stop("Some IDs are duplicated.")
+    }
+    if (!"rank" %in% colnames(df)){
+        message("Since 'rank' column is not provided, using ",
+                "default order has ranking.")
+        df <- .addOpsRank(df)
+    }   
+
+    genes <- unique(df[[gene_field]])
+    grnaList <- list(selected=df[df$rank<=n_guides,,drop=FALSE],
+                     candidates=df[df$rank>n_guides,,drop=FALSE],
+                     discarded=NULL,
+                     genes=genes)
+    grnaList <- .initiateOpsLibrary(grnaList,
+                                    dist_method=dist_method,
+                                    min_dist_edit=min_dist_edit)
+    grnaList <- .updateOpsLibrary(grnaList,
+                                  gene_field=gene_field,
+                                  n_guides=n_guides,
+                                  dist_method=dist_method,
+                                  min_dist_edit=min_dist_edit)
+    out <- .getFinalOpsLibrary(grnaList)
+    return(out)
+}
+
+
+#' @importFrom Matrix rowSums
+.initiateOpsLibrary <- function(grnaList,
+                                dist_method,
+                                min_dist_edit
+){
+    selected <- grnaList[["selected"]]
+    mat <- getBarcodeDistanceMatrix(queryBarcodes=selected[["opsBarcode"]],
+                                    dist_method=dist_method,
+                                    min_dist_edit=min_dist_edit)
+    good <- Matrix::rowSums(mat>0)==0
+    # In case all guides are "bad", add first one only:
+    if (sum(good)==0){
+        good[1] <- TRUE
+    }
+    grnaList[["selected"]] <- selected[good,]
+    grnaList[["candidates"]] <- rbind(grnaList[["candidates"]], 
+                                      selected[!good,])
+    return(grnaList)
+}
+
+
+
+
+.updateOpsLibrary <- function(grnaList,
+                              gene_field,
+                              n_guides,
+                              dist_method,
+                              min_dist_edit
+){
+    delta <- 1
+    while (delta>0){
+        n <- nrow(grnaList[["selected"]])
+        grnaList <- .updateOpsLibraryOnce(grnaList,
+                                          gene_field=gene_field,
+                                          n_guides=n_guides,
+                                          dist_method=dist_method,
+                                          min_dist_edit=min_dist_edit)
+        n_new <- nrow(grnaList[["selected"]])
+        delta <- n_new - n
+    }
+    return(grnaList)
+}
+
+
+
+.updateOpsLibraryOnce <- function(grnaList,
+                                  gene_field,
+                                  n_guides,
+                                  dist_method,
+                                  min_dist_edit
+){
+  
+    .getCandidates <- function(genes, n){
+        cands <- grnaList[["candidates"]]
+        if (!"rank" %in% colnames(cands)){
+            stop("rank should be a column of the candidate guides.")
+        }
+        cands <- cands[order(cands$rank),,drop=FALSE]
+        cands <- split(cands, f=cands[[gene_field]])
+        cands <- cands[genes]
+        cands <- lapply(cands, function(x){
+            x[seq_len(n),,drop=FALSE]
+        })
+        cands <- do.call(rbind, cands)
+        return(cands)
+    }
+
+    .incrementalUpdate <- function(grnaList, cands){
+        lib <- grnaList[["selected"]]
+        gab <- grnaList[["discarded"]]
+
+        # Improve design by adding first guides that are
+        # most divergent:
+        dist <- getBarcodeDistanceMatrix(cands[["opsBarcode"]],
+                                         dist_method=dist_method,
+                                         min_dist_edit=min_dist_edit)
+        score <- Matrix::rowSums(dist>0)
+        cands <- cands[order(score),,drop=FALSE]
+
+        for (i in seq_len(nrow(cands))){
+
+            barcode <- cands[i,"opsBarcode"]
+            dist <- getBarcodeDistanceMatrix(barcode,
+                                             lib[["opsBarcode"]],
+                                             dist_method=dist_method,
+                                             min_dist_edit=min_dist_edit)
+            good <- Matrix::rowSums(dist>0)==0
+            if (good){
+                lib <- rbind(lib, cands[i,,drop=FALSE])
+            } else {
+                gab <- rbind(gab, cands[i,,drop=FALSE])
+            }
+        }
+        grnaList[["selected"]] <- lib
+        grnaList[["discarded"]] <- gab
+        return(grnaList)
+    }
+
+    .setdiff.grna <- function(set1, set2){
+        if (!is.null(set2) & nrow(set2)>0){
+            set1 <- set1[!set1[["ID"]] %in% set2[["ID"]],,drop=FALSE]
+        }
+        return(set1)
+    }
+
+    lib <- grnaList[["selected"]]
+    geneChoices <- factor(lib[[gene_field]],
+                          levels=grnaList[["genes"]])
+    geneSets <- split(lib, f=geneChoices)
+    ns <- vapply(geneSets, nrow, FUN.VALUE=0)
+    incompleteGenes <- names(geneSets)[ns<n_guides]
+    cands <- .getCandidates(incompleteGenes, 1)
+    grnaList[["candidates"]] <- .setdiff.grna(grnaList[["candidates"]],
+                                              cands)
+    dist <- getBarcodeDistanceMatrix(cands[["opsBarcode"]],
+                                     lib[["opsBarcode"]],
+                                     dist_method=dist_method,
+                                     min_dist_edit=min_dist_edit)
+    cands <- cands[Matrix::rowSums(dist)==0,,drop=FALSE]
+    grnaList <- .incrementalUpdate(grnaList, cands)
+    return(grnaList)
+}
+
+
+
+
+.getFinalOpsLibrary <- function(grnaList){
+    return(grnaList[["selected"]])
+}
+
+
+
+validateOpsLibrary <- function(df,
+                               min_dist_edit=3,
+                               dist_method=c("hamming","levenstein")){
+    dist <- getBarcodeDistanceMatrix(df[["opsBarcode"]],
+                                     dist_method=dist_method,
+                                     min_dist_edit=min_dist_edit)
+    score <- Matrix::rowSums(dist>0)
+    if (any(score>0)){
+        stop("The library is not valid with the current parameters.")
+    }
+    return(df)
+}
+
+
 .validateNCycles <- function(n_cycles, spacer_len){
     if (n_cycles>spacer_len){
         stop("n_cycles must be an integer smaller or equal ",
@@ -196,69 +433,28 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 }
 
 
-# data("guideSetExample")
-# guideSet <- guideSetExample
-# dist_method <- "hamming"
-# rt_direction <- "5prime"
-# min_dist_edit <- 3
-# n_cycles <- 10
-# guideSet <- addOpsBarcodes(guideSet)
+.addOpsRank <- function(df){
+    ids <- df[["ID"]]
+    rows <- rownames(df)
+    dfs <- split(df, f=df[[gene_field]])
+    dfs <- lapply(dfs, function(x){
+        x$rank <- seq_len(nrow(x))
+        x
+    })
+    df <- do.call(rbind, dfs)
+    df <- df[match(ids, df[["ID"]]),,drop=FALSE]
+    rownames(df) <- rows
+    return(df)
+}
 
 
 
-
-# getOpsLibrary <- function(pool,
-#                           genes=NULL,
-#                           spacer_len=20,
-#                           n_guides=4,
-#                           n_cycles=9,
-#                           min_dist_edit=2,
-#                           dist_method="hamming",
-                          
-# ){
-#     .checkPool(pool, spacer_len)
-#     pool <- .addBarcodeColumn(pool,
-#                               spacer_len=spacer_len,
-#                               n_cycles=n_cycles)
-
-#     # Subsetting
-#     missing <- genes[!genes %in% pool$gene_symbol]
-#     genes <- setdiff(genes, missing)
-#     pool <- pool[pool$gene_symbol %in% genes,]
-
-#     # Creating guideSets:
-#     lib  <- pool[pool$rank<=n_guides,,drop=FALSE]
-#     pool <- pool[pool$rank>n_guides,,drop=FALSE]
-#     grnas <- list(candidates=pool,
-#                   selected=lib,
-#                   discarded=NULL,
-#                   genes=genes)
-#     grnas <- initiateLibrary(grnas,
-#                              spacer_len=spacer_len,
-#                              n_cycles=n_cycles,
-#                              dist_method=dist_method,
-#                              min_dist_edit=min_dist_edit)
-#     grnas <- updateLibrary(grnas,
-#                            n_guides=n_guides,
-#                            spacer_len=spacer_len,
-#                            n_cycles=n_cycles,
-#                            dist_method=dist_method,
-#                            min_dist_edit=min_dist_edit,
-#                            verbose=verbose)
-#     finalLib   <- getFinalLibrary(grnas)
-#     return(finalLib)
-# }
-
-
-# updateOpsLibrary <- function(opsLibrary,
-#                              pool,
-#                              genes=NULL,
-#                              spacer_len=20,
-#                              n_guides=4,
-#                              n_cycles=9,
-#                              min_dist_edit=2,
-#                              dist_method="hamming",
-#                              verbose=TRUE
+# addToOpsLibrary <- function(opsLibrary,
+#                               pool,
+#                               genes=NULL,
+#                               n_guides=4,
+#                               min_dist_edit
+#                               dist_method,
 # ){
 #     .checkPool(pool, spacer_len)
 #     .checkPool(opsLibrary, spacer_len)
@@ -295,152 +491,16 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 
 
 
-# initiateLibrary <- function(grnas,
-#                             spacer_len,
-#                             n_cycles,
-#                             dist_method,
-#                             min_dist_edit
-# ){
-#     spacer_col  <- paste0("spacer_", spacer_len, "mer")
-#     barcode_col <- paste0("barcode_", n_cycles, "cycles")
-#     selected <- grnas[["selected"]]
-#     mat <- getDistanceMatrix(barcodes=selected[[barcode_col]],
-#                              dist_method=dist_method,
-#                              min_dist_edit=min_dist_edit)
-#     good <- rowSums(mat>0)==0
-#     # In case all guides are "bad", add first one only:
-#     if (sum(good)==0){
-#         good[1] <- TRUE
-#     }
-#     grnas[["selected"]] <- selected[good,]
-#     grnas[["candidates"]] <- rbind(grnas[["candidates"]], 
-#                                    selected[!good,])
-#     return(grnas)
-# }
-
-
-
-
-# updateLibrary <- function(grnas,
-#                           n_guides,
-#                           n_cycles,
-#                           spacer_len,
-#                           dist_method,
-#                           min_dist_edit,
-#                           verbose
-# ){
-#     delta <- 1
-#     while (delta>0){
-#         n <- nrow(grnas[["selected"]])
-#         grnas <- updateLibraryOnce(grnas,
-#                                    n_guides=n_guides,
-#                                    n_cycles=n_cycles,
-#                                    spacer_len=spacer_len,
-#                                    dist_method=dist_method,
-#                                    min_dist_edit=min_dist_edit)
-#         n_new <- nrow(grnas[["selected"]])
-#         if (verbose){
-#             print(n_new)
-#         }
-#         delta <- n_new - n
-#     }
-#     return(grnas)
-# }
-
-
-# #' @importFrom dplyr bind_rows
-# updateLibraryOnce <- function(grnas,
-#                               n_guides,
-#                               n_cycles,
-#                               spacer_len,
-#                               dist_method,
-#                               min_dist_edit
-# ){
-#     require(dplyr)
-#     spacer_col  <- paste0("spacer_", spacer_len, "mer")
-#     barcode_col <- paste0("barcode_", n_cycles, "cycles")
-#     .getCandidates <- function(genes, n){
-#         cands <- grnas[["candidates"]]
-#         if (!"rank" %in% colnames(cands)){
-#             stop("rank should be a column of the candidate guides.")
-#         }
-#         cands <- cands[order(cands$rank),,drop=FALSE]
-#         cands <- split(cands, f=cands$gene_symbol)
-#         cands <- cands[genes]
-#         cands <- lapply(cands, function(x){
-#             x[seq_len(n),,drop=FALSE]
-#         })
-#         cands <- bind_rows(cands)
-#         return(cands)
-#     }
-
-#      .incrementalUpdate <- function(grnas, cands){
-#         lib <- grnas[["selected"]]
-#         gab <- grnas[["discarded"]]
-
-#         # Improve design by adding first guides that are
-#         # most divergent:
-#         dist <- getDistanceMatrix(cands[[barcode_col]],
-#                                   dist_method=dist_method,
-#                                   min_dist_edit=min_dist_edit)
-#         score <- rowSums(dist>0)
-#         cands <- cands[order(score),,drop=FALSE]
-
-#         for (i in seq_len(nrow(cands))){
-#             #newlib <- bind_rows(lib, cands[i,,drop=FALSE])
-#             #ind <- nrow(newlib)
-#             barcode <- cands[i,barcode_col]
-#             dist <- getInterDistanceMatrix(barcode,
-#                                            lib[[barcode_col]],
-#                                            dist_method=dist_method,
-#                                            min_dist_edit=min_dist_edit)
-#             good <- rowSums(dist>0)==0
-#             if (good){
-#                 lib <- bind_rows(lib, cands[i,,drop=FALSE])
-#             } else {
-#                 gab <- bind_rows(gab, cands[i,,drop=FALSE])
-#             }
-#         }
-#         grnas[["selected"]] <- lib
-#         grnas[["discarded"]] <- gab
-#         return(grnas)
-#     }
-
-
-#     lib <- grnas[["selected"]]
-#     geneChoices <- factor(lib$gene_symbol,
-#                           levels=grnas[["genes"]])
-#     geneSets <- split(lib, f=geneChoices)
-#     ns <- vapply(geneSets, nrow,FUN.VALUE=0)
-#     incompleteGenes <- names(geneSets)[ns<n_guides]
-#     cands <- .getCandidates(incompleteGenes, 1)
-#     grnas[["candidates"]] <- setdiff.grna(grnas[["candidates"]],
-#                                           cands)
-#     dist <- getInterDistanceMatrix(cands[[barcode_col]],
-#                                    lib[[barcode_col]],
-#                                    dist_method=dist_method,
-#                                    min_dist_edit=min_dist_edit)
-#     cands <- cands[rowSums(dist)==0,,drop=FALSE]
-#     grnas <- .incrementalUpdate(grnas, cands)
-#     return(grnas)
-# }
 
 
 
 
 
 
-# getFinalLibrary <- function(grnas){
-#     return(grnas[["selected"]])
-# }
 
 
-# setdiff.grna <- function(set1, set2){
-#     if (!is.null(set2) & nrow(set2)>0){
-#         set1 <- set1[!set1$ID %in% set2$ID,,drop=FALSE]
-#     }
-#     return(set1)
-# }
+
+
 
 
 
