@@ -182,16 +182,6 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 
 
 
-# data("guideSetExample")
-# guideSet <- guideSetExample
-# guideSet <- addOpsBarcodes(guideSet)
-# df <- data.frame(ID=names(guideSet),
-#                  spacer=spacers(guideSet, as.character=TRUE),
-#                  opsBarcode=as.character(guideSet$opsBarcode))
-# df$gene <- rep(paste0("gene",1:40),each=20)
-# df$rank <- rep(1:20,40)
-# opsLib <- designOpsLibrary(df)
-
 
 
 #' Design gRNA library for optical pooled screening
@@ -402,9 +392,37 @@ designOpsLibrary <- function(df,
 
 
 
+
+#' Validate gRNA library for optical pooled screening
+#' 
+#' Validate gRNA library for optical pooled screening
+#' 
+#' @param df data.frame containing information about candidate
+#'     gRNAs from which to build the OPS library. See details. 
+#' @param min_dist_edit Integer specifying the minimum distance edit
+#'     required for barcodes to be different. 
+#' @param dist_method String specifying distance method. Must be
+#'     either "hamming" (default) or "levenstein". 
+#' 
+#' @examples
+#' data("guideSetExample")
+#' guideSet <- guideSetExample
+#' guideSet <- addOpsBarcodes(guideSet)
+#' df <- data.frame(ID=names(guideSet),
+#'                  spacer=spacers(guideSet, as.character=TRUE),
+#'                  opsBarcode=as.character(guideSet$opsBarcode))
+#' df$gene <- rep(paste0("gene",1:40),each=20)
+#' df$rank <- rep(1:20,40)
+#' opsLib <- designOpsLibrary(df)
+#' opsLib <- validateOpsLibrary(opsLib)
+
+#' @author Jean-Philippe Fortin
+#' 
+#' @export
 validateOpsLibrary <- function(df,
                                min_dist_edit=3,
-                               dist_method=c("hamming","levenstein")){
+                               dist_method=c("hamming","levenstein")
+){
     dist <- getBarcodeDistanceMatrix(df[["opsBarcode"]],
                                      dist_method=dist_method,
                                      min_dist_edit=min_dist_edit)
@@ -414,6 +432,7 @@ validateOpsLibrary <- function(df,
     }
     return(df)
 }
+
 
 
 .validateNCycles <- function(n_cycles, spacer_len){
