@@ -188,7 +188,7 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 # df <- data.frame(ID=names(guideSet),
 #                  spacer=spacers(guideSet, as.character=TRUE),
 #                  opsBarcode=as.character(guideSet$opsBarcode))
-# df$group <- rep(paste0("gene",1:40),each=20)
+# df$gene <- rep(paste0("gene",1:40),each=20)
 # df$rank <- rep(1:20,40)
 # opsLib <- designOpsLibrary(df)
 
@@ -216,7 +216,7 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 #' df <- data.frame(ID=names(guideSet),
 #'                  spacer=spacers(guideSet, as.character=TRUE),
 #'                  opsBarcode=as.character(guideSet$opsBarcode))
-#' df$group <- rep(paste0("gene",1:40),each=20)
+#' df$gene <- rep(paste0("gene",1:40),each=20)
 #' df$rank <- rep(1:20,40)
 #' opsLib <- designOpsLibrary(df)
 
@@ -225,7 +225,7 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 #' @export
 designOpsLibrary <- function(df,
                              n_guides=4,
-                             gene_field="group",
+                             gene_field="gene",
                              min_dist_edit=3,
                              dist_method=c("hamming","levenstein")
 ){
@@ -263,6 +263,7 @@ designOpsLibrary <- function(df,
                                   dist_method=dist_method,
                                   min_dist_edit=min_dist_edit)
     out <- .getFinalOpsLibrary(grnaList)
+    out <- out[order(out[[gene_field]], out[["rank"]]),,drop=FALSE]
     return(out)
 }
 
@@ -379,14 +380,16 @@ designOpsLibrary <- function(df,
     ns <- vapply(geneSets, nrow, FUN.VALUE=0)
     incompleteGenes <- names(geneSets)[ns<n_guides]
     cands <- .getCandidates(incompleteGenes, 1)
-    grnaList[["candidates"]] <- .setdiff.grna(grnaList[["candidates"]],
-                                              cands)
-    dist <- getBarcodeDistanceMatrix(cands[["opsBarcode"]],
-                                     lib[["opsBarcode"]],
-                                     dist_method=dist_method,
-                                     min_dist_edit=min_dist_edit)
-    cands <- cands[Matrix::rowSums(dist)==0,,drop=FALSE]
-    grnaList <- .incrementalUpdate(grnaList, cands)
+    if (length(cands)!=0){
+        grnaList[["candidates"]] <- .setdiff.grna(grnaList[["candidates"]],
+                                                  cands)
+        dist <- getBarcodeDistanceMatrix(cands[["opsBarcode"]],
+                                         lib[["opsBarcode"]],
+                                         dist_method=dist_method,
+                                         min_dist_edit=min_dist_edit)
+        cands <- cands[Matrix::rowSums(dist)==0,,drop=FALSE]
+        grnaList <- .incrementalUpdate(grnaList, cands)
+    }
     return(grnaList)
 }
 

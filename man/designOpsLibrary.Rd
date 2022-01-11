@@ -7,7 +7,7 @@
 designOpsLibrary(
   df,
   n_guides = 4,
-  gene_field = "group",
+  gene_field = "gene",
   min_dist_edit = 3,
   dist_method = c("hamming", "levenstein")
 )
@@ -38,7 +38,7 @@ guideSet <- addOpsBarcodes(guideSet)
 df <- data.frame(ID=names(guideSet),
                  spacer=spacers(guideSet, as.character=TRUE),
                  opsBarcode=as.character(guideSet$opsBarcode))
-df$group <- rep(paste0("gene",1:40),each=20)
+df$gene <- rep(paste0("gene",1:40),each=20)
 df$rank <- rep(1:20,40)
 opsLib <- designOpsLibrary(df)
 }
