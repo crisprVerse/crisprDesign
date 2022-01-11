@@ -50,6 +50,11 @@ addOpsBarcodes <- function(guideSet,
 
 
 
+
+
+
+
+
 #' Get distance between query and target sets of barcodes
 #' 
 #' Get distance between query and target sets of barcodes
@@ -141,6 +146,8 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 
 
 
+
+
 # Core function 
 #' @importFrom utils adist
 #' @importFrom Matrix Matrix
@@ -175,11 +182,6 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 
 
 
-
-
-
-
-
 # data("guideSetExample")
 # guideSet <- guideSetExample
 # guideSet <- addOpsBarcodes(guideSet)
@@ -188,7 +190,7 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 #                  opsBarcode=as.character(guideSet$opsBarcode))
 # df$group <- rep(paste0("gene",1:40),each=20)
 # df$rank <- rep(1:20,40)
-# opsLib <- buildOpsLibrary(df)
+# opsLib <- designOpsLibrary(df)
 
 
 
@@ -216,7 +218,7 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 #'                  opsBarcode=as.character(guideSet$opsBarcode))
 #' df$group <- rep(paste0("gene",1:40),each=20)
 #' df$rank <- rep(1:20,40)
-#' opsLib <- buildOpsLibrary(df)
+#' opsLib <- designOpsLibrary(df)
 
 #' @author Jean-Philippe Fortin
 #'

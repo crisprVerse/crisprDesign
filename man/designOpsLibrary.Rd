@@ -40,7 +40,7 @@ df <- data.frame(ID=names(guideSet),
                  opsBarcode=as.character(guideSet$opsBarcode))
 df$group <- rep(paste0("gene",1:40),each=20)
 df$rank <- rep(1:20,40)
-opsLib <- buildOpsLibrary(df)
+opsLib <- designOpsLibrary(df)
 }
 \author{
 Jean-Philippe Fortin
