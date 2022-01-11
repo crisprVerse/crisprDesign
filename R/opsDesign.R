@@ -244,7 +244,7 @@ designOpsLibrary <- function(df,
     if (!"rank" %in% colnames(df)){
         message("Since 'rank' column is not provided, using ",
                 "default order has ranking.")
-        df <- .addOpsRank(df)
+        df <- .addOpsRank(df, gene_field)
     }   
 
     genes <- unique(df[[gene_field]])
@@ -433,7 +433,7 @@ validateOpsLibrary <- function(df,
 }
 
 
-.addOpsRank <- function(df){
+.addOpsRank <- function(df, gene_field){
     ids <- df[["ID"]]
     rows <- rownames(df)
     dfs <- split(df, f=df[[gene_field]])
