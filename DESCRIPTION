@@ -1,6 +1,6 @@
 Package: crisprDesign
 Title: Core functions for CRISPR design
-Version: 0.99.3
+Version: 0.99.4
 Authors@R: c(
     person("Jean-Philippe", "Fortin", email = "fortin946@gmail.com", role = c("aut", "cre")),
     person("Luke", "Hoberecht", email = "hoberchl@gene.com", role = c("aut"))
@@ -26,6 +26,7 @@ Imports:
     GenomicFeatures,
     GenomicRanges (>= 1.38.0),
     IRanges,
+    Matrix,
     MatrixGenerics,
     methods,
     S4Vectors,
