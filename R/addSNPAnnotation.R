@@ -4,8 +4,8 @@
 #'    Only available for sgRNAs designed for human genome.
 #' 
 #' @param guideSet A \linkS4class{GuideSet} object.
-#' @param vcf Either a character string specfying path to a VCF file
-#'     or a \linkS4class{VCF} object.
+#' @param vcf Either a character string specfying a path to a VCF file
+#'     or connection, or a \linkS4class{VCF} object.
 #' @param maf Minimum minor allele frequency to report (for a least one source
 #'     among 1000Genomes and TOPMED). Must be between 0 and 1 (exclusive).
 #' 
@@ -115,7 +115,6 @@ addSNPAnnotation <- function(guideSet,
     }
     
     snps$rs <- paste0("rs", snps$rs, recycle0=TRUE)
-    
     guideIndices <- match(snps$ID, names(guideSet))
     rs_site_rel <- snps$rs_site - guideSet$pam_site[guideIndices]
     negativeStrand <- BiocGenerics::strand(guideSet)[guideIndices] == "-"
@@ -182,7 +181,7 @@ addSNPAnnotation <- function(guideSet,
         stopifnot("vcf must be a single file path" = {
             length(vcf) == 1
         })
-        if (!file.exists(vcf)){
+        if (!file.exists(vcf) && !RCurl::url.exists(vcf)){
             missingFileMessage <- paste0("Could not find the file '", vcf, "'")
             stop(missingFileMessage)
         } else {

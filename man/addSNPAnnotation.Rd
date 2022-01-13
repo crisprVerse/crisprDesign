@@ -9,8 +9,8 @@ addSNPAnnotation(guideSet, vcf, maf = 0.01)
 \arguments{
 \item{guideSet}{A \linkS4class{GuideSet} object.}
 
-\item{vcf}{Either a character string specfying path to a VCF file
-or a \linkS4class{VCF} object.}
+\item{vcf}{Either a character string specfying a path to a VCF file
+or connection, or a \linkS4class{VCF} object.}
 
 \item{maf}{Minimum minor allele frequency to report (for a least one source
 among 1000Genomes and TOPMED). Must be between 0 and 1 (exclusive).}
