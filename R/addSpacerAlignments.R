@@ -83,17 +83,18 @@
 #' 
 #' @details 
 #' 
-#' The differential columns stored in
+#' The columns stored in
 #' \code{mcols(guideSet)[["geneAnnotation"]]} are:
 #' 
 #' \itemize{
-#' \item \code{spacer} Transcript ID.
-#' \item \code{pam}
+#' \item \code{spacer} Spacer sequence of the query gRNA.
+#' \item \code{protospacer} Protospacer sequence in the target DNA.
+#' \item \code{pam} PAM sequence.
 #' \item \code{pam_site} PAM site of the found protospacer.
 #' \item \code{cute_site} Cut site of the found protospacer.
 #' \item \code{n_mismatches} Integer value specifying the number
-#'     of nucleotide mismatches between the spacer sequence of the query
-#'     and the spacer sequence found in the genome or custom sequence.
+#'     of nucleotide mismatches between the gRNA spacer sequence 
+#'     and the protospacer sequence found in the genome or custom sequence.
 #' \item \code{mm1} Numeric value specifying the relative position of the
 #'     first mismatch with respect to the PAM site. NA if there is no
 #'     mismatch.
@@ -105,7 +106,6 @@
 #'     third mismatch.
 #' \item \code{canonical} Is the PAM sequence of the found protospacer sequence
 #'     canonical?
-#' \item \code{query} Spacer sequence of the query gRNA.
 #' \item \code{cds} Character vector specifying gene names of CDS overlapping
 #'     the found protospacer sequence.
 #' \item \code{fiveUTRs} Character vector specifying gene names of 5'UTRs overlapping
@@ -382,7 +382,7 @@ addSpacerAlignments <- function(guideSet,
     }
 
     dfs <- S4Vectors::split(aln,
-                            f=factor(aln$query,
+                            f=factor(aln$spacer,
                                      levels=uniqueSpacers))
     dfs <- dfs[spacers]
     names(dfs) <- names(guideSet)
@@ -542,9 +542,9 @@ getSpacerAlignments <- function(spacers,
 
     #Transforming to a GRanges:
     results <- .as_gr(results)
-    results$query  <- DNAStringSet(results$spacer)
-    results$spacer <- DNAStringSet(results$protospacer)
-    results$protospacer <- NULL
+    #results$query  <- DNAStringSet(results$spacer)
+    #results$spacer <- DNAStringSet(results$protospacer)
+    #results$protospacer <- NULL
     results$pam         <- DNAStringSet(results$pam)
 
 
@@ -660,9 +660,9 @@ getSpacerAlignments <- function(spacers,
   
     #Transforming to a GRanges:
     results <- .as_gr(results)
-    results$query  <- DNAStringSet(results$spacer)
-    results$spacer <- DNAStringSet(results$protospacer)
-    results$protospacer <- NULL
+    #results$query  <- DNAStringSet(results$spacer)
+    #results$spacer <- DNAStringSet(results$protospacer)
+    #results$protospacer <- NULL
     results$pam         <- DNAStringSet(results$pam)
 
     # Adding metadata:
@@ -788,9 +788,9 @@ getSpacerAlignments <- function(spacers,
 
     #Transforming to a GRanges:
     locs <- .as_gr(locs)
-    locs$query  <- DNAStringSet(locs$spacer)
-    locs$spacer <- DNAStringSet(locs$protospacer)
-    locs$protospacer <- NULL
+    #locs$query  <- DNAStringSet(locs$spacer)
+    #locs$spacer <- DNAStringSet(locs$protospacer)
+    #locs$protospacer <- NULL
     locs$pam         <- DNAStringSet(locs$pam)
     metadata(locs)$crisprNuclease   <- crisprNuclease
     metadata(locs)$genome     <- "custom"
@@ -1002,7 +1002,7 @@ getSpacerAlignments <- function(spacers,
         return(df)
     }
 
-    df <- data.frame(spacer=unique(aln$query))
+    df <- data.frame(spacer=unique(aln$spacer))
 
     # Create summary columns:
     cols <- c('', '_c', '_nc', '_p')
@@ -1025,7 +1025,7 @@ getSpacerAlignments <- function(spacers,
     # count number of alignments per column
     .countAlignments <- function(col, cond){
         mm <- as.integer(substr(col, start=2, stop=2))
-        tab <- table(aln$query[aln$n_mismatches==mm & cond])
+        tab <- table(aln$spacer[aln$n_mismatches==mm & cond])
         if (length(tab) > 0){
             wh <- match(names(tab), df$spacer)
             temp <- df[,col]

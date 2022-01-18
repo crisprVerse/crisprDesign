@@ -182,17 +182,18 @@ Functions for finding and characterizing on- and off-targets of
     spacer sequences.
 }
 \details{
-The differential columns stored in
+The columns stored in
 \code{mcols(guideSet)[["geneAnnotation"]]} are:
 
 \itemize{
-\item \code{spacer} Transcript ID.
-\item \code{pam}
+\item \code{spacer} Spacer sequence of the query gRNA.
+\item \code{protospacer} Protospacer sequence in the target DNA.
+\item \code{pam} PAM sequence.
 \item \code{pam_site} PAM site of the found protospacer.
 \item \code{cute_site} Cut site of the found protospacer.
 \item \code{n_mismatches} Integer value specifying the number
-    of nucleotide mismatches between the spacer sequence of the query
-    and the spacer sequence found in the genome or custom sequence.
+    of nucleotide mismatches between the gRNA spacer sequence 
+    and the protospacer sequence found in the genome or custom sequence.
 \item \code{mm1} Numeric value specifying the relative position of the
     first mismatch with respect to the PAM site. NA if there is no
     mismatch.
@@ -204,7 +205,6 @@ The differential columns stored in
     third mismatch.
 \item \code{canonical} Is the PAM sequence of the found protospacer sequence
     canonical?
-\item \code{query} Spacer sequence of the query gRNA.
 \item \code{cds} Character vector specifying gene names of CDS overlapping
     the found protospacer sequence.
 \item \code{fiveUTRs} Character vector specifying gene names of 5'UTRs overlapping

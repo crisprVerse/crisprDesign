@@ -64,9 +64,8 @@ addOffTargetScores <- function(guideSet,
                                     includeDistance=includeDistance,
                                     offset=offset)
     
-    guideSet <- .addOffTargetScoresToAlignments(
-        guideSet=guideSet,
-        includeDistance=includeDistance)
+    guideSet <- .addOffTargetScoresToAlignments(guideSet=guideSet,
+                                                includeDistance=includeDistance)
     guideSet <- .addOffTargetScoresToGuideSet(guideSet=guideSet,
                                               max_mm=max_mm,
                                               offset=offset)
@@ -118,30 +117,29 @@ addOffTargetScores <- function(guideSet,
         spacerLengths %in% c(19, 20)
     })
     
-    alignments <- alignments(guideSet)
-    alignmentSpacers  <- as.character(alignments$query)
-    alignmentProtospacers <- paste0(as.character(alignments$spacer),
-                           as.character(alignments$pam))
+    aln <- alignments(guideSet)
+    spacers  <- as.character(aln$spacer)
+    protospacers <- paste0(as.character(aln$protospacer),
+                           as.character(aln$pam))
     if (spacerLengths == 19){
-        alignmentSpacers  <- paste0("G", alignmentSpacers, recycle0=TRUE)
-        alignmentProtospacers <- paste0("G", alignmentProtospacers,
-                                        recycle0=TRUE)
+        spacers  <- paste0("G", spacers, recycle0=TRUE)
+        protospacers <- paste0("G", protospacers, recycle0=TRUE)
     }
-    score_cfd <- crisprScore::getCFDScores(spacers=alignmentSpacers,
-                                           protospacers=alignmentProtospacers)
-    alignments$score_cfd <- score_cfd$score
-    score_mit <- crisprScore::getMITScores(spacers=alignmentSpacers,
-                                           protospacers=alignmentProtospacers,
+    score_cfd <- crisprScore::getCFDScores(spacers=spacers,
+                                           protospacers=protospacers)
+    aln$score_cfd <- score_cfd$score
+    score_mit <- crisprScore::getMITScores(spacers=spacers,
+                                           protospacers=protospacers,
                                            includeDistance=includeDistance)
-    alignments$score_mit <- score_mit$score
+    aln$score_mit <- score_mit$score
     
     guideSetSpacers <- spacers(guideSet, as.character=TRUE)
-    alignments <- S4Vectors::split(alignments,
-                                   f=factor(alignments$query,
+    aln <- S4Vectors::split(aln,
+                                   f=factor(aln$spacer,
                                             levels=unique(guideSetSpacers)))
-    alignments <- alignments[guideSetSpacers]
-    names(alignments) <- names(guideSet)
-    S4Vectors::mcols(guideSet)[["alignments"]] <- alignments
+    aln <- aln[guideSetSpacers]
+    names(aln) <- names(guideSet)
+    S4Vectors::mcols(guideSet)[["alignments"]] <- aln
     
     return(guideSet)
 }
@@ -152,15 +150,14 @@ addOffTargetScores <- function(guideSet,
                                           max_mm,
                                           offset
 ){
-    alignments <- alignments(guideSet)
-    alignments <- as.data.frame(S4Vectors::mcols(alignments),
-                                stringsAsFactors=FALSE)
-    validMismatchCount <- alignments$n_mismatches <= max_mm
-    alignments <- alignments[validMismatchCount, , drop=FALSE]
-    alignments <- split(alignments, f=alignments$query)
-    .getAggregateScore <- function(score
-    ){
-        vapply(alignments, function(x){
+    aln <- alignments(guideSet)
+    aln <- as.data.frame(S4Vectors::mcols(aln),
+                         stringsAsFactors=FALSE)
+    validMismatchCount <- aln$n_mismatches <= max_mm
+    aln <- aln[validMismatchCount, , drop=FALSE]
+    aln <- split(aln, f=aln$spacer)
+    .getAggregateScore <- function(score){
+        vapply(aln, function(x){
             x <- x[[score]]
             x <- sum(x, na.rm=TRUE) + offset
             1/x
@@ -178,3 +175,4 @@ addOffTargetScores <- function(guideSet,
     
     return(guideSet)
 }
+

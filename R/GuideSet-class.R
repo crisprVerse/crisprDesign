@@ -362,7 +362,7 @@ setMethod("onTargets", "GuideSet",
         names(out) <- NULL
         if (!unlist){
             spacers <- spacers(object, as.character=TRUE)
-            out <- split(out, f=factor(out$query,
+            out <- split(out, f=factor(out$spacer,
                                        levels=unique(spacers)))
             out <- out[spacers]
             names(out) <- names(object)
@@ -394,7 +394,7 @@ setMethod("offTargets", "GuideSet",
         names(out) <- NULL
         if (!unlist){
             spacers <- spacers(object, as.character=TRUE)
-            out <- split(out, f=factor(out$query,
+            out <- split(out, f=factor(out$spacer,
                                        levels=unique(spacers)))
             out <- out[spacers]
             names(out) <- names(object)

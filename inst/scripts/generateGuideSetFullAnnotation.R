@@ -42,10 +42,12 @@ gs <- addTssAnnotation(gs,
 gs <- addSNPAnnotation(gs, vcf=vcf)
 
 
+
 guideSetExampleFullAnnotation <- gs
 use_data(guideSetExampleFullAnnotation,
          compress="xz",
          overwrite=TRUE)
+
 
 
 
