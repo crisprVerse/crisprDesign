@@ -221,12 +221,12 @@ setMethod("cutSites", "GuideSet",
 
 #' @rdname GuideSet-class
 #' @param include.pam Should PAM sequences be included?
-#'     TRUE by default. 
+#'     FALSE by default. 
 #' @export
 setMethod("protospacers", "GuideSet", 
     function(object,
              as.character=FALSE,
-             include.pam=TRUE){
+             include.pam=FALSE){
     out <- mcols(object)[["protospacer"]]
     if (include.pam){
         pams <- pams(object)

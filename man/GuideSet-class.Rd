@@ -77,7 +77,7 @@ GuideSet(
 
 \S4method{cutSites}{GuideSet}(object)
 
-\S4method{protospacers}{GuideSet}(object, as.character = FALSE, include.pam = TRUE)
+\S4method{protospacers}{GuideSet}(object, as.character = FALSE, include.pam = FALSE)
 
 \S4method{spacerLength}{GuideSet}(object)
 
@@ -139,7 +139,7 @@ vector? FALSE by default, in which case sequences are returned
 as a \linkS4class{DNAStringSet}.}
 
 \item{include.pam}{Should PAM sequences be included?
-TRUE by default.}
+FALSE by default.}
 
 \item{unlist}{Should the annotation be returned as
 one table instead of a list? TRUE by default.}
