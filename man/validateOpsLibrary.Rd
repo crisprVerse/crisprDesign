@@ -15,7 +15,7 @@ validateOpsLibrary(
 gRNAs from which to build the OPS library. See details.}
 
 \item{min_dist_edit}{Integer specifying the minimum distance edit
-required for barcodes to be different.}
+required for barcodes to be considered dissimilar.}
 
 \item{dist_method}{String specifying distance method. Must be
 either "hamming" (default) or "levenstein".}

@@ -27,7 +27,7 @@
 #' 
 #' @export
 addOpsBarcodes <- function(guideSet,
-                           n_cycles=10,
+                           n_cycles=9,
                            rt_direction=c("5prime", "3prime")
 ){
     spacer_len   <- spacerLength(guideSet)
@@ -66,8 +66,8 @@ addOpsBarcodes <- function(guideSet,
 #' @param binnarize Should the distance matrix be made binnary?
 #'     TRUE by default. See details section. 
 #' @param min_dist_edit Integer specifying the minimum distance edit
-#'     required for barcodes to be different when \code{binnarize=TRUE}.
-#'     Ignored when \code{binnarize=FALSE}.
+#'     required for barcodes to be considered dissimilar when
+#'     \code{binnarize=TRUE}, ignored otherwise.
 #' @param dist_method String specifying distance method. Must be
 #'     either "hamming" (default) or "levenstein". 
 #' @param ignore_diagonal When \code{targetBarcodes=NULL}, should the
@@ -195,7 +195,9 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 #' @param gene_field String specifying the column in \code{df}
 #'     specifying gene names.
 #' @param min_dist_edit Integer specifying the minimum distance edit
-#'     required for barcodes to be different. 
+#'     required for barcodes to be considered dissimilar. Barcodes that
+#'     have edit distances less than the min_dist_edit will not be
+#'     included in the library. 
 #' @param dist_method String specifying distance method. Must be
 #'     either "hamming" (default) or "levenstein". 
 #' 
@@ -400,7 +402,7 @@ designOpsLibrary <- function(df,
 #' @param df data.frame containing information about candidate
 #'     gRNAs from which to build the OPS library. See details. 
 #' @param min_dist_edit Integer specifying the minimum distance edit
-#'     required for barcodes to be different. 
+#'     required for barcodes to be considered dissimilar.
 #' @param dist_method String specifying distance method. Must be
 #'     either "hamming" (default) or "levenstein". 
 #' 

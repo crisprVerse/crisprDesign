@@ -23,7 +23,9 @@ gene should be selected. 4 by default.}
 specifying gene names.}
 
 \item{min_dist_edit}{Integer specifying the minimum distance edit
-required for barcodes to be different.}
+required for barcodes to be considered dissimilar. Barcodes that
+have edit distances less than the min_dist_edit will not be
+included in the library.}
 
 \item{dist_method}{String specifying distance method. Must be
 either "hamming" (default) or "levenstein".}

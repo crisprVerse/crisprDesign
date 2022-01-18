@@ -4,7 +4,7 @@
 \alias{addOpsBarcodes}
 \title{Add optical pooled screening (OPS) barcodes}
 \usage{
-addOpsBarcodes(guideSet, n_cycles = 10, rt_direction = c("5prime", "3prime"))
+addOpsBarcodes(guideSet, n_cycles = 9, rt_direction = c("5prime", "3prime"))
 }
 \arguments{
 \item{guideSet}{A \linkS4class{GuideSet} object.}
