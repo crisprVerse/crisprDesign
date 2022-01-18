@@ -1,6 +1,8 @@
 library(crisprDesign)
 library(GenomicRanges)
 library(devtools)
+data(grListExample)
+
 
 # Getting guides in CDS of gene "IQSEC3"
 gr <- queryTxObject(grListExample,

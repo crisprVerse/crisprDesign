@@ -15,10 +15,10 @@
 #'     \item{\code{pamSites}:}{To get PAM site coordinates.}
 #'     \item{\code{pamLength}:}{To get PAM length.}
 #'     \item{\code{pamSide}:}{To return the side of the PAM sequence with
-#'         respect to the spacer sequence.}
+#'         respect to the protospacer sequence.}
 #'     \item{\code{prototypeSequence}:}{To get a prototype protospacer
 #'         sequence.}
-#'     \item{\code{cutSites}:}{To get spacer length.}
+#'     \item{\code{cutSites}:}{To get cut sites.}
 #'     \item{\code{alignments}:}{To get genomic alignments annotation.}
 #'     \item{\code{onTargets}:}{To get on-target alignments annotation}
 #'     \item{\code{offTargets}:}{To get off-target alignments annotation}
@@ -37,7 +37,7 @@ setClass("GuideSet", contains = "GRanges")
 
 
 #' @describeIn GuideSet Create a \linkS4class{GuideSet} object
-#' @param spacers Character vector of spacer sequences.
+#' @param protospacers Character vector of protospacers sequences.
 #' @param pams Character vector of PAM sequences.
 #' @param seqnames Character vector of chromosome names.
 #' @param pam_site Integer vector of PAM site coordinates.
@@ -49,15 +49,15 @@ setClass("GuideSet", contains = "GRanges")
 #' 
 #' @return A GuideSet object.
 #' @examples
-#' spacers <- c("AGGTCGTGTGTGGGGGGGGG",
-#'              "AGGTCGTGTGTGGGGGGGGG")
+#' protospacers <- c("AGGTCGTGTGTGGGGGGGGG",
+#'                   "AGGTCGTGTGTGGGGGGGGG")
 #' pams <- c("AGG", "CGG")
 #' pam_site=c(10,11)
 #' seqnames="chr7"
 #' data(SpCas9, package="crisprBase")
 #' CrisprNuclease <- SpCas9
 #' strand=c("+", "-")
-#' gr <- GuideSet(spacers=spacers,
+#' gr <- GuideSet(protospacers=protospacers,
 #'                pams=pams,
 #'                seqnames=seqnames,
 #'                CrisprNuclease=CrisprNuclease,
@@ -72,7 +72,7 @@ setClass("GuideSet", contains = "GRanges")
 #' @importFrom S4Vectors mcols<- mcols
 #' @importFrom methods new
 #' @export
-GuideSet <- function(spacers = NA_character_,
+GuideSet <- function(protospacers = NA_character_,
                      pams = NULL,
                      seqnames = NA_character_,
                      pam_site = 0L,
@@ -86,7 +86,7 @@ GuideSet <- function(spacers = NA_character_,
                   strand=strand)
     metadata(gr)$CrisprNuclease <- CrisprNuclease
     metadata(gr)$genome <- genome
-    mcols(gr)$spacer <- DNAStringSet(spacers)
+    mcols(gr)$protospacer <- DNAStringSet(protospacers)
     if (!is.null(pams)){
         mcols(gr)$pam <- DNAStringSet(pams)
     }
@@ -111,16 +111,16 @@ setMethod("show",
 setValidity("GuideSet", function(object) {
 
     df <- mcols(object)
-    mandatoryCols <- c("spacer", "pam_site","pam")
+    mandatoryCols <- c("protospacer", "pam_site","pam")
     out <- TRUE
     if (!all(mandatoryCols %in% colnames(df))){
         out <- paste0("The following columns must be present",
-               " in mcols(object): spacer, pam_site and pam.")
+               " in mcols(object): protospacer, pam_site and pam.")
         return(out)
     } 
 
-    if (!is(df[["spacer"]], "DNAStringSet")){
-        out <- "mcols(object)$spacer must be a DNAStringSet object."
+    if (!is(df[["protospacer"]], "DNAStringSet")){
+        out <- "mcols(object)$protospacer must be a DNAStringSet object."
         return(out)
     } 
     if (!is(df[["pam"]], "DNAStringSet")){
@@ -161,15 +161,22 @@ setMethod("crisprNuclease", "GuideSet",
 #'     vector? FALSE by default, in which case sequences are returned
 #'     as a \linkS4class{DNAStringSet}.
 #' @export
+#' @importFrom crisprBase isRnase
+#' @importFrom Biostrings reverseComplement
 setMethod("spacers", "GuideSet", 
     function(object,
              as.character=FALSE){
-    out <- mcols(object)[["spacer"]]
+    out <- mcols(object)[["protospacer"]]
+    if (isRnase(crisprNuclease(object))){
+        out <- reverseComplement(out)
+    }
     if (as.character){
         out <- as.character(out)
     }
     return(out)
 })
+
+
 
 #' @rdname GuideSet-class
 #' @export
@@ -213,13 +220,18 @@ setMethod("cutSites", "GuideSet",
 
 
 #' @rdname GuideSet-class
+#' @param include.pam Should PAM sequences be included?
+#'     TRUE by default. 
 #' @export
 setMethod("protospacers", "GuideSet", 
     function(object,
-             as.character=FALSE){
-    spacers <- spacers(object)
-    pams <- pams(object)
-    out <- paste0(spacers, pams)
+             as.character=FALSE,
+             include.pam=TRUE){
+    out <- mcols(object)[["protospacer"]]
+    if (include.pam){
+        pams <- pams(object)
+        out  <- paste0(out, pams)
+    }
     out <- DNAStringSet(out)
     if (as.character){
         out <- as.character(out)

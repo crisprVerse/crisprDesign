@@ -369,7 +369,7 @@ findSpacers <- function(x,
     out$chr <- mcols(dna)$seqnames[wh]
 
     # Creating GuideSet
-    gs <- GuideSet(spacers=out$spacer,
+    gs <- GuideSet(protospacers=out$spacer,
                    pams=out$pam,
                    seqnames=out$chr,
                    pam_site=out$pam_site,

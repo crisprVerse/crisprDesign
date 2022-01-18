@@ -48,7 +48,7 @@ test_that("CFD and MIT scores require guideSet using SpCas9 CrisprNuclease", {
 
 test_that("CFD and MIT scores require spacers having lengths 19nt or 20nt", {
     guides <- guideSetExampleFullAnnotation
-    guides$spacer <- Biostrings::substr(guides$spacer, 1, 18)
+    guides$protospacer <- Biostrings::substr(guides$protospacer, 1, 18)
     out <- addOffTargetScores(guides)
     expect_true(all(is.na(out$score_cfd)))
     expect_true(all(is.na(out$score_mit)))

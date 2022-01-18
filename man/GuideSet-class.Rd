@@ -58,7 +58,7 @@ tssAnnotation(object, ...)
 enzymeAnnotation(object, ...)
 
 GuideSet(
-  spacers = NA_character_,
+  protospacers = NA_character_,
   pams = NULL,
   seqnames = NA_character_,
   pam_site = 0L,
@@ -77,7 +77,7 @@ GuideSet(
 
 \S4method{cutSites}{GuideSet}(object)
 
-\S4method{protospacers}{GuideSet}(object, as.character = FALSE)
+\S4method{protospacers}{GuideSet}(object, as.character = FALSE, include.pam = TRUE)
 
 \S4method{spacerLength}{GuideSet}(object)
 
@@ -119,7 +119,7 @@ GuideSet(
 
 \item{...}{Additional arguments for class-specific methods}
 
-\item{spacers}{Character vector of spacer sequences.}
+\item{protospacers}{Character vector of protospacers sequences.}
 
 \item{pams}{Character vector of PAM sequences.}
 
@@ -137,6 +137,9 @@ Only accepted values are "+" and "-".}
 \item{as.character}{Should sequences be returned as a character
 vector? FALSE by default, in which case sequences are returned
 as a \linkS4class{DNAStringSet}.}
+
+\item{include.pam}{Should PAM sequences be included?
+TRUE by default.}
 
 \item{unlist}{Should the annotation be returned as
 one table instead of a list? TRUE by default.}
@@ -206,10 +209,10 @@ Return restriction enzymes annotation table.
     \item{\code{pamSites}:}{To get PAM site coordinates.}
     \item{\code{pamLength}:}{To get PAM length.}
     \item{\code{pamSide}:}{To return the side of the PAM sequence with
-        respect to the spacer sequence.}
+        respect to the protospacer sequence.}
     \item{\code{prototypeSequence}:}{To get a prototype protospacer
         sequence.}
-    \item{\code{cutSites}:}{To get spacer length.}
+    \item{\code{cutSites}:}{To get cut sites.}
     \item{\code{alignments}:}{To get genomic alignments annotation.}
     \item{\code{onTargets}:}{To get on-target alignments annotation}
     \item{\code{offTargets}:}{To get off-target alignments annotation}
@@ -221,15 +224,15 @@ Return restriction enzymes annotation table.
 }
 
 \examples{
-spacers <- c("AGGTCGTGTGTGGGGGGGGG",
-             "AGGTCGTGTGTGGGGGGGGG")
+protospacers <- c("AGGTCGTGTGTGGGGGGGGG",
+                  "AGGTCGTGTGTGGGGGGGGG")
 pams <- c("AGG", "CGG")
 pam_site=c(10,11)
 seqnames="chr7"
 data(SpCas9, package="crisprBase")
 CrisprNuclease <- SpCas9
 strand=c("+", "-")
-gr <- GuideSet(spacers=spacers,
+gr <- GuideSet(protospacers=protospacers,
                pams=pams,
                seqnames=seqnames,
                CrisprNuclease=CrisprNuclease,

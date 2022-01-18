@@ -87,7 +87,7 @@ test_that("percentGC is correctly calculated", {
                       "GCGCGCGCGCGCGCGCATAT", "GCGCGCGCGCGCGCGCGTAT",
                       "GCGCGCGCGCGCGCGCGCAT", "GCGCGCGCGCGCGCGCGCGT",
                       "GCGCGCGCGCGCGCGCGCGC")
-    guides <- GuideSet(spacers=spacer_input,
+    guides <- GuideSet(protospacers=spacer_input,
                        pams=rep("CGG", 21),
                        seqnames=rep("chr1", 21),
                        CrisprNuclease=SpCas9,
@@ -102,7 +102,7 @@ test_that("spacers with homopolymers are correctly identified", {
                       "GAGTCAGCTTGCCCCATATG",
                       "CATGCAGCTTGGGGTATATG",
                       "CATGCATTTTGACGTCTATG")
-    guides <- GuideSet(spacers=spacer_input,
+    guides <- GuideSet(protospacers=spacer_input,
                        pams=rep("CGG", 4),
                        seqnames=rep("chr1", 4),
                        CrisprNuclease=SpCas9,
@@ -120,7 +120,7 @@ test_that("spacers with startingGGGGG are correctly identified", {
                       "GGGGCAGCTTGCATGATATG",
                       "CATGCAGCTTGGGGGATATG")
     hasStartingGGGGG <- c(TRUE, FALSE, FALSE)
-    guides <- GuideSet(spacers=spacer_input,
+    guides <- GuideSet(protospacers=spacer_input,
                        pams=rep("CGG", 3),
                        seqnames=rep("chr1", 3),
                        CrisprNuclease=SpCas9,
@@ -139,7 +139,7 @@ test_that("selfHairpin and backboneHairpin are correctly predicted", {
                  "GACAccaaTGTCagcgggac"=TRUE,     # stem length 4
                  "ACAccaaTGTCagcgggaca"=TRUE,     # with flanking 5' G
                  "ACATccaacaggagcgggAT"=TRUE)     # with flanking 3' GT
-    guides <- GuideSet(spacers=names(spacers),
+    guides <- GuideSet(protospacers=names(spacers),
                        pams=rep("CGG", 8),
                        seqnames=rep("chr", 8),
                        CrisprNuclease=SpCas9,
@@ -154,7 +154,7 @@ test_that("selfHairpin and backboneHairpin are correctly predicted", {
                       "agCCACTgagga"=TRUE,        # stem length 5
                       "agaTAGCCggaa"=TRUE,        # with flanking 5' G
                       "aggACCCCaggaa"=TRUE)       # with flanking 3' GT
-    guides <- GuideSet(spacers=spacer,
+    guides <- GuideSet(protospacers=spacer,
                        pams="CGG",
                        seqnames="chr",
                        CrisprNuclease=SpCas9,
