@@ -38,7 +38,7 @@ To obtain a DataFrame of transcript-specific CDS and mRNA coordinates.
 library(BSgenome.Hsapiens.UCSC.hg38)
 bsgenome <- BSgenome.Hsapiens.UCSC.hg38
 data("grListExample")
-tx_id="ENST00000538872"
+tx_id <- "ENST00000538872"
 df <- getTxInfoDataFrame(tx_id=tx_id,
     txObject=grListExample,
     bsgenome=bsgenome)

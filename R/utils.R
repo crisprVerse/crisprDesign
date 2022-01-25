@@ -8,6 +8,8 @@ utils::globalVariables(c("SpCas9",
                          "enAsCas12a"))
 
 
+STOP_CODONS <- c("TAG","TAA","TGA")
+
 
 #' @export
 #' @importFrom GenomeInfoDb seqnames

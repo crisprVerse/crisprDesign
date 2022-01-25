@@ -1,358 +1,295 @@
-# #' @export
-# getCbeWeights <- function(len=5, power=3){
-#     if (len==5){
-#         ws=c(1,1,1,2,3,4,3,2,1,1,1)
-#         ws=ws^power/sum(ws^power)
-#         names(ws) <- c(-5,-4,-3,-2,-1,0,1,2,3,4,5)
-#     }
-#     if (len==4){
-#         ws=c(1,1,2,3,4,3,2,1,1)
-#         ws=ws^power/sum(ws^power)
-#         names(ws) <- c(-4,-3,-2,-1,0,1,2,3,4)
-#         ws <- ws
-#     }
-#     if (len==3){
-#         ws=c(1,2,3,4,3,2,1)
-#         ws=ws^power/sum(ws^power)
-#         names(ws) <- c(-3,-2,-1,0,1,2,3)
-#         ws <- ws
-#     }
-#     return(ws)
-# }
+# library(crisprDesign)
+# library(BSgenome.Hsapiens.UCSC.hg38)
+# bsgenome <- BSgenome.Hsapiens.UCSC.hg38
+# data("grListExample")
+# tx_id <- "ENST00000538872"
+# df <- getTxInfoDataFrame(tx_id=tx_id,
+#                          txObject=grListExample,
+#                          bsgenome=bsgenome)
+# #txInfoDataFrame <- df
+# #substitution <- "C2T"
+# #df <- addEditedAlleles(df)
 
-# #' @export
-# addCbeStopSites <- function(txAnn, cbe_type=c("c2t")){
-#     cbe_type    <- match.arg(cbe_type)
-#     gene_strand <- txAnn$strand[[1]]
-#     stops  <- c("TAG","TAA","TGA")
 
-#     temp <- txAnn[!is.na(txAnn$aa_id),,drop=FALSE]
-#     temp$stop_fwd <- FALSE
-#     temp$stop_rev <- FALSE
-#     codons <- split(temp, f=temp$aa_id)
+
+
+#' @title To add edited alleles resulting from base editing
+#' 
+#' @description To add edited alleles resulting from base editing
+#' 
+#' @param txInfoDataFrame A \code{DataFrame} obtained from \code{getTxInfoDataFrame}.
+#' @param substitution String specifying the base editing substitution.
+#'     E.g: "C2T" to specify that Cs are converted to Ts.
+#' 
+#' @return The original \code{txInfoDataFrame} object with the following
+#'     additional columns:
+#'         \code{aa_edited_fwd}: Amino acid resulting from editing forward strand
+#'         \code{nuc_edited_fwd}: Nucleotide resulting from editing forward strand
+#'         \code{class_fwd}: Type of mutation (silent, missense, or nonsense)
+#'             resulting from editing forward strand
+#'         \code{stop_fwd}: Does editing on the forward strand result in a stop codon?
+#'         \code{aa_edited_rev}: Amino acid resulting from editing reverse strand
+#'         \code{nuc_edited_rev}: Nucleotide resulting from editing reverse strand
+#'         \code{class_rev}: Type of mutation (silent, missense, or nonsense)
+#'             resulting from editing forward strand
+#'         \code{stop_rev}: Does editing on the reverse strand result in a stop codon?
+#' 
+#' @examples 
+#' 
+#' library(BSgenome.Hsapiens.UCSC.hg38)
+#' bsgenome <- BSgenome.Hsapiens.UCSC.hg38
+#' data("grListExample")
+#' tx_id <- "ENST00000538872"
+#' df <- getTxInfoDataFrame(tx_id=tx_id,
+#'     txObject=grListExample,
+#'     bsgenome=bsgenome)
+#' df <- addEditedAlleles(df, substitution="C2T")
+#' 
+#' @author Jean-Philippe Fortin
+#' 
+#' @importFrom Biostrings DNAString translate
+#' @export
+addEditedAlleles <- function(txInfoDataFrame,
+                             substitution="C2T"
+){
+    if (length(substitution)>1){
+        stop("substitution must be a string of length 1")
+    }
+    substitution <- .validateSubstitution(substitution)
+
+
+    gene_strand <- txInfoDataFrame$strand[[1]]
+    cds <- txInfoDataFrame[!is.na(txInfoDataFrame$aa_number),,drop = FALSE]
+    dna <- paste0(cds$nuc, collapse="")
+    dna <- DNAString(dna)
+    protein <- translate(dna)
+    protein <- strsplit(as.character(protein), "")[[1]]
+    protein <- rep(protein, each=3)
     
-#     # On the forward strand:
-#     codons <- lapply(codons, function(x){
-#         y <- x$nuc
-#         if (cbe_type=="c2t"){
-#             y[y=="C"] <- "T"
-#         }
-#         codon <- paste0(y,collapse="")
-#         if (codon %in% stops){
-#             if (gene_strand=="+"){
-#                 x$stop_fwd <- TRUE
-#             } else {
-#                 x$stop_rev <- TRUE
-#             }
-#         } 
-#         x
-#     })
-#     codons <- lapply(codons, function(x){
-#         y <- x$nuc
-#         if (cbe_type=="c2t"){
-#             y[y=="G"] <- "A"
-#         }
-#         codon <- paste0(y,collapse="")
-#         if (codon %in% stops){
-#             if (gene_strand=="+"){
-#                 x$stop_rev <- TRUE
-#             } else {
-#                 x$stop_fwd <- TRUE
-#             }
-#         } 
-#         x
-#     })
-#     df <- do.call(rbind, codons)
-#     txAnn$stop_fwd <- txAnn$pos %in% df$pos[df$stop_fwd]
-#     txAnn$stop_rev <- txAnn$pos %in% df$pos[df$stop_rev]
-#     return(txAnn)
-# }
+    # On original strand:
+    .addEditing <- function(cds,
+                            strand=c("original", "reverse")){
+        strand <- match.arg(strand)    
+        editingStrand <- .getEditingStrand(strand=strand,
+                                           gene_strand=gene_strand)
+        originBase <- .getOriginBase(substitution, strand)
+        targetBase <- .getTargetBase(substitution, strand)
+        dna_edited <- DNAString(gsub(originBase, targetBase, dna))
+        protein_edited <- translate(dna_edited)
+        protein_edited <- strsplit(as.character(protein_edited), "")[[1]]
+        protein_edited <- rep(protein_edited, each=3)
+        dna_edited <- strsplit(as.character(dna_edited), "")[[1]]
+        if (editingStrand=="fwd"){
+            cds$aa_edited_fwd  <- protein_edited
+            cds$nuc_edited_fwd <- dna_edited
+        } else {
+            cds$aa_edited_rev  <- protein_edited
+            cds$nuc_edited_rev <- dna_edited
+        }
+        return(cds)
+    }
+    cds <- .addEditing(cds, "original") 
+    cds <- .addEditing(cds, "reverse") 
+    cds$class_fwd <- NA
+    cds$class_rev <- NA
+
+    # Annotating mutations:
+    cds$class_fwd[cds$aa_edited_fwd==cds$aa]  <- "silent"
+    cds$class_rev[cds$aa_edited_rev==cds$aa]  <- "silent"
+    cds$class_fwd[cds$aa_edited_fwd!=cds$aa]  <- "missense"
+    cds$class_rev[cds$aa_edited_rev!=cds$aa]  <- "missense"
+    cds$class_fwd[cds$aa_edited_fwd=="*"]     <- "nonsense"
+    cds$class_rev[cds$aa_edited_rev=="*"]     <- "nonsense"
+
+    cols <- c("pos_mrna", 
+              "aa_edited_fwd",
+              "nuc_edited_fwd",
+              "class_fwd",
+              "aa_edited_rev", 
+              "nuc_edited_rev",
+              "class_rev")
+    cds <- cds[,cols, drop=FALSE]
+    wh <- match(txInfoDataFrame$pos_mrna, cds$pos_mrna)
+    cds <- cds[wh,,drop=FALSE]
+    cds$pos_mrna <- NULL
+    txInfoDataFrame <- cbind(txInfoDataFrame, cds)
+    rownames(txInfoDataFrame) <- NULL
+
+    # Adding stop codons:
+    txInfoDataFrame$stop_fwd <- txInfoDataFrame$aa_edited_fwd=="*"
+    txInfoDataFrame$stop_rev <- txInfoDataFrame$aa_edited_rev=="*"
+    txInfoDataFrame$stop_fwd[is.na(txInfoDataFrame$stop_fwd)] <- FALSE
+    txInfoDataFrame$stop_rev[is.na(txInfoDataFrame$stop_rev)] <- FALSE
+
+    return(txInfoDataFrame)
+}
 
 
 
-# #' @importFrom Biostrings DNAString translate
+
+
+.getBaseEditingKey <- function(){
+    
+    .getComboNames <- function(){
+        dnaLetters <- c("A", "C", "G", "T")
+        combs <- expand.grid(dnaLetters, dnaLetters)
+        combs <- combs[combs[,1]!=combs[,2],]
+        combs <- paste0(combs[,1], "2", combs[,2])
+        return(combs)
+    }
+
+
+    key <- data.frame(substitution=.getComboNames())
+    key$origin <- .getOriginBase(key$substitution)
+    key$target <- .getTargetBase(key$substitution)
+    return(key)
+}
+
+
+
+
+#' @importFrom Biostrings complement
+.getOriginBase <- function(x,
+                           strand=c("original","reverse")
+){
+    strand <- match.arg(strand)
+    x <- substr(x,1,1)
+    if (strand=="reverse"){
+        x <- complement(DNAStringSet(x))
+        x <- as.character(x)
+    }
+    return(x)
+}
+
+#' @importFrom Biostrings complement
+.getTargetBase <- function(x,
+                           strand=c("original","reverse")
+){
+    strand <- match.arg(strand)
+    x <- substr(x,3,3)
+    if (strand=="reverse"){
+        x <- complement(DNAStringSet(x))
+        x <- as.character(x)
+    }
+    return(x)
+}
+
+
+.validateSubstitution <- function(substitution){
+    substitution <- toupper(substitution)
+    beKey <- .getBaseEditingKey()
+    choices <- beKey$substitution
+    if (!substitution %in% choices){
+        choices <- paste0(choices, collapse=", ")
+        choices <- paste0(choices, ".")
+        stop("The specified substitution is not valid.",
+             "It must be one of the following: ",
+             choices)
+    }
+    return(substitution)
+}
+
+
+
+.getEditingStrand <- function(strand,
+                              gene_strand
+){
+    if (strand=="original" & gene_strand=="+"){
+        out <- "fwd"
+    } else if (strand=="original" & gene_strand=="-"){
+        out <- "rev"
+    } else if (strand=="reverse" & gene_strand=="-"){
+        out <- "fwd"
+    } else {
+        out <- "rev"
+    }
+    return(out)
+}
+
+
+
+
+
+# #' @title To annotate stop codons resulting from base editing
+# #' 
+# #' @description To annotate stop codons resulting from base editing.
+# #' 
+# #' @param txInfoDataFrame A \code{DataFrame} obtained from \code{getTxInfoDataFrame}.
+# #' @param substitution String specifying the base editing substitution.
+# #'     E.g: "C2T" to specify that Cs are converted to Ts.
+# #' 
+# #' @return The original \code{txInfoDataFrame} object with the following
+# #'     additional columns: \code{stop_fwd} and \code{stop_rev}.
+# #'     \code{stop_fwd} is a logical vector indicating whether or not
+# #'     a stop codon is created by editing the forward strand of 
+# #'     the target DNA, and \code{stop_rev} is a logical value indicating
+# #'     whether or not a stop codon is created by editing the reverse
+# #'     strand of the target DNA. 
+# #' 
+# #'     Gene strand was taken into account when generating those columns.
+# #'     For instance, \code{stop_fwd} equal to TRUE indicates that base editing
+# #'     occuring on the forward strand of the DNA will esult in a stop
+# #'     codon in the specified gene, whether or not the gene is located
+# #'     on the forward or reverse strand. 
+# #' 
+# #' @examples 
+# #' 
+# #' library(BSgenome.Hsapiens.UCSC.hg38)
+# #' bsgenome <- BSgenome.Hsapiens.UCSC.hg38
+# #' data("grListExample")
+# #' tx_id <- "ENST00000538872"
+# #' df <- getTxInfoDataFrame(tx_id=tx_id,
+# #'     txObject=grListExample,
+# #'     bsgenome=bsgenome)
+# #' df <- annotateStopCodons(df, substitution="C2T")
+# #' 
+# #' @author Jean-Philippe Fortin
+# #' 
 # #' @export
-# addEditedAlleles <- function(txAnn, cbe_type = c("c2t")){
-#     cbe_type <- match.arg(cbe_type)
-#     gene_strand <- txAnn$strand[[1]]
-#     stops <- c("TAG", "TAA", "TGA")
-#     temp <- txAnn[!is.na(txAnn$aa_id), , drop = FALSE]
-#     dna <- paste0(temp$nuc, collapse="")
-#     dna <- DNAString(dna)
-#     if (cbe_type=="c2t"){
-#         dna_edited_1 <- DNAString(gsub("C", "T", dna))
-#         dna_edited_2 <- DNAString(gsub("G", "A", dna))
-#     }
-#     protein <- translate(dna)
-#     protein_edited_1 <- translate(dna_edited_1)
-#     protein_edited_2 <- translate(dna_edited_2)
-#     protein <- strsplit(as.character(protein), "")[[1]]
-#     protein_edited_1 <- strsplit(as.character(protein_edited_1), "")[[1]]
-#     protein_edited_2 <- strsplit(as.character(protein_edited_2), "")[[1]]
-#     protein <- rep(protein, each=3)
-#     protein_edited_1 <- rep(protein_edited_1, each=3)
-#     protein_edited_2 <- rep(protein_edited_2, each=3)
-#     dna_edited_1 <- strsplit(as.character(dna_edited_1), "")[[1]]
-#     dna_edited_2 <- strsplit(as.character(dna_edited_2), "")[[1]]
-#     if (gene_strand=="+"){
-#         temp$aa_edited_fwd  <- protein_edited_1
-#         temp$aa_edited_rev  <- protein_edited_2
-#         temp$nuc_edited_fwd <- dna_edited_1
-#         temp$nuc_edited_rev <- dna_edited_2
-#     } else {
-#         temp$aa_edited_fwd  <- protein_edited_2
-#         temp$aa_edited_rev  <- protein_edited_1
-#         temp$nuc_edited_fwd <- dna_edited_2
-#         temp$nuc_edited_rev <- dna_edited_1
-#     }
-#     temp$class_fwd <- NA
-#     temp$class_fwd[temp$aa_edited_fwd==temp$aa] <- "silent"
-#     temp$class_fwd[temp$aa_edited_fwd!=temp$aa] <- "missense"
-#     temp$class_fwd[temp$aa_edited_fwd=="*"]     <- "nonsense"
-#     temp$class_rev <- NA
-#     temp$class_rev[temp$aa_edited_rev==temp$aa] <- "silent"
-#     temp$class_rev[temp$aa_edited_rev!=temp$aa] <- "missense"
-#     temp$class_rev[temp$aa_edited_rev=="*"]     <- "nonsense"
-#     cols <- c("bp_rna_id", 
-#         "aa_edited_fwd", "aa_edited_rev", 
-#         "nuc_edited_fwd", "nuc_edited_rev",
-#         "class_fwd", "class_rev"
-#     )
-#     temp <- temp[,cols]
-#     wh <- match(txAnn$bp_rna_id, temp$bp_rna_id)
-#     temp <- temp[wh,]
-#     temp$bp_rna_id <- NULL
-#     txAnn <- cbind(txAnn, temp)
-#     rownames(txAnn) <- NULL
-#     return(txAnn)
-# }
-
-
-# #' @export
-# prepareTilingData <- function(txAnn,
-#                               guidesAnn,
-#                               lfcs, 
-#                               tech=c("crisprko","crisprbe"),
-#                               nuclease=c("Cas9", "Cas12a"),
-#                               cbe_offset=-15,
-#                               cbe_smooth=TRUE,
-#                               cbe_type=c("c2t"),
-#                               fun_aggregate=c("mean", "median"),
-#                               remove_invalid=TRUE,
-#                               aggregate_by_amino=TRUE,
-#                               ...
+# annotateStopCodons <- function(txInfoDataFrame,
+#                                substitution="C2T"
 # ){
-#     tech     <- match.arg(tech)
-#     nuclease <- match.arg(nuclease)
-#     cbe_type    <- match.arg(cbe_type)
-#     fun_aggregate <- match.arg(fun_aggregate)
-#     txAnn  <- txAnn[!is.na(txAnn$aa_id),,drop=FALSE]
-#     guides <- intersect(guidesAnn$ID, names(lfcs))
-#     guidesAnn <- guidesAnn[match(guides, guidesAnn$ID),,drop=FALSE]
+#     if (length(substitution)>1){
+#         stop("substitution must be a string of length 1")
+#     }
+#     substitution <- .validateSubstitution(substitution)
+    
+#     gene_strand <- txInfoDataFrame$strand[[1]]
 
-#     if (tech=="crisprko"){
-#         guidesAnn$action_site <- .getCutSite(pam_site=guidesAnn$pam_site,
-#                                              strand=guidesAnn$strand, 
-#                                              nuclease=nuclease)
-#     } else if (tech=="crisprbe"){
-#         guidesAnn$action_site <- .getCutSite(pam_site=guidesAnn$pam_site,
-#                                              strand=guidesAnn$strand, 
-#                                              nuclease=nuclease,
-#                                              cut_offset=cbe_offset)
-#     }   
-#     if (tech=="crisprko" | (tech=="crisprbe" & !cbe_smooth)){
-#         guidesAnn <- guidesAnn[guidesAnn$action_site %in% txAnn$pos,,drop=FALSE]
-#         df <- txAnn
-#         wh <- match(df$pos, guidesAnn$action_site)
-#         df$sgrna <- guidesAnn$ID[wh]
-#         df$lfc <- lfcs[df$sgrna]
-#     #Smoothing using kernel weights:
-#     } else {
-#         ws <- getCbeWeights()
-#         nw <- (length(ws)-1)/2
-#         smoothLfcs <- function(guides){
-#             guides <- guides[!sapply(guides, is.null)]
-#             guides <- lapply(guides, function(x){
-#                 wh <- match(x$ID,names(lfcs))
-#                 x$lfc <- lfcs[wh]
-#                 x
-#             })
-#             lfcs   <- sapply(guides, function(x){
-#                 if (nrow(x)==0){
-#                     x <- NA
+#     # Only considering CDS:
+#     cds <- txInfoDataFrame[!is.na(txInfoDataFrame$aa_number),,drop=FALSE]
+#     cds$stop_fwd <- FALSE
+#     cds$stop_rev <- FALSE
+#     codons <- split(cds, f=cds$aa_number)
+
+#     .annotateCodonsByStrand <- function(codons,
+#                                         strand){
+#         codons <- lapply(codons, function(x){
+#             y <- x$nuc
+#             originBase <- .getOriginBase(substitution, strand)
+#             targetBase <- .getTargetBase(substitution, strand)
+#             y[y==originBase] <- targetBase
+            
+#             editingStrand <- .getEditingStrand(strand=strand,
+#                                                gene_strand=gene_strand)
+#             codon <- paste0(y, collapse="")
+#             if (codon %in% STOP_CODONS){
+#                 if (editingStrand=="fwd"){
+#                     x$stop_fwd <- TRUE
 #                 } else {
-#                     x <- sum(ws[as.character(x$dist)]*x$lfc, na.rm=TRUE)/sum(ws[as.character(x$dist)], na.rm=TRUE)
+#                     x$stop_rev <- TRUE
 #                 }
-#                 return(x)
-#             })
-#         }
-
-#         guides <- lapply(txAnn$pos, function(x){
-#             diff <- guidesAnn$action_site-x
-#             wh <- which(abs(diff)<=nw)
-#             if (length(wh)>0){
-#                 temp <- data.frame(guidesAnn$ID[wh], diff[wh])
-#                 colnames(temp) <- c("ID", "dist")
-#             } else {
-#                 temp <- NULL
-#             }
-#             return(temp)
+#             } 
+#             return(x)
 #         })
-#         names(guides) <- txAnn$bp_plot_id
-#         guides <- guides[!sapply(guides, is.null)]
-#         guides_fwd <- lapply(guides, function(x){
-#             x$strand <- guidesAnn$strand[match(x$ID, guidesAnn$ID)]
-#             x <- x[x$strand=="+",,drop=FALSE]
-#             x
-#         })
-#         guides_rev <- lapply(guides, function(x){
-#             x$strand <- guidesAnn$strand[match(x$ID, guidesAnn$ID)]
-#             x <- x[x$strand=="-",,drop=FALSE]
-#             x
-#         })
-#         lfcs_fwd <- smoothLfcs(guides_fwd)
-#         lfcs_rev <- smoothLfcs(guides_rev)
-#         wh1 <- match(names(lfcs_fwd), txAnn$bp_plot_id)
-#         wh2 <- match(names(lfcs_rev), txAnn$bp_plot_id)
-#         txAnn$lfc_fwd <- NA
-#         txAnn$lfc_rev <- NA
-#         txAnn$lfc_fwd[wh1] <- lfcs_fwd
-#         txAnn$lfc_rev[wh2] <- lfcs_rev
-
-#         if (cbe_type=="c2t" & remove_invalid){
-#             txAnn$lfc_fwd[txAnn$nuc!="C"] <- NA
-#             txAnn$lfc_rev[txAnn$nuc!="G"] <- NA
-#         }
-#         if (aggregate_by_amino){
-#             dfs <- split(txAnn[,c("lfc_fwd","lfc_rev")], f=txAnn$aa_id)
-#             dfs <- sapply(dfs, function(x){
-#                 x <- unlist(x)
-#                 x <- x[is.finite(x)]
-#                 if (fun_aggregate=="mean"){
-#                     x <- mean(x, na.rm=TRUE)
-#                 }
-#                 if (fun_aggregate=="median"){
-#                     x <- median(x, na.rm=TRUE)
-#                 }
-#                 x
-#             })
-#             dfs <- dfs[!is.na(dfs)]
-#             df <- txAnn
-#             df$lfc <- NA
-#             df$lfc[match(names(dfs), df$aa_id)] <- dfs
-#         } else {
-#             df <- txAnn
-#             df$lfc <- sapply(1:nrow(df), function(i){
-#                 mean(unlist(df[i, c("lfc_fwd", "lfc_rev")]), na.rm=TRUE)
-#             })
-#             df$lfc[!is.finite(df$lfc)] <- NA
-#         }
-#     }
-#     df <- df[!is.na(df$lfc),,drop=FALSE]
-#     df
-# }
-
-# #' @export
-# #' @importFrom stats loess
-# #' @importFrom stats predict
-# plotTilingData <- function(df, loess=TRUE, ...){
-#     x  <- df$aa_id
-#     y  <- df$lfc
-#     plot(x,y, pch=20, cex=0.5, col="grey75",...)
-#     if (loess){
-#         model  <- loess(y~x, span=300/max(x, na.rm=TRUE))
-#         fitted <- predict(model, x)
-#         lines(x,fitted,col="red", lwd=3)
-#     }
-# }
-
-
-
-
-# #' @title Get binary segmentation results
-# #' @description Get binary segmentation results from y (logFC values) against x (position vector)
-# #' 
-# #' @param x Position values (integer vector)
-# #' @param y LogFC values (numeric vector)
-# #' @param smooth.region Smoothing parameter for CNA algorithm.
-# #' @param alpha Significance threshold for CNA algorithm.
-# #' 
-# #' @return A data.frame containing segments coordinates
-# #' 
-# #' @importFrom DNAcopy CNA smooth.CNA segment
-# #' @export
-# getBinarySegmentation <- function(x,
-#                                   y,
-#                                   smooth.region=1,
-#                                   alpha=0.01
-# ){
-    
-#     good <- !is.na(x) & !is.na(y)
-#     x <- x[good]
-#     y <- y[good]
-#     lfc <- y
-#     A <- median(lfc, na.rm=TRUE)
-#     lfc <- lfc-A
-#     chr <- rep("chr1", length(lfc))
-#     cna <- suppressWarnings(CNA(cbind(lfc),
-#         chrom=chr,
-#         maploc=x,
-#         data.type="logratio")
-#     )
-#     cna <- smooth.CNA(cna, smooth.region=smooth.region)
-#     seg <- segment(cna, verbose=0, alpha=alpha)
-#     out <- seg$output
-#     out$seg.mean <- out$seg.mean+A
-#     out$ID <- out$chrom <- NULL
-#     out$num.mark <- NULL
-#     return(out)
-# }
-
-
-# #' @importFrom graphics segments
-# #' @export
-# drawSegs <- function(segs, lwd=3, lty=1, col="firebrick3", ...){
-#     for (i in 1:nrow(segs)){
-#         segments(x0=segs[i,"loc.start"],
-#                  x1=segs[i,"loc.end"],
-#                  y0=segs[i,"seg.mean"],
-#                  col=col,
-#                  lwd=lwd,
-#                  lty=lty,
-#                  ...
-#         )
-#     }
-# }
-
-
-
-# .getCutSite <- function(pam_site,
-#                         strand,
-#                         nuclease=c("Cas9", "Cas12a"),
-#                         cut_offset=NULL
-# ){
-#     nuclease <- match.arg(nuclease)
-#     stopifnot(length(pam_site)==length(strand))
-#     if (is.null(cut_offset)){
-#         cut_offset <- .getDefaultCutOffset(nuclease)
-#     } 
-#     cut_site <- pam_site
-#     cut_site[strand=='+'] <- pam_site[strand=='+'] + cut_offset
-#     cut_site[strand=='-'] <- pam_site[strand=='-'] - cut_offset
-#     return(cut_site)
-# }
-
-
-
-
-# .getDefaultCutOffset <- function(nuclease=c("Cas9", "Cas12a")){
-#     nuclease <- match.arg(nuclease)
-#     if (nuclease=="Cas9"){
-#         offset=-4
-#     } else if (nuclease=="Cas12a"){
-#         offset=22
-#     }
-#     return(offset)
+#         return(codons)
+#     }    
+#     codons <- .annotateCodonsByStrand(codons, "original")
+#     codons <- .annotateCodonsByStrand(codons, "reverse")
+#     codons <- do.call("rbind", codons)
+#     txInfoDataFrame$stop_fwd <- txInfoDataFrame$pos %in% codons$pos[codons$stop_fwd]
+#     txInfoDataFrame$stop_rev <- txInfoDataFrame$pos %in% codons$pos[codons$stop_rev]
+#     return(txInfoDataFrame)
 # }
 
 
@@ -361,12 +298,17 @@
 
 
 
-#tab <- getTxTable("ENST00000000233")
-#plot(tab$bp_plot_id, rep(1, nrow(tab)), pch=20, cex=0.1)
-#wh <- which(!is.na(tab$bp_rna_id))
-#abline(v=wh)
-#wh <- which(!is.na(tab$aa))
-#abline(v=wh, col="red")
+
+
+
+
+
+
+
+
+
+
+
 
 
 
