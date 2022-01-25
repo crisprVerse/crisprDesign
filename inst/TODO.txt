@@ -1,7 +1,3 @@
-*CRISPRbe functionalities
-- getBaseEditorStopGuides
-- getTxTable
-
 Misc:
 - Remove annoying message when convert TxDB
 

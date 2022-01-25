@@ -116,7 +116,7 @@
 #'     the found protospacer sequence.
 #' \item \code{introns} Character vector specifying gene names of introns overlapping
 #'     the found protospacer sequence.
-#' \item \code{intergenic} Charater vector specifying neighborhood genes when the found
+#' \item \code{intergenic} Character vector specifying neighborhood genes when the found
 #'     protospacer sequence is not located in a gene.
 #' }
 #' 
