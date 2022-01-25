@@ -8,16 +8,19 @@
 #' 
 #' @return The original \code{txInfoDataFrame} object with the following
 #'     additional columns:
-#'         \code{aa_edited_fwd}: Amino acid resulting from editing forward strand
-#'         \code{nuc_edited_fwd}: Nucleotide resulting from editing forward strand
-#'         \code{class_fwd}: Type of mutation (silent, missense, or nonsense)
-#'             resulting from editing forward strand
-#'         \code{stop_fwd}: Does editing on the forward strand result in a stop codon?
-#'         \code{aa_edited_rev}: Amino acid resulting from editing reverse strand
-#'         \code{nuc_edited_rev}: Nucleotide resulting from editing reverse strand
-#'         \code{class_rev}: Type of mutation (silent, missense, or nonsense)
-#'             resulting from editing forward strand
-#'         \code{stop_rev}: Does editing on the reverse strand result in a stop codon?
+#' 
+#' \itemize{
+#' \item \code{aa_edited_fwd} Amino acid resulting from editing forward strand.
+#' \item \code{nuc_edited_fwd}  Nucleotide resulting from editing forward strand.
+#' \item \code{class_fwd} Type of mutation (silent, missense, or nonsense)
+#'     resulting from editing forward strand,
+#' \item \code{stop_fwd} Does editing on the forward strand result in a stop codon?
+#' \item \code{aa_edited_rev} Amino acid resulting from editing reverse strand.
+#' \item \code{nuc_edited_rev} Nucleotide resulting from editing reverse strand.
+#' \item \code{class_rev} Type of mutation (silent, missense, or nonsense)
+#'     resulting from editing forward strand.
+#' \item\code{stop_rev} Does editing on the reverse strand result in a stop codon?
+#' }
 #' 
 #' @examples 
 #' 

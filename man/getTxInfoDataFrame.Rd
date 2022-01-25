@@ -29,6 +29,25 @@ TRUE by default.}
 }
 \value{
 A \code{DataFrame} containing nucleotide and amino acid information.
+The columns are:
+
+\itemize{
+\item \code{chr} Character specifying chromosome.
+\item \code{pos} Integer value specifying coordinate in reference genome.
+\item \code{strand} Character specifying strand of transcript.
+\item \code{nuc} Character specifying nucleotide on the strand 
+    specified by \code{strand}.
+\item \code{aa} Character specifying amino acid.
+\item \code{aa_number} Integer specifying amino acid number from 5' end.
+\item \code{exon} Integer specifying exon number. 
+\item \code{pos_plot} Integer specifying plot coordinate. Useful for plotting.
+\item \code{pos_mrna} Integer specifying relative mRNA coordinate from the
+    start of the mRNA.
+\item \code{pos_cds} Integer specifying relative CDS coordinate from the
+    start of the CDS.
+\item \code{region} Character specifying gene region:
+    3UTR, 5UTR, CDS, Intron, Upstream (promoter) or downstream. 
+}
 }
 \description{
 To obtain a DataFrame of transcript-specific CDS and mRNA coordinates.

@@ -1,6 +1,3 @@
-*CRISPRbe functionalities
-- getTxTable: document return object
-
 Misc:
 - Remove annoying message when convert TxDB
 
