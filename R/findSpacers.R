@@ -3,8 +3,9 @@
 #'    \linkS4class{GRanges} object or a character vector of genomic sequences,
 #'    for a given CRISPR nuclease.
 #' 
-#' @param x Either a \linkS4class{GRanges} object or a character vector of
-#'     genomic sequences.
+#' @param x Either a \linkS4class{GRanges}, a \linkS4class{DNAStringSet}, or a
+#'     \linkS4class{DNAString} object, or a character vector of genomic
+#'     sequences. See details.
 #' @param bsgenome \linkS4class{BSgenome} object from which to extract
 #'     sequences if a \linkS4class{GRanges} object is provided as input. 
 #' @param crisprNuclease A \linkS4class{CrisprNuclease} object.
@@ -14,22 +15,15 @@
 #' @param spacer_len Length of spacer to be used if different from
 #'     default length specified in \code{crisprNuclease}.
 #' @param both_strands Should both strands be considered to search for 
-#'     protospacer sequences?
-#'     TRUE by default.
+#'     protospacer sequences? TRUE by default.
 #' @param cut_offset Distance in nucleotides between \code{pam_site}
 #'     and \code{cut_site} if different from default offset specified by
 #'     \code{crisprNuclease}.
 #' @param strict_overlap If \code{TRUE} (default), only include guides
-#'     having the cut site in the input range. Ignored when input is a
-#'     character vector of genomic sequences.
-#' @param collapse For input containing multiple regions, whether to return
-#'     only unique results:collapsing results will remove duplicated guides
-#'     found in overlapping ranges/regions.
-#' @param remove_ambiguities Should spacer sequences with ambiguous 
-#'     nucleotides ("N") be removed?
-#'     TRUE by default. 
-#' @param verbose Should messages be printed to console?
-#'     TRUE by default.
+#'     having the cut site in the input range. Ignored when \code{x} is not a
+#'     \linkS4class{GRanges} object.
+#' @param remove_ambiguities Should spacer sequences containing ambiguous
+#'     nucleotides (not "A", "C", "G", or "T") be removed? TRUE by default.
 #' 
 #' @return A \linkS4class{GuideSet} object. 
 #' 
@@ -76,65 +70,51 @@
 #' @importFrom GenomeInfoDb isCircular isCircular<- 
 #' @importFrom GenomeInfoDb genome genome<- seqinfo seqinfo<-
 #' @importFrom GenomeInfoDb keepStandardChromosomes
-#' @importFrom crisprBase hasSpacerGap isCutting isRnase
+#' @importFrom crisprBase spacerLength<-
 #' @export
 findSpacers <- function(x,
-                        bsgenome=NULL,
                         crisprNuclease=NULL,
+                        bsgenome=NULL,
                         canonical=TRUE,
-                        spacer_len=NULL,
                         both_strands=TRUE,
+                        spacer_len=NULL,
                         cut_offset=NULL,
                         strict_overlap=TRUE,
-                        collapse=TRUE,
-                        remove_ambiguities=TRUE,
-                        verbose=FALSE
+                        remove_ambiguities=TRUE
 ){
     crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
-    if (hasSpacerGap(crisprNuclease)){
-        stop("CRISPR nucleases with spacer gaps are not ",
-             "supported at the moment.")
+    .checkCrisprNucleaseForSupportedFeatures(crisprNuclease)
+    for (i in (c("canonical", "both_strands", "remove_ambiguities"))){
+        .checkSingleBoolean(i, get(i))
     }
-    if (isRnase(crisprNuclease)){
-        stop("RNA-targeting CRISPR nucleases are not ",
-             "supported at the moment.")
+    .checkSingleInteger("spacer_len", spacer_len, sign="positive")
+    if (!is.null(spacer_len)){
+        crisprBase::spacerLength(crisprNuclease) <- spacer_len
     }
-    if (!isCutting(crisprNuclease)){
-        stop("CRISPR nucleases that are not cutting are not ",
-             "supported at the moment.")
-    }
+    .checkSingleInteger("cut_offset", cut_offset)
     
-    if (is(x, "GRanges")){
-        gs <- .findSpacersFromGR(x,
-                                 bsgenome=bsgenome,
-                                 crisprNuclease=crisprNuclease,
-                                 canonical=canonical,
-                                 spacer_len=spacer_len,
-                                 both_strands=both_strands,
-                                 cut_offset=cut_offset,
-                                 strict_overlap=strict_overlap,
-                                 collapse=collapse,
-                                 verbose=verbose)
-    } else if (is(x, "character")){
-        gs <- .findSpacersFromCustomSeq(x,
-                                        crisprNuclease=crisprNuclease,
-                                        canonical=canonical,
-                                        spacer_len=spacer_len,
-                                        both_strands=both_strands,
-                                        cut_offset=cut_offset,
-                                        collapse=collapse,
-                                        verbose=verbose)
-    } else {
-        stop("x must be either a GRanges of a character vector. ")
-    }
-    gs <- BiocGenerics::sort(gs,
-                             ignore.strand=TRUE)
-    if (length(gs)>0){
-        names(gs) <- paste0("spacer_", seq_along(gs))
-    }
-    if (remove_ambiguities){
-        gs <- gs[!grepl("N", spacers(gs))]
-    }
+    dna <- .asDNAStringSet(x,
+                           bsgenome=bsgenome,
+                           crisprNuclease=crisprNuclease,
+                           both_strands=both_strands)
+    gs <- .findSpacersFromDNAStringSet(dna=dna,
+                                       crisprNuclease=crisprNuclease,
+                                       canonical=canonical,
+                                       both_strands=both_strands,
+                                       cut_offset=cut_offset,
+                                       dnaFromGenome=.isGRanges(x))
+    gs <- .addMetadata(gs=gs,
+                       x=x,
+                       dna=dna,
+                       bsgenome=bsgenome)
+    gs <- .applyStrictOverlap(gs=gs,
+                              x=x,
+                              strict_overlap=strict_overlap)
+    gs <- .removeAmbiguities(guideSet=gs,
+                             crisprNuclease=crisprNuclease,
+                             remove_ambiguities=remove_ambiguities)
+    gs <- BiocGenerics::sort(gs, ignore.strand=TRUE)
+    names(gs) <- paste0("spacer_", seq_along(gs), recycle0=TRUE)
     return(gs)
 }
 
@@ -143,81 +123,300 @@ findSpacers <- function(x,
 
 
 
-
-#' @importFrom crisprBase spacerLength spacerLength<-
-.findSpacersFromGR <- function(gr,
-                               bsgenome=NULL,
-                               crisprNuclease=NULL,
-                               canonical=TRUE,
-                               spacer_len=NULL,
-                               both_strands=TRUE,
-                               cut_offset=NULL,
-                               strict_overlap=TRUE,
-                               collapse=TRUE,
-                               verbose=FALSE
+# update when features are supported
+#' @importFrom crisprBase hasSpacerGap isRnase isCutting
+.checkCrisprNucleaseForSupportedFeatures <- function(crisprNuclease
 ){
-    gr_original <- gr
-    if (!is.null(spacer_len)){
-        spacerLength(crisprNuclease) <- spacer_len
-    } else {
-        spacer_len <- spacerLength(crisprNuclease)
+    if (crisprBase::hasSpacerGap(crisprNuclease)){
+        stop("CRISPR nucleases with spacer gaps are not ",
+             "supported at the moment.")
     }
-    gr <- .validateGRanges(gr)
-    gr <- .validateGRangesNames(gr)
-    genome <- genome(gr)
-    if (length(unique(genome))>1){
-        stop("Multiple genomes were found for the input GRanges object.")
+    if (crisprBase::isRnase(crisprNuclease)){
+        stop("RNA-targeting CRISPR nucleases are not ",
+             "supported at the moment.")
     }
-    genome <- genome[1]
+    if (!crisprBase::isCutting(crisprNuclease)){
+        stop("CRISPR nucleases that are not cutting are not ",
+             "supported at the moment.")
+    }
+    invisible(NULL)
+}
+
+
+
+#' @importFrom methods is
+#' @importFrom BiocGenerics strand strand<-
+.asDNAStringSet <- function(x,
+                            bsgenome,
+                            crisprNuclease,
+                            both_strands
+){
+    if (.isGRanges(x)){
+        if (any(as.character(BiocGenerics::strand(x)) == "*")){
+            ambiguousStrand <-as.character(BiocGenerics::strand(x)) == "*"
+            BiocGenerics::strand(x)[ambiguousStrand] <- "+"
+            if (!both_strands){
+                revRanges <- x[ambiguousStrand]
+                BiocGenerics::strand(revRanges) <- "-"
+                x <- c(x, revRanges)
+            }
+        }
+        x <- .GRanges2DNAStringSet(x,
+                                   bsgenome=bsgenome,
+                                   crisprNuclease=crisprNuclease)
+    } else if (methods::is(x, "DNAString") || is.vector(x, mode="character")){
+        x <- .string2DNAStringSet(x)
+    }
+    if (!methods::is(x, "DNAStringSet")){
+        stop("Value type for 'x' not recognized; see ?findSpacers")
+    }
+    return(x)
+}
+
+
+
+
+
+
+#' @importFrom GenomeInfoDb genome seqnames
+#' @importFrom BSgenome getSeq
+#' @importFrom GenomicRanges resize trim
+#' @importFrom BiocGenerics width start end strand
+#' @importFrom S4Vectors mcols<- metadata<- DataFrame
+#' @importFrom crisprBase spacerLength
+.GRanges2DNAStringSet <- function(x,
+                                  bsgenome,
+                                  crisprNuclease
+){
+    x <- .validateGRanges(x)
+    x <- .validateGRangesNames(x)
+    genome <- unique(GenomeInfoDb::genome(x))
+    if (length(genome) > 1){
+        stop("Multiple genomes found for the input GRanges object.")
+    }
     if (is.null(bsgenome)){
         bsgenome  <- .getBSGenome(genome)
     } else {
         bsgenome <- .validateBSgenome(bsgenome)
-        bsgenome_genome <- genome(bsgenome)[1]
-        if (!is.na(genome)){
-            if (bsgenome_genome != genome){
-                stop("genome stored in the bsgenome object (",
-                     bsgenome_genome, ") differs from genome provided ",
-                     "in the input GRanges object (", genome, ").")
-            }
+        bsgenome_genome <- unique(GenomeInfoDb::genome(bsgenome))
+        if (!is.na(genome) && genome != bsgenome_genome){
+            stop("genome stored in the bsgenome object (",
+                 bsgenome_genome, ") differs from genome provided ",
+                 "in the input GRanges object (", genome, ").")
         }
     }
+    newWidth <- BiocGenerics::width(x) +
+        2 * crisprBase::spacerLength(crisprNuclease)
+    x <- GenomicRanges::resize(x,
+                               fix="center",
+                               width=newWidth)
+    x <- GenomicRanges::trim(x)
+    dna <- BSgenome::getSeq(bsgenome, x)
+    mcols <- S4Vectors::DataFrame(
+        seqnames=as.character(GenomeInfoDb::seqnames(x)),
+        start=BiocGenerics::start(x),
+        end=BiocGenerics::end(x),
+        strand=as.character(BiocGenerics::strand(x)))
+    S4Vectors::mcols(dna) <- mcols
     
-
-    #-----------------------------------------------------------
-    # Extracting DNA sequences into a DNAStringSet
-    gr <- resize(gr,
-                 fix="center",
-                 width=width(gr)+2*spacer_len)
-    gr <- trim(gr)
-    strand(gr) <- "+"
-    dna <- getSeq(bsgenome, gr)
-    names(dna) <- names(gr)
-    mcols(dna) <- as.data.frame(gr)[, c("seqnames", "start", "end")]
-    metadata(dna)$genome  <- genome
-    dna <- .validateInputFindSpacers(dna)
-    #-----------------------------------------------------------
+    S4Vectors::metadata(dna)$genome  <- genome
+    return(dna)
+}
 
 
-    gs <- .findSpacersFromDNAStringSet(dna,
-                                       crisprNuclease=crisprNuclease,
-                                       canonical=canonical,
-                                       spacer_len=spacer_len,
-                                       both_strands=both_strands,
-                                       cut_offset=cut_offset,
-                                       collapse=collapse,
-                                       verbose=verbose)
-    seqinfo(gs) <- seqinfo(gr_original)
-    metadata(gs)[["bsgenome"]] <- bsgenome
 
-    # Only keep sgRNAs with cut_site inside of the original GRanges:
-    if (strict_overlap){
-        gr.cutsite <- GRanges(seqnames(gs),
-                              IRanges(start=gs$cut_site, width=1))
-        hits <- findOverlaps(gr.cutsite,
-                             gr_original,
-                             ignore.strand=TRUE)
-        hits <- sort(unique(queryHits(hits)))
+
+#' @importFrom Biostrings DNAStringSet
+#' @importFrom S4Vectors DataFrame mcols<- metadata<-
+#' @importFrom BiocGenerics width
+#' @importFrom GenomeInfoDb genome
+.string2DNAStringSet <- function(x
+){
+    dna <- Biostrings::DNAStringSet(x)
+    regionNames <- names(dna)
+    if (is.null(regionNames)){
+        regionNames <- paste0("region_", length(dna), recycle0=TRUE)
+    }
+    names(dna) <- regionNames
+    
+    mcols <- S4Vectors::DataFrame(seqnames=regionNames,
+                                  start=1,
+                                  end=BiocGenerics::width(dna),
+                                  strand="+")
+    S4Vectors::mcols(dna) <- mcols
+    S4Vectors::metadata(dna)$genome <- "custom"
+    return(dna)
+}
+
+
+
+
+#' @importFrom crisprBase pams
+#' @importFrom Biostrings reverseComplement
+#' @importFrom S4Vectors mcols mcols<- bindROWS
+#' @importFrom BiocGenerics width
+.findSpacersFromDNAStringSet <- function(dna,
+                                         crisprNuclease,
+                                         canonical,
+                                         both_strands,
+                                         cut_offset,
+                                         dnaFromGenome
+){
+    pams <- crisprBase::pams(crisprNuclease, primary=canonical)
+    if (both_strands){
+        # more efficient to "reverseComplement" crisprNuclease for large seqs?
+        revComp <- Biostrings::reverseComplement(dna)
+        revCompStrand <- chartr("+-", "-+", S4Vectors::mcols(revComp)$strand)
+        S4Vectors::mcols(revComp)$strand <- revCompStrand
+        S4Vectors::mcols(dna)$revComp <- FALSE
+        S4Vectors::mcols(revComp)$revComp <- TRUE
+        dna <- c(dna, revComp)
+    } else {
+        S4Vectors::mcols(dna)$revComp <- FALSE
+    }
+    hits <- lapply(seq_along(dna), function(i){
+        .spacersPerSequence(seq=dna[i],
+                            pams=pams,
+                            crisprNuclease=crisprNuclease)
+    })
+    hits <- Reduce(S4Vectors::bindROWS, hits)
+    if (both_strands){
+        # fix relative pam_site for complement strand
+        regions <- hits$region[hits$revComp]
+        seqWidths <- BiocGenerics::width(dna[regions])
+        newPamSites <- seqWidths - hits$pam_site[hits$revComp] + 1
+        hits$pam_site[hits$revComp] <- newPamSites
+        hits$revComp <- NULL
+    }
+    
+    if (dnaFromGenome){
+        # flip pam_sites on negative strand
+        revStrand <- S4Vectors::mcols(dna)$strand == "-" &
+            !S4Vectors::mcols(dna)$revComp
+        revRegions <- row.names(mcols(dna))[revStrand]
+        revSpacers <- hits$region == revRegions
+        regionWidths <- hits$region[revSpacers]
+        regionWidths <- width(dna[regionWidths])
+        newPamSites <- regionWidths - hits$pam_site[revSpacers] + 1
+        hits$pam_site[revSpacers] <- newPamSites
+        # transform pam_sites to genomic coordinates
+        newStarts <- S4Vectors::mcols(dna)[hits$region, ]
+        newStarts <- newStarts$start
+        hits$pam_site <- newStarts + hits$pam_site - 1
+    }
+    
+    indices <- match(hits$region, names(dna))
+    hits$chr <- S4Vectors::mcols(dna)$seqnames[indices]
+    
+    S4Vectors::mcols(dna)$revComp <- NULL
+    
+    gs <- GuideSet(protospacers=hits$spacer,
+                   pams=hits$pam,
+                   seqnames=hits$chr,
+                   pam_site=hits$pam_site,
+                   strand=hits$strand,
+                   CrisprNuclease=crisprNuclease,
+                   genome=metadata(dna)$genome)
+    genome(gs) <- metadata(dna)$genome # incorporate into GuideSet constructor
+    cut_site <- getCutSiteFromPamSite(pam_site=pamSites(gs),
+                                      strand=as.character(strand(gs)),
+                                      crisprNuclease=crisprNuclease(gs),
+                                      cut_offset=cut_offset)
+    mcols(gs)[["cut_site"]] <- cut_site
+    mcols(gs)[['region']] <- hits$region
+    metadata(gs)[["CrisprNuclease"]] <- crisprNuclease
+    return(gs)
+}
+
+
+
+
+#' @importFrom Biostrings matchPDict extractAt
+#' @importFrom crisprBase spacerLength pamSide
+#' @importFrom GenomicRanges flank
+#' @importFrom BiocGenerics start end
+#' @importFrom S4Vectors mcols
+.spacersPerSequence <- function(seq,
+                                pams,
+                                crisprNuclease
+){
+    seqString <- unlist(seq)
+    pamRanges <- Biostrings::matchPDict(pams, seqString) 
+    pamRanges <- Reduce(c, pamRanges)
+    flankWidth <- crisprBase::spacerLength(crisprNuclease)
+    flankAtStart <- crisprBase::pamSide(crisprNuclease) == "3prime"
+    spacerRanges <- GenomicRanges::flank(pamRanges,
+                                         width=flankWidth,
+                                         start=flankAtStart)
+    validStart <- BiocGenerics::start(spacerRanges) > 0
+    validEnd <- BiocGenerics::end(spacerRanges) <= length(seqString)
+    valid <- validStart & validEnd
+    pamRanges    <- pamRanges[valid]
+    spacerRanges <- spacerRanges[valid]
+    pamSequences <- Biostrings::extractAt(seqString, pamRanges)
+    spacerSequences <- Biostrings::extractAt(seqString, spacerRanges)
+    validCount <- sum(valid)
+    DataFrame(pam=pamSequences,
+              spacer=spacerSequences,
+              pam_site=BiocGenerics::start(pamRanges),
+              region=rep(names(seq), validCount),
+              strand=rep(S4Vectors::mcols(seq)$strand, validCount),
+              revComp=rep(S4Vectors::mcols(seq)$revComp, validCount))
+}
+
+
+
+
+#' @importFrom GenomeInfoDb seqlevels seqlevels<- seqinfo seqinfo<-
+#' @importFrom GenomeInfoDb genome
+#' @importFrom S4Vectors metadata<-
+.addMetadata <- function(gs,
+                         x,
+                         dna,
+                         bsgenome
+                         
+){
+    if (.isGRanges(x)){
+        GenomeInfoDb::seqlevels(gs) <- GenomeInfoDb::seqlevels(x)
+        GenomeInfoDb::seqinfo(gs) <- GenomeInfoDb::seqinfo(x)
+        genome <- GenomeInfoDb::genome(GenomeInfoDb::seqinfo(gs))
+        S4Vectors::metadata(gs)[["genome"]] <- unique(genome)
+        if (is.null(bsgenome)){
+            genome <- unique(GenomeInfoDb::genome(x))
+            bsgenome  <- .getBSGenome(genome)
+        }
+        S4Vectors::metadata(gs)[["bsgenome"]] <- bsgenome
+    } else {
+        customSeqInfo <- Seqinfo(seqnames=names(dna),
+                                 seqlengths=width(dna),
+                                 isCircular=NA,
+                                 genome="custom")
+        GenomeInfoDb::seqinfo(gs) <- customSeqInfo
+        S4Vectors::metadata(gs)[["genome"]] <- "custom"
+        S4Vectors::metadata(gs)[["custom_seq"]] <- dna
+    }
+    return(gs)
+}
+
+
+
+#' @importFrom GenomeInfoDb seqnames
+#' @importFrom GenomicRanges GRanges findOverlaps
+#' @importFrom IRanges IRanges
+#' @importFrom S4Vectors queryHits
+.applyStrictOverlap <- function(gs,
+                                x,
+                                strict_overlap
+){
+    .checkSingleBoolean("strict_overlap", strict_overlap)
+    if (.isGRanges(x) && strict_overlap){
+        cut_sites <- GenomicRanges::GRanges(GenomeInfoDb::seqnames(gs),
+                                            IRanges::IRanges(start=gs$cut_site,
+                                                             width=1))
+        hits <- GenomicRanges::findOverlaps(cut_sites,
+                                            x,
+                                            ignore.strand=TRUE)
+        hits <- unique(S4Vectors::queryHits(hits))
         gs <- gs[hits]
     }
     return(gs)
@@ -226,206 +425,21 @@ findSpacers <- function(x,
 
 
 
-#' @importFrom crisprBase spacerLength
-.findSpacersFromCustomSeq <- function(x,
-                                      crisprNuclease=NULL,
-                                      canonical=TRUE,
-                                      spacer_len=NULL,
-                                      both_strands=TRUE,
-                                      cut_offset=NULL,
-                                      collapse=TRUE,
-                                      verbose=FALSE
+#' @importFrom crisprBase isDnase isRnase
+#' @importFrom Biostrings DNA_BASES RNA_BASES
+.removeAmbiguities <- function(guideSet,
+                               crisprNuclease,
+                               remove_ambiguities
 ){
-
-    if (!is.null(spacer_len)){
-        spacerLength(crisprNuclease) <- spacer_len
-    } else {
-        spacer_len <- spacerLength(crisprNuclease)
-    }
-
-    # Transforming into a DNAStringSet
-    x <- .validateCustomSeqNames(x)
-    x <- .validateDNACharacterVariable(seq=x,
-                                       argument="x",
-                                       nullOk=FALSE,
-                                       exactBases=FALSE)
-    dna <- DNAStringSet(x)
-    metadata(dna)$genome <- "custom"
-    mcols(dna) <- data.frame(seqnames=names(dna),
-                             start=1,
-                             end=width(dna))
-    dna <- .validateInputFindSpacers(dna)
-    
-
-    gs <- .findSpacersFromDNAStringSet(dna,
-                                       crisprNuclease=crisprNuclease,
-                                       canonical=canonical,
-                                       spacer_len=spacer_len,
-                                       both_strands=both_strands,
-                                       cut_offset=cut_offset,
-                                       collapse=collapse,
-                                       verbose=verbose)
-    metadata(gs)[["custom_seq"]] <- dna
-
-    #Taking care of seqinfo:
-    lens <- width(metadata(gs)[["custom_seq"]])
-    names(lens) <- names(metadata(gs)[["custom_seq"]])
-    if (length(gs)>0){
-        seqlengths(gs) <- lens
-        isCircular(gs) <- rep(FALSE, length(lens))
-    }
-    genome(gs) <- "custom"
-    return(gs)
-}
-
-
-
-
-
-
-
-#' @importFrom crisprBase pams
-.findSpacersFromDNAStringSet <- function(dna,
-                                         crisprNuclease=NULL,
-                                         canonical=TRUE,
-                                         spacer_len=NULL,
-                                         both_strands=TRUE,
-                                         cut_offset=NULL,
-                                         collapse=TRUE,
-                                         verbose=FALSE
-){
-
-    pams <- crisprBase::pams(crisprNuclease,
-                             primary=canonical)
-    pams <- DNAStringSet(pams)
-
-        
-    getPerSequenceHits <- function(pams,
-                                   dna_string,
-                                   strand="+",
-                                   name){
-        pam_ir <- matchPDict(pams,dna_string) 
-        pam_ir <- Reduce(c, pam_ir)
-        if (pamSide(crisprNuclease)=="3prime"){
-            spacer_ir <- flank(pam_ir,
-                               width=spacer_len,
-                               start=TRUE)
-        } else {
-            spacer_ir <- flank(pam_ir,
-                               width=spacer_len,
-                               start=FALSE)
+    if (remove_ambiguities){
+        if (crisprBase::isDnase(crisprNuclease)){
+            bases <- Biostrings::DNA_BASES
+        } else if (crisprBase::isRnase(crisprNuclease)){
+            bases <- Biostrings::RNA_BASES
         }
-        valid_start <- BiocGenerics::start(spacer_ir)>0
-        valid_end   <- BiocGenerics::end(spacer_ir)<=length(dna_string)
-        valid <- valid_start & valid_end
-        pam_ir    <- pam_ir[valid]
-        spacer_ir <- spacer_ir[valid]
-        sequences_pam    <- DNAStringSet(Views(dna_string, pam_ir))
-        sequences_spacer <- DNAStringSet(Views(dna_string, spacer_ir))
-        list(pam=sequences_pam,
-             spacer=sequences_spacer,
-             pam_site=BiocGenerics::start(pam_ir),
-             region=rep(name, length(pam_ir)),
-             strand=rep(strand, length(pam_ir)))
+        bases <- paste0(bases, collapse="")
+        pattern <- paste0("^[", bases, "]+$")
+        guideSet <- guideSet[grepl(pattern, spacers(guideSet))]
     }
-
-    # Getting hits:
-    hits <- lapply(seq_along(dna), function(i){
-        getPerSequenceHits(pams,
-                           dna[[i]],
-                           strand="+",
-                           name=names(dna)[i])
-    })
-    if (both_strands){
-        dna_rev  <- reverseComplement(dna)
-        hits_rev <- lapply(seq_along(dna_rev), function(i){
-            getPerSequenceHits(pams,
-                               dna_rev[[i]],
-                               strand="-",
-                               name=names(dna)[i])
-        })
-        hits <- c(hits,hits_rev)
-    }
-
-    # Merging everything together
-    spacer <- lapply(hits, function(x) x$spacer)
-    out    <- DataFrame(spacer=do.call(c, spacer))
-    out$pam      <- do.call(c, lapply(hits, function(x) x$pam))
-    out$pam_site <- do.call(c, lapply(hits, function(x) x$pam_site))
-    out$strand   <- do.call(c, lapply(hits, function(x) x$strand))
-    out$region   <- do.call(c, lapply(hits, function(x) x$region))
-
-    # Converting coordinate to fwd strand
-    # for gRNAs located on rev strand:
-    wh <- which(out$strand=="-")
-    if (length(wh)>0){
-        lens=width(dna)[match(out$region, names(dna))]
-        out$pam_site[wh] <- lens[wh] - out$pam_site[wh] + 1
-    }
-    
-    # Transforming coordinates to original coordinates system:
-    wh <- match(out$region, names(dna))
-    out$pam_site <- out$pam_site + mcols(dna)$start[wh] -1 
-    out$chr <- mcols(dna)$seqnames[wh]
-
-    # Creating GuideSet
-    gs <- GuideSet(protospacers=out$spacer,
-                   pams=out$pam,
-                   seqnames=out$chr,
-                   pam_site=out$pam_site,
-                   strand=out$strand,
-                   CrisprNuclease=crisprNuclease,
-                   genome=metadata(dna)$genome)
-    mcols(gs)$region <- out$region
-    if (length(gs)>0){
-        names(gs) <- paste0("spacer_", seq_along(gs))
-    }
-    if ("custom_seq" %in% names(metadata(dna))){
-        metadata(gs)[["custom_seq"]] <- metadata(dna)[["custom_seq"]]
-    }
-    
-    if (metadata(gs)$genome=="custom"){
-        collapse=FALSE
-    }
-    if (collapse){
-        mcols(gs)[["region"]] <- NULL
-        df <- as.data.frame(gs)[, c("seqnames", "start", "strand")]
-        gs <- gs[!duplicated(df)]
-        if (length(gs)>0){
-            names(gs) <- paste0("spacer_", seq_along(gs))
-        }
-    }
-    cut_site <- getCutSiteFromPamSite(pam_site=pamSites(gs),
-                                      strand=as.character(strand(gs)),
-                                      crisprNuclease=crisprNuclease(gs),
-                                      cut_offset=cut_offset)
-    mcols(gs)[["cut_site"]] <- cut_site
-    return(gs)
+    return(guideSet)
 }
-
-
-# .convertGRToGuideSet <- function(gr){
-#     guideSet <- GuideSet(CrisprNuclease=metadata(gr)$nuclease,
-#                          genome=metadata(gr)$genome,
-#                          pam_site=mcols(gr)$pam_site,
-#                          strand=as.character(strand(gr)),
-#                          pams=as.character(mcols(gr)$pam),
-#                          spacers=as.character(mcols(gr)$spacer),
-#                          seqnames=as.character(seqnames(gr)))
-#     mcols(guideSet)$cut_site <- mcols(gr)$cut_site
-#     names(guideSet) <- names(gr)
-#     gr_cols <- colnames(mcols(gr))
-#     gs_cols <- colnames(mcols(guideSet))
-#     other_cols <- setdiff(gr_cols, gs_cols)
-#     if (length(other_cols)>0){
-#         mcols(guideSet)[,other_cols] <- mcols(gr)[,other_cols]
-#     }
-#     seqinfo(guideSet) <- seqinfo(gr)
-#     return(guideSet)
-# }
-
-
-
-
-
-

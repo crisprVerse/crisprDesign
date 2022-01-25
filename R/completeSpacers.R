@@ -324,21 +324,21 @@ convertToProtospacerGRanges <- function(guideSet){
     guideSet <- suppressWarnings(promoters(guideSet,
                                            upstream=abs(left),
                                            downstream=abs(right)+1))
-    guideSet <- trim(guideSet) #Taking care of invalid values
+    guideSet <- GenomicRanges::trim(guideSet) #Taking care of invalid values
     genome <- metadata(guideSet)$genome
     if (genome=="custom"){
         seqs <- getSeq(metadata(guideSet)$custom_seq,
                        guideSet)
     } else {
         bsgenome <- metadata(guideSet)$bsgenome
-        seqs     <- getSeq(bsgenome, guideSet)
+        seqs <- getSeq(bsgenome, guideSet)
     }
     seqs <- as.character(seqs)
 
     #Making sure the sequences are not out of bound:
     len = right+left+1 # Expected length
     seqs[seqs==""] <- NA
-    seqs[nchar(seqs)<len]<- NA
+    seqs[nchar(seqs)<len] <- NA
     return(seqs)
 }
 

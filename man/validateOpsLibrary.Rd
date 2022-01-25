@@ -25,7 +25,7 @@ Validate gRNA library for optical pooled screening
 }
 \examples{
 data("guideSetExample")
-guideSet <- guideSetExample
+guideSet <- unique(guideSetExample)
 guideSet <- addOpsBarcodes(guideSet)
 df <- data.frame(ID=names(guideSet),
                  spacer=spacers(guideSet, as.character=TRUE),

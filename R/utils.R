@@ -319,6 +319,44 @@ S4Vectors::mcols
 
 
 
+#' @importFrom S4Vectors isTRUEorFALSE
+.checkSingleBoolean <- function(argument,
+                                value
+){
+    if (!S4Vectors::isTRUEorFALSE(value)){
+        stop(sprintf("%s argument must be TRUE or FALSE", argument))
+    }
+    invisible(NULL)
+}
+
+
+.checkSingleInteger <- function(argument,
+                                value,
+                                null_ok=TRUE,
+                                sign="any"
+){
+    isNull <- is.null(value) && null_ok
+    isSingleIntValue <- is.vector(value, mode="numeric") &&
+        length(value) == 1 &&
+        value %% 1 == 0
+    hasGoodSign <- switch(sign,
+                          "positive" = value > 0,
+                          "non-negative" = value >= 0,
+                          "negative" = value < 0,
+                          "non-positive" = value <= 0,
+                          TRUE)
+    if (!isNull && (!isSingleIntValue || !hasGoodSign)){
+        errorMessage <- paste("%s argument must be a single",
+                              ifelse(sign == "any", "", sign),
+                              "integer value or NULL")
+        stop(sprintf(errorMessage, argument))
+    }
+    invisible(NULL)
+}
+
+
+
+
 #' @importFrom Biostrings DNA_BASES DNA_ALPHABET
 .validateDNACharacterVariable <- function(seq,
                                           argument,

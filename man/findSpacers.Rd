@@ -6,56 +6,45 @@
 \usage{
 findSpacers(
   x,
-  bsgenome = NULL,
   crisprNuclease = NULL,
+  bsgenome = NULL,
   canonical = TRUE,
-  spacer_len = NULL,
   both_strands = TRUE,
+  spacer_len = NULL,
   cut_offset = NULL,
   strict_overlap = TRUE,
-  collapse = TRUE,
-  remove_ambiguities = TRUE,
-  verbose = FALSE
+  remove_ambiguities = TRUE
 )
 }
 \arguments{
 \item{x}{Either a \linkS4class{GRanges} object or a character vector of
-genomic sequences.}
+genomic sequences. See details.}
+
+\item{crisprNuclease}{A \linkS4class{CrisprNuclease} object.}
 
 \item{bsgenome}{\linkS4class{BSgenome} object from which to extract
 sequences if a \linkS4class{GRanges} object is provided as input.}
-
-\item{crisprNuclease}{A \linkS4class{CrisprNuclease} object.}
 
 \item{canonical}{Whether to return only guide sequences having canonical
 PAM sequences. If TRUE (default), only PAM sequences with the highest
 weights stored in the \code{crisprNuclease} object will be considered.}
 
+\item{both_strands}{Should both strands be considered to search for 
+protospacer sequences? TRUE by default.}
+
 \item{spacer_len}{Length of spacer to be used if different from
 default length specified in \code{crisprNuclease}.}
-
-\item{both_strands}{Should both strands be considered to search for 
-protospacer sequences?
-TRUE by default.}
 
 \item{cut_offset}{Distance in nucleotides between \code{pam_site}
 and \code{cut_site} if different from default offset specified by
 \code{crisprNuclease}.}
 
 \item{strict_overlap}{If \code{TRUE} (default), only include guides
-having the cut site in the input range. Ignored when input is a
-character vector of genomic sequences.}
+having the cut site in the input range. Ignored when \code{x} is not a
+\linkS4class{GRanges} object.}
 
-\item{collapse}{For input containing multiple regions, whether to return
-only unique results:collapsing results will remove duplicated guides
-found in overlapping ranges/regions.}
-
-\item{remove_ambiguities}{Should spacer sequences with ambiguous 
-nucleotides ("N") be removed?
-TRUE by default.}
-
-\item{verbose}{Should messages be printed to console?
-TRUE by default.}
+\item{remove_ambiguities}{Should spacer sequences containing ambiguous
+nucleotides (not "A", "C", "G", or "T") be removed? TRUE by default.}
 }
 \value{
 A \linkS4class{GuideSet} object.

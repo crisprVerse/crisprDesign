@@ -1,6 +1,6 @@
 Package: crisprDesign
 Title: Core functions for CRISPR design
-Version: 0.99.8
+Version: 0.99.9
 Authors@R: c(
     person("Jean-Philippe", "Fortin", email = "fortin946@gmail.com", role = c("aut", "cre")),
     person("Luke", "Hoberecht", email = "hoberchl@gene.com", role = c("aut"))
@@ -56,3 +56,4 @@ RoxygenNote: 7.1.2
 VignetteBuilder: knitr
 BugReports: https://github.com/Jfortin1/crisprDesign/issues
 URL: https://github.com/Jfortin1/crisprDesign
+LazyData: true
