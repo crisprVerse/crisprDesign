@@ -1,18 +1,3 @@
-# library(crisprDesign)
-# library(BSgenome.Hsapiens.UCSC.hg38)
-# bsgenome <- BSgenome.Hsapiens.UCSC.hg38
-# data("grListExample")
-# tx_id <- "ENST00000538872"
-# df <- getTxInfoDataFrame(tx_id=tx_id,
-#                          txObject=grListExample,
-#                          bsgenome=bsgenome)
-# #txInfoDataFrame <- df
-# #substitution <- "C2T"
-# #df <- addEditedAlleles(df)
-
-
-
-
 #' @title To add edited alleles resulting from base editing
 #' 
 #' @description To add edited alleles resulting from base editing

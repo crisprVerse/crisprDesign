@@ -1,6 +1,5 @@
 *CRISPRbe functionalities
-- getBaseEditorStopGuides
-- getTxTable
+- getTxTable: document return object
 
 Misc:
 - Remove annoying message when convert TxDB
