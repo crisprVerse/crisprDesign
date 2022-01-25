@@ -17,8 +17,9 @@ findSpacers(
 )
 }
 \arguments{
-\item{x}{Either a \linkS4class{GRanges} object or a character vector of
-genomic sequences. See details.}
+\item{x}{Either a \linkS4class{GRanges}, a \linkS4class{DNAStringSet}, or a
+\linkS4class{DNAString} object, or a character vector of genomic
+sequences. See details.}
 
 \item{crisprNuclease}{A \linkS4class{CrisprNuclease} object.}
 
