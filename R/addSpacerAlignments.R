@@ -463,7 +463,9 @@ getSpacerAlignments <- function(spacers,
                                                    cut_offset=cut_offset)
     }
     if (aligner %in% c("bowtie", "bwa")){
-        seqlevelsStyle(results) <- seqlevelsStyle
+        if (length(results)>0){
+            seqlevelsStyle(results) <- seqlevelsStyle
+        }
     }
     return(results)
 }
@@ -969,6 +971,7 @@ getSpacerAlignments <- function(spacers,
     emptyDF[[protospacer_col]] <- character(0)
     cols <- c((ncol(emptyDF)-1), ncol(emptyDF), seq_len(ncol(emptyDF)-2))
     emptyDF <- emptyDF[,cols]
+    emptyDF <- .as_gr(emptyDF)
     return(emptyDF)
 }
 
