@@ -1,60 +1,213 @@
-#' @param spacers Character vector of spacer sequences.
-#' @param pams Character vector of PAM sequences.
-#' @param seqnames Character vector of chromosome names.
-#' @param pam_site Integer vector of PAM site coordinates.
-#' @param strand Character vector of gRNA strand.
-#'    Only accepted values are "+" and "-".
-#' @param CrisprNuclease \linkS4class{CrisprNuclease} object.
-#' @param genome String specifying genome (e.g, "mm10" or "hg38").
-#' @param ... Additional arguments for class-specific methods
+data("SpCas9", package="crisprBase")
 
 
-# GuideSet <- function(spacers = NA_character_,
-#                      pams = NULL,
-#                      seqnames = NA_character_,
-#                      pam_site = 0L,
-#                      strand = NA_character_,
-#                      CrisprNuclease = NULL,
-#                      genome=NA
+test_that("GuideSet constructor requires non-NA seqnames value(s)", {
+    crisprNuclease <- SpCas9
+    bad_input <- list(NULL,
+                      NA,
+                      list("chr1", "chr2"))
+    lapply(bad_input, function(x){
+        protospacers <- rep("ACTG", length(x))
+        pams <- rep("ACTG", length(x))
+        expect_error(GuideSet(protospacers=protospacers,
+                              pams=pams,
+                              seqnames=x,
+                              CrisprNuclease=crisprNuclease))
+    })
+    good_input <- list("chr1",
+                       1,
+                       c("chr1", "chr2"),
+                       "custom")
+    lapply(good_input, function(x){
+        protospacers <- rep("ACTG", length(x))
+        pams <- rep("ACTG", length(x))
+        expect_error(GuideSet(protospacers=protospacers,
+                              pams=pams,
+                              seqnames=x,
+                              CrisprNuclease=crisprNuclease),
+                     regexp=NA)
+    })
+})
 
 
+test_that("GuideSet constructor requires non-NA protospacer value(s)", {
+    crisprNuclease <- SpCas9
+    bad_input <- list(NULL,
+                      NA,
+                      list("ACTG", "ACTG"))
+    lapply(bad_input, function(x){
+        seqnames <- rep("chr1", length(x))
+        pams <- rep("ACTG", length(x))
+        expect_error(GuideSet(protospacers=x,
+                              pams=pams,
+                              seqnames=seqnames,
+                              CrisprNuclease=crisprNuclease))
+    })
+    good_input <- list("ACTG",
+                       "",
+                       c("ACTG", "ACTG"),
+                       "actg")
+    lapply(good_input, function(x){
+        seqnames <- rep("chr1", length(x))
+        pams <- rep("ACTG", length(x))
+        expect_error(GuideSet(protospacers=x,
+                              pams=pams,
+                              seqnames=seqnames,
+                              CrisprNuclease=crisprNuclease),
+                     regexp=NA)
+    })
+})
 
 
-# requires seqnames, spacers, CrisprNuclease, pams
-# strand must be one of '+' '-' '*'
-# pam_site can be negative...shouldn't allow? should a positive integer be required? (<2**31)
-# genome is stored in metadata(GuideSet), not genome(GuideSet); no restrictions on value
-# spacers, pams should be same length, with seqnames, strand, pam_site also same length, or length 1 (or NULL)
+test_that("GuideSet constructor requires non-NA pam value(s)", {
+    crisprNuclease <- SpCas9
+    bad_input <- list(NULL,
+                      NA,
+                      list("ACTG", "ACTG"))
+    lapply(bad_input, function(x){
+        seqnames <- rep("chr1", length(x))
+        protospacers <- rep("ACTG", length(x))
+        expect_error(GuideSet(protospacers=protospacers,
+                              pams=x,
+                              seqnames=seqnames,
+                              CrisprNuclease=crisprNuclease))
+    })
+    good_input <- list("ACTG",
+                       "",
+                       c("ACTG", "ACTG"),
+                       "actg")
+    lapply(good_input, function(x){
+        seqnames <- rep("chr1", length(x))
+        protospacers <- rep("ACTG", length(x))
+        expect_error(GuideSet(protospacers=protospacers,
+                              pams=x,
+                              seqnames=seqnames,
+                              CrisprNuclease=crisprNuclease),
+                     regexp=NA)
+    })
+})
 
 
-
-# gs <- GuideSet(seqnames='chr1', spacers=DNAStringSet('ACGTCATGACTCTACTACGT'), CrisprNuclease = SpCas9, pams=DNAStringSet(c('AGG', 'TGG')))
-
-
-
-
-
-# methods:
-# crisprNuclease(object)
-# spacers(object, as.character = FALSE)
-# pams(object, as.character = FALSE)
-# pamSites(object)
-# cutSites(object)
-# protospacers(object, as.character = FALSE)
-# spacerLength(object)
-# protospacerLength(object)
-# prototypeSequence(object)
-# pamLength(object)
-# pamSide(object)
-# snps(object, unlist = TRUE)
-# alignments(object, columnName="alignments", unlist=TRUE)
-# onTargets(object, columnName="alignments", unlist=TRUE)
-# offTargets(object, columnName="alignments", max_mismatches=Inf, unlist=TRUE)
-# geneAnnotation(object, unlist=TRUE, gene_id=NULL, tx_id=NULL, gene_symbol=NULL)
-# tssAnnotation(object, unlist=TRUE, gene_id=NULL, gene_symbol=NULL)
-# enzymeAnnotation(object, unlist=TRUE)
+test_that("GuideSet constructor requires a CrisprNuclease object", {
+    bad_input <- list(NULL,
+                      NA,
+                      "SpCas9")
+    lapply(bad_input, function(x){
+        expect_error(GuideSet(protospacers="ACTG",
+                              pams="ACTG",
+                              seqnames="chr1",
+                              CrisprNuclease=x))
+    })
+    expect_error(GuideSet(protospacers="ACTG",
+                          pams="ACTG",
+                          seqnames="chr1",
+                          CrisprNuclease=SpCas9),
+                 regexp=NA)
+})
 
 
+test_that("GuideSet constructor requires strand to be missing or in +/-/*", {
+    bad_input <- list("pos",
+                      "positive",
+                      1)
+    lapply(bad_input, function(x){
+        expect_error(GuideSet(protospacers="ACTG",
+                              pams="ACTG",
+                              seqnames="chr1",
+                              CrisprNuclease=SpCas9,
+                              strand=x))
+    })
+    good_input <- list(NULL,
+                       "+",
+                       "-",
+                       "*")
+    lapply(good_input, function(x){
+        expect_error(GuideSet(protospacers="ACTG",
+                              pams="ACTG",
+                              seqnames="chr1",
+                              CrisprNuclease=SpCas9,
+                              strand=x),
+                     regexp=NA)
+    })
+    expect_warning(GuideSet(protospacers="ACTG",
+                            pams="ACTG",
+                            seqnames="chr1",
+                            CrisprNuclease=SpCas9,
+                            strand=NA))
+})
+
+
+test_that("GuideSet constructor requires pam_site as non-negative numeric", {
+    bad_input <- list(NULL,
+                      NA,
+                      # -1,    # positive not enforced
+                      1i,
+                      "1")
+    lapply(bad_input, function(x){
+        expect_error(GuideSet(protospacers="ACTG",
+                              pams="ACTG",
+                              seqnames="chr1",
+                              CrisprNuclease=SpCas9,
+                              pam_site=x))
+    })
+    good_input <- list(0,
+                       1)
+    lapply(good_input, function(x){
+        expect_error(GuideSet(protospacers="ACTG",
+                              pams="ACTG",
+                              seqnames="chr1",
+                              CrisprNuclease=SpCas9,
+                              pam_site=x),
+                     regexp=NA)
+    })
+})
+
+
+test_that("GuideSet constructor stores genome in metadata and seqinfo", {
+    gs <- GuideSet(protospacers="ACTG",
+                   pams="ACTG",
+                   seqnames="chr1",
+                   CrisprNuclease=SpCas9,
+                   genome="test")
+    expect_equal(metadata(gs)$genome, "test")
+    # expect_equal(unique(genome(gs)), "test")   # not yet implemented
+})
+
+
+# different rules
+# test_that("GuideSet constructor requires relevant args to be same length", {
+#     lens <- c(1, 2, 4)
+#     lens <- expand.grid(protospacers=lens,
+#                         pams=lens,
+#                         seqnames=lens,
+#                         strand=lens,
+#                         pam_site=lens)
+#     lapply(seq_len(nrow(lens)), function(x){
+#         print(lens[x,])
+#         protospacers <- rep("ACTG", lens$protospacers[x])
+#         pams <- rep("A", lens$pams[x])
+#         seqnames <- rep("chr1", lens$seqnames[x])
+#         strand <- rep("+", lens$strand[x])
+#         pam_site <- rep(1, lens$pam_site[x])
+#         if (length(protospacers) == length(pams) &&
+#             length(protospacers) <= length(seqnames) &&
+#             (length(protospacers) == length(strand) ||
+#              length(strand) == 1) &&
+#             (length(protospacers) == length(pam_site) ||
+#              length(pam_site) == 1)){
+#             regexp <- NA
+#         } else {
+#             regexp <- NULL
+#         }
+#         expect_error(GuideSet(protospacers=protospacers,
+#                               pams=pams,
+#                               seqnames=seqnames,
+#                               pam_site=pam_site,
+#                               strand=strand,
+#                               CrisprNuclease=SpCas9),
+#                      regexp=regexp)
+#     })
+# })
 
 
 test_that("object argument is required to have type 'GuideSet'", {
@@ -82,7 +235,6 @@ test_that("object argument is required to have type 'GuideSet'", {
                       geneAnnotation,
                       tssAnnotation,
                       enzymeAnnotation)
-    
     lapply(accessors, function(fun){
         expect_error(fun("guideSetExample"))
         expect_error(fun(as.data.frame(guideSetExample)))
@@ -92,7 +244,45 @@ test_that("object argument is required to have type 'GuideSet'", {
 })
 
 
-test_that("annotation accessors return NULL when lacking that annotation", {
+test_that("crisprNuclease accessor returns crisprNuclease object", {
+    expect_true(is(crisprNuclease(guideSetExample), "CrisprNuclease"))
+})
+
+
+test_that("as.character TRUE returns character vector; FALSE, DNAStringSet", {
+    accessors <- list(spacers,
+                      pams,
+                      protospacers)
+    lapply(accessors, function(fun){
+        expect_true(is.vector(fun(guideSetExample, as.character=TRUE),
+                              mode="character"))
+        expect_true(is(fun(guideSetExample, as.character=FALSE),
+                       "DNAStringSet"))
+    })
+})
+
+
+test_that("pamSites and cutSites return numeric vector of length(GuideSet)", {
+    expect_equal(length(guideSetExample), length(pamSites(guideSetExample)))
+    expect_equal(length(guideSetExample), length(cutSites(guideSetExample)))
+    expect_true(is.vector(pamSites(guideSetExample), mode="numeric"))
+    expect_true(is.vector(cutSites(guideSetExample), mode="numeric"))
+})
+
+
+test_that("guideSet accessor agrees with crisprNuclease accessor value", {
+    accessors <- list(spacerLength,
+                      protospacerLength,
+                      prototypeSequence,
+                      pamLength,
+                      pamSide)
+    lapply(accessors, function(fun){
+        expect_equal(fun(guideSetExample), fun(SpCas9))
+    })
+})
+
+
+test_that("annotation accessors return NULL when GuideSet lacks annotation", {
     accessors <- list(snps,
                       alignments,
                       onTargets,
@@ -106,8 +296,89 @@ test_that("annotation accessors return NULL when lacking that annotation", {
 })
 
 
-# accessors that depend(?) on crisprNuclease ... compare with SpCas9 for example, make GuideSet using AsCas12a
-# accessors: crisprNuclease, pamLength, pamSide, spacerLength
+test_that("unlist is appropriately applied to annotation accessors", {
+    accessors_df <- list(snps,
+                         geneAnnotation,
+                         tssAnnotation,
+                         enzymeAnnotation)
+    lapply(accessors_df, function(fun){
+        expect_true(is(fun(guideSetExampleFullAnnotation, unlist=TRUE),
+                       "DataFrame"))
+        expect_true(is(fun(guideSetExampleFullAnnotation, unlist=FALSE),
+                       "DataFrameList"))
+    })
+    accessors_gr <- list(alignments,
+                         onTargets,
+                         offTargets)
+    lapply(accessors_gr, function(fun){
+        expect_true(is(fun(guideSetExampleFullAnnotation, unlist=TRUE),
+                       "GRanges"))
+        expect_true(is(fun(guideSetExampleFullAnnotation, unlist=FALSE),
+                       "GRangesList"))
+    })
+})
 
 
+test_that("accessors return NULL if columnName is not found", {
+    accessors <- list(alignments,
+                      onTargets,
+                      offTargets)
+    lapply(accessors, function(fun){
+        expect_null(fun(guideSetExampleFullAnnotation,
+                        columnName="BAD_COLUMN_NAME"))
+    })
+    
+    # should also return NULL (or warning) if columnName is in GuideSet
+    # but does not contain alignment data
+})
 
+
+test_that("max_mismatches is appropriately applied", {
+    mismatch_tally <- offTargets(guideSetExampleFullAnnotation)$n_mismatches
+    mismatch_tally <- table(mismatch_tally)
+    mismatch_tally <- cumsum(mismatch_tally)
+    mismatch_tally <- c("0"=0, mismatch_tally, "Inf"=max(mismatch_tally))
+    lapply(seq_along(mismatch_tally), function(x){
+        max_mismatches <- names(mismatch_tally)[x]
+        mismatch_count <- mismatch_tally[[x]]
+        expect_equal(length(offTargets(guideSetExampleFullAnnotation,
+                                       max_mismatches=max_mismatches)),
+                     mismatch_count)
+    })
+})
+
+
+test_that("gene_id filter is appropriately applied", {
+    gene_ids <- geneAnnotation(guideSetExampleFullAnnotation)$gene_id
+    gene_ids <- unique(gene_ids)
+    lapply(gene_ids, function(x){
+        id <- geneAnnotation(guideSetExampleFullAnnotation, gene_id=x)
+        expect_equal(unique(id$gene_id), x)
+    })
+    expect_true(nrow(geneAnnotation(guideSetExampleFullAnnotation,
+                                    gene_id="BAD_ID")) == 0)
+})
+
+
+test_that("tx_id filter is appropriately applied", {
+    tx_ids <- geneAnnotation(guideSetExampleFullAnnotation)$tx_id
+    tx_ids <- unique(tx_ids)
+    lapply(tx_ids, function(x){
+        id <- geneAnnotation(guideSetExampleFullAnnotation, tx_id=x)
+        expect_equal(unique(id$tx_id), x)
+    })
+    expect_true(nrow(geneAnnotation(guideSetExampleFullAnnotation,
+                                    tx_id="BAD_ID")) == 0)
+})
+
+
+test_that("gene_symbol filter is appropriately applied", {
+    gene_symbols <- geneAnnotation(guideSetExampleFullAnnotation)$gene_symbol
+    gene_symbols <- unique(gene_symbols)
+    lapply(gene_symbols, function(x){
+        id <- geneAnnotation(guideSetExampleFullAnnotation, gene_symbol=x)
+        expect_equal(unique(id$gene_symbol), x)
+    })
+    expect_true(nrow(geneAnnotation(guideSetExampleFullAnnotation,
+                               gene_symbol="BAD_SYMBOL")) == 0)
+})
