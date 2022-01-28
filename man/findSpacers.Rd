@@ -2,7 +2,7 @@
 % Please edit documentation in R/findSpacers.R
 \name{findSpacers}
 \alias{findSpacers}
-\title{Find CRISPR gRNA spacer sequences in a set of DNA sequences.}
+\title{Find CRISPR gRNA spacer sequences from a set of DNA sequences.}
 \usage{
 findSpacers(
   x,
@@ -11,7 +11,6 @@ findSpacers(
   canonical = TRUE,
   both_strands = TRUE,
   spacer_len = NULL,
-  cut_offset = NULL,
   strict_overlap = TRUE,
   remove_ambiguities = TRUE
 )
@@ -23,43 +22,55 @@ sequences. See details.}
 
 \item{crisprNuclease}{A \linkS4class{CrisprNuclease} object.}
 
-\item{bsgenome}{\linkS4class{BSgenome} object from which to extract
-sequences if a \linkS4class{GRanges} object is provided as input.}
+\item{bsgenome}{A \linkS4class{BSgenome} object from which to extract
+sequences if \code{x} is a \linkS4class{GRanges} object.}
 
 \item{canonical}{Whether to return only guide sequences having canonical
 PAM sequences. If TRUE (default), only PAM sequences with the highest
 weights stored in the \code{crisprNuclease} object will be considered.}
 
-\item{both_strands}{Should both strands be considered to search for 
-protospacer sequences? TRUE by default.}
+\item{both_strands}{Whether to consider both strands in search for 
+protospacer sequences. \code{TRUE} by default.}
 
-\item{spacer_len}{Length of spacer to be used if different from
-default length specified in \code{crisprNuclease}.}
+\item{spacer_len}{Length of spacers to return, if different from the
+default length specified by \code{crisprNuclease}.}
 
-\item{cut_offset}{Distance in nucleotides between \code{pam_site}
-and \code{cut_site} if different from default offset specified by
-\code{crisprNuclease}.}
-
-\item{strict_overlap}{If \code{TRUE} (default), only include guides
-having the cut site in the input range. Ignored when \code{x} is not a
+\item{strict_overlap}{Whether to only include gRNAs that cut in the input
+range, as given by \code{cut_site} (\code{TRUE}) or to include all
+gRNAs that share any overlap with the input range (\code{FALSE}).
+\code{TRUE} by default. Ignored when \code{x} is not a
 \linkS4class{GRanges} object.}
 
-\item{remove_ambiguities}{Should spacer sequences containing ambiguous
-nucleotides (not "A", "C", "G", or "T") be removed? TRUE by default.}
+\item{remove_ambiguities}{Whether to remove spacer sequences that contain
+ambiguous nucleotides (not explicily \code{A}, \code{C}, \code{G}, or
+\code{T}). TRUE by default.}
 }
 \value{
 A \linkS4class{GuideSet} object.
 }
 \description{
-Returns all possible, valid gRNA sequences from either a
-   \linkS4class{GRanges} object or a character vector of genomic sequences,
-   for a given CRISPR nuclease.
+Returns all possible, valid gRNA sequences for a given CRISPR
+   nuclease from either a \linkS4class{GRanges} object or a set of
+   sequence(s) contained in either a \linkS4class{DNAStringSet},
+   \linkS4class{DNAString} or character vector of genomic sequences.
 }
 \details{
-For input that is a character vector of genomic sequences,
-    all identified guides are returned with their relative strand and
-    coordinates. The input sequence is assumed to be on the positive
-    strand starting at position 1.
+If \code{x} is a \linkS4class{GRanges} object then a
+    \linkS4class{BSgenome} must be supplied to \code{bsgenome}, from which
+    the genomic sequence is obtained. Otherwise, all supplied sequences will
+    be treated as the \code{"+"} strands of chromosomes in a
+    \code{"custom"} genome.
+    
+    Ranges or sequences in \code{x} may contain names where permitted. These
+    names are stored in \code{region} in the \code{mcols} of the output,
+    and as \code{seqnames} of the output if \code{x} is not a
+    \linkS4class{GRanges} object. If not \code{NULL}, \code{names(x)} must
+    be unique, otherwise ranges or sequences are enumerated with the
+    \code{"region_"} prefix.
+    
+    When \code{x} is a \linkS4class{GRanges}, the \code{*} strand is
+    interpreted as both strands. Consequently, the \code{both_strands}
+    argument has no effect on such ranges.
 }
 \examples{
 # Using custom sequence as input:
@@ -83,6 +94,7 @@ if (requireNamespace("BSgenome.Hsapiens.UCSC.hg38")){
                             bsgenome=bsgenome,
                             crisprNuclease=enAsCas12a)
 }
+
 
 }
 \author{

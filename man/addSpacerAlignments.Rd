@@ -23,7 +23,6 @@ addSpacerAlignmentsIterative(
   all_alignments = FALSE,
   canonical = TRUE,
   ignore_pam = FALSE,
-  cut_offset = NULL,
   standard_chr_only = TRUE,
   both_strands = TRUE,
   tss_window = NULL,
@@ -49,7 +48,6 @@ addSpacerAlignments(
   all_alignments = TRUE,
   canonical = TRUE,
   ignore_pam = FALSE,
-  cut_offset = NULL,
   standard_chr_only = TRUE,
   both_strands = TRUE,
   tss_window = NULL
@@ -69,7 +67,6 @@ getSpacerAlignments(
   crisprNuclease = NULL,
   canonical = TRUE,
   ignore_pam = FALSE,
-  cut_offset = NULL,
   standard_chr_only = TRUE,
   both_strands = TRUE
 )
@@ -122,10 +119,6 @@ PAM sequences be returned? TRUE by default.}
 
 \item{ignore_pam}{If TRUE, will return all matches regardless of
 PAM sequence. FALSE by default.}
-
-\item{cut_offset}{Distance in nucleotides between \code{pam_site}
-and \code{cut_site}, if different from default offset specified in
-the \code{crisprNuclease} object.}
 
 \item{standard_chr_only}{Should only standard chromosomes be considered?
 TRUE by default.}

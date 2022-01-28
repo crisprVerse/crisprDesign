@@ -43,9 +43,6 @@
 #'     PAM sequences be returned? TRUE by default.
 #' @param ignore_pam If TRUE, will return all matches regardless of
 #'     PAM sequence. FALSE by default. 
-#' @param cut_offset Distance in nucleotides between \code{pam_site}
-#'     and \code{cut_site}, if different from default offset specified in
-#'     the \code{crisprNuclease} object. 
 #' @param standard_chr_only Should only standard chromosomes be considered?
 #'     TRUE by default.
 #' @param tss_window Window size of promoters upstream of gene TSS to search
@@ -167,7 +164,6 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                          all_alignments=FALSE,
                                          canonical=TRUE,
                                          ignore_pam=FALSE,
-                                         cut_offset=NULL,
                                          standard_chr_only=TRUE,
                                          both_strands=TRUE,
                                          tss_window=NULL,
@@ -192,7 +188,6 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                         all_alignments=FALSE, #To reduce burden
                                         canonical=canonical,
                                         ignore_pam=ignore_pam,
-                                        cut_offset=cut_offset,
                                         standard_chr_only=standard_chr_only,
                                         both_strands=both_strands,
                                         tss_window=tss_window,
@@ -222,7 +217,6 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                                                 all_alignments=all_alignments,
                                                                 canonical=canonical,
                                                                 ignore_pam=ignore_pam,
-                                                                cut_offset=cut_offset,
                                                                 standard_chr_only=standard_chr_only,
                                                                 both_strands=both_strands,
                                                                 tss_window=tss_window))
@@ -244,7 +238,6 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                                                 all_alignments=all_alignments,
                                                                 canonical=canonical,
                                                                 ignore_pam=ignore_pam,
-                                                                cut_offset=cut_offset,
                                                                 standard_chr_only=standard_chr_only,
                                                                 both_strands=both_strands,
                                                                 tss_window=tss_window))
@@ -266,7 +259,6 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                                                 all_alignments=all_alignments,
                                                                 canonical=canonical,
                                                                 ignore_pam=ignore_pam,
-                                                                cut_offset=cut_offset,
                                                                 standard_chr_only=standard_chr_only,
                                                                 both_strands=both_strands,
                                                                 tss_window=tss_window))
@@ -321,7 +313,6 @@ addSpacerAlignments <- function(guideSet,
                                 all_alignments=TRUE,
                                 canonical=TRUE,
                                 ignore_pam=FALSE,
-                                cut_offset=NULL,
                                 standard_chr_only=TRUE,
                                 both_strands=TRUE,
                                 tss_window=NULL
@@ -350,7 +341,6 @@ addSpacerAlignments <- function(guideSet,
                                crisprNuclease=crisprNuclease,
                                canonical=canonical,
                                ignore_pam=ignore_pam,
-                               cut_offset=cut_offset,
                                standard_chr_only=standard_chr_only,
                                both_strands=both_strands)
     metadata(aln)[["genome"]] <- metadata(guideSet)[["genome"]]
@@ -413,7 +403,6 @@ getSpacerAlignments <- function(spacers,
                                 crisprNuclease=NULL,
                                 canonical=TRUE,
                                 ignore_pam=FALSE,
-                                cut_offset=NULL,
                                 standard_chr_only=TRUE,
                                 both_strands=TRUE
 ){
@@ -441,7 +430,6 @@ getSpacerAlignments <- function(spacers,
                                                crisprNuclease=crisprNuclease,
                                                canonical=canonical,
                                                ignore_pam=ignore_pam,
-                                               cut_offset=cut_offset,
                                                standard_chr_only=standard_chr_only)
     } else if (aligner=="bwa"){
         results <- .getSpacerAlignments_bwa(spacers,
@@ -451,7 +439,6 @@ getSpacerAlignments <- function(spacers,
                                             crisprNuclease=crisprNuclease,
                                             canonical=canonical,
                                             ignore_pam=ignore_pam,
-                                            cut_offset=cut_offset,
                                             standard_chr_only=standard_chr_only)
     } else if (aligner=="biostrings"){
         results <- .getSpacerAlignments_biostrings(spacers,
@@ -459,8 +446,7 @@ getSpacerAlignments <- function(spacers,
                                                    n_mismatches=n_mismatches, 
                                                    crisprNuclease=crisprNuclease,
                                                    canonical=canonical,
-                                                   both_strands=both_strands,
-                                                   cut_offset=cut_offset)
+                                                   both_strands=both_strands)
     }
     if (aligner %in% c("bowtie", "bwa")){
         if (length(results)>0){
@@ -490,7 +476,6 @@ getSpacerAlignments <- function(spacers,
                                         crisprNuclease=NULL,
                                         canonical=TRUE,
                                         ignore_pam=FALSE,
-                                        cut_offset=NULL,
                                         standard_chr_only=TRUE
 ){
     crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
@@ -528,8 +513,7 @@ getSpacerAlignments <- function(spacers,
     results$chr[results$chr=="chrMT"] <- "chrM"
     results$cut_site <- getCutSiteFromPamSite(pam_site=results$pam_site,
                                               strand=results$strand,
-                                              crisprNuclease=crisprNuclease,
-                                              cut_offset=cut_offset)
+                                              crisprNuclease=crisprNuclease)
     #Setting mismatch locations relative to PAM site:
     wh <- which(results$n_mismatches!=0)
     if (pamside=="3prime"){
@@ -609,7 +593,6 @@ getSpacerAlignments <- function(spacers,
                                      crisprNuclease=NULL,
                                      canonical=TRUE,
                                      ignore_pam=FALSE,
-                                     cut_offset=NULL,
                                      standard_chr_only=TRUE
 ){
     crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
@@ -643,8 +626,7 @@ getSpacerAlignments <- function(spacers,
     results$chr[results$chr=="chrMT"] <- "chrM"
     results$cut_site <- getCutSiteFromPamSite(pam_site=results$pam_site,
                                               strand=results$strand,
-                                              crisprNuclease=crisprNuclease,
-                                              cut_offset=cut_offset)
+                                              crisprNuclease=crisprNuclease)
     
     #Setting mismatch locations relative to PAM site:
     wh <- which(results$n_mismatches!=0)
@@ -726,8 +708,7 @@ getSpacerAlignments <- function(spacers,
                                             n_mismatches=0, 
                                             crisprNuclease=NULL,
                                             canonical=TRUE,
-                                            both_strands=TRUE,
-                                            cut_offset=NULL
+                                            both_strands=TRUE
 ){
     crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
     custom_seq <- .validateDNACharacterVariable(seq=custom_seq,
@@ -809,8 +790,7 @@ getSpacerAlignments <- function(spacers,
 
     locs$cut_site <- getCutSiteFromPamSite(pam_site=locs$pam_site,
                                            strand=as.character(strand(locs)),
-                                           crisprNuclease=crisprNuclease,
-                                           cut_offset=cut_offset)
+                                           crisprNuclease=crisprNuclease)
     #Taking care of seqinfo:
     lens <- width(metadata(locs)$custom_seq)
     names(lens) <- names(metadata(locs)$custom_seq)

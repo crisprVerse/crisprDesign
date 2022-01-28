@@ -16,12 +16,7 @@ getPAMSiteFromStartAndEnd(
   spacerLen = NULL
 )
 
-getCutSiteFromPamSite(
-  pam_site,
-  strand,
-  crisprNuclease = NULL,
-  cut_offset = NULL
-)
+getCutSiteFromPamSite(pam_site, strand, crisprNuclease = NULL)
 
 getPAMSequence(chr, pam_site, strand, crisprNuclease = NULL, genome = NULL)
 
@@ -49,10 +44,6 @@ Must be always greater than \code{start}.}
 If NULL, the information is obtained from \code{crisprNuclease}.}
 
 \item{pam_site}{Coordinate of the first nucleotide of the PAM sequence.}
-
-\item{cut_offset}{Distance in nucleotides between \code{pam_site}
-and \code{cut_site}. If NULL, the information is obtained from 
-code{crisprNuclease}.}
 
 \item{chr}{The chromosome in which the protospacer sequence is located.}
 

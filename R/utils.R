@@ -322,8 +322,8 @@ S4Vectors::mcols
 
 
 #' @importFrom S4Vectors isTRUEorFALSE
-.checkSingleBoolean <- function(argument,
-                                value
+.checkBoolean <- function(argument,
+                          value
 ){
     if (!S4Vectors::isTRUEorFALSE(value)){
         stop(sprintf("%s argument must be TRUE or FALSE", argument))

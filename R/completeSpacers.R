@@ -13,9 +13,6 @@
 #' @param genome Either hg38 or mm10.
 #' @param spacerLen Spacer sequence length.
 #'     If NULL, the information is obtained from \code{crisprNuclease}.
-#' @param cut_offset Distance in nucleotides between \code{pam_site}
-#'     and \code{cut_site}. If NULL, the information is obtained from 
-#'     code{crisprNuclease}.
 #' 
 #' @return A numeric or character vector, depending on the function.
 #' 
@@ -117,17 +114,13 @@ getPAMSiteFromStartAndEnd <- function(start=NULL,
 #' @export
 getCutSiteFromPamSite <- function(pam_site,
                                   strand,
-                                  crisprNuclease=NULL,
-                                  cut_offset=NULL
+                                  crisprNuclease=NULL
 ){
     crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
     pam_site <- .validatePamSite(pam_site)
     strand <- .validateStrand(strand)
     stopifnot(length(pam_site)==length(strand))
-    if (is.null(cut_offset)){
-        cut_offset <- .getDefaultCutOffset(crisprNuclease)
-    } 
-    cut_offset <- .validateCutOffset(cut_offset)
+    cut_offset <- .getDefaultCutOffset(crisprNuclease)
     cut_site <- pam_site
     cut_site[strand=='+'] <- pam_site[strand=='+'] + cut_offset
     cut_site[strand=='-'] <- pam_site[strand=='-'] - cut_offset
@@ -369,17 +362,6 @@ convertToProtospacerGRanges <- function(guideSet){
     }
     return(len)
 }
-
-.validateCutOffset <- function(cut_offset){
-    if (length(cut_offset) > 1){
-        stop('cut_offset accepts a single value only.')
-    }
-    if (!is.numeric(cut_offset) || cut_offset %% 1 != 0){
-        stop("cut_offset must be an integer.")
-    }
-    return(cut_offset)
-}
-
 
 
 
