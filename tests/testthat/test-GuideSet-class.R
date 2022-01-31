@@ -137,10 +137,10 @@ test_that("GuideSet constructor requires strand to be missing or in +/-/*", {
 })
 
 
-test_that("GuideSet constructor requires pam_site as non-negative numeric", {
+test_that("GuideSet constructor requires pam_site to be an integer", {
     bad_input <- list(NULL,
                       NA,
-                      # -1,    # positive not enforced
+                      # 1.5,     # not yet implemented
                       1i,
                       "1")
     lapply(bad_input, function(x){
@@ -151,7 +151,9 @@ test_that("GuideSet constructor requires pam_site as non-negative numeric", {
                               pam_site=x))
     })
     good_input <- list(0,
-                       1)
+                       -1,
+                       1,
+                       1L)
     lapply(good_input, function(x){
         expect_error(GuideSet(protospacers="ACTG",
                               pams="ACTG",
@@ -319,17 +321,16 @@ test_that("unlist is appropriately applied to annotation accessors", {
 })
 
 
-test_that("accessors return NULL if columnName is not found", {
+test_that("alignment accessors return NULL if columnName is not valid", {
     accessors <- list(alignments,
                       onTargets,
                       offTargets)
     lapply(accessors, function(fun){
         expect_null(fun(guideSetExampleFullAnnotation,
                         columnName="BAD_COLUMN_NAME"))
+        expect_null(fun(guideSetExampleFullAnnotation,
+                        columnName="n0"))
     })
-    
-    # should also return NULL (or warning) if columnName is in GuideSet
-    # but does not contain alignment data
 })
 
 

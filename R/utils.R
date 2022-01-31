@@ -180,6 +180,29 @@ S4Vectors::mcols
 }
 
 
+
+#' @importFrom S4Vectors mcols
+#' @importFrom BiocGenerics unlist
+.isAlignmentsColumn <- function(guideSet,
+                                columnName
+){
+    column <- S4Vectors::mcols(guideSet)[[columnName]]
+    columnNameExists <- !is.null(column)
+    columnIsGRangesList <- is(column, "GRangesList")
+    if (!columnNameExists || !columnIsGRangesList){
+        return(FALSE)
+    }
+    column <- BiocGenerics::unlist(column)
+    alignmentColumnNames <- c("spacer", "protospacer", "pam", "pam_site",
+                              "n_mismatches", "mm1", "mm2", "mm3", "canonical",
+                              "cut_site")
+    isAlignmentsColumns <- all(alignmentColumnNames %in%
+                                   colnames(S4Vectors::mcols(column)))
+    return(isAlignmentsColumns)
+}
+
+
+
 .validateMetCutoff <- function(met_cutoff){
     stopifnot(is.numeric(met_cutoff) && length(met_cutoff)==1)
     if (met_cutoff != Inf){

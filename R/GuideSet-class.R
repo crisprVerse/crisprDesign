@@ -332,7 +332,8 @@ setMethod("alignments", "GuideSet",
     function(object,
              columnName="alignments",
              unlist=TRUE){
-    if (!columnName %in% colnames(mcols(object))){
+    if (!columnName %in% colnames(mcols(object)) ||
+        !.isAlignmentsColumn(object, columnName)){
         out <- NULL
     } else {
         out <- mcols(object)[[columnName]]
@@ -353,7 +354,8 @@ setMethod("onTargets", "GuideSet",
     function(object,
              columnName="alignments",
              unlist=TRUE){
-    if (!columnName %in% colnames(mcols(object))){
+    if (!columnName %in% colnames(mcols(object)) ||
+        !.isAlignmentsColumn(object, columnName)){
         out <- NULL
     } else {
         out <- mcols(object)[[columnName]]
@@ -383,8 +385,8 @@ setMethod("offTargets", "GuideSet",
              columnName="alignments",
              max_mismatches=Inf,
              unlist=TRUE){
-
-    if (!columnName %in% colnames(mcols(object))){
+    if (!columnName %in% colnames(mcols(object)) ||
+        !.isAlignmentsColumn(object, columnName)){
         out <- NULL
     } else {
         out <- mcols(object)[[columnName]]
