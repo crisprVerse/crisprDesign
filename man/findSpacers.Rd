@@ -57,9 +57,10 @@ Returns all possible, valid gRNA sequences for a given CRISPR
 \details{
 If \code{x} is a \linkS4class{GRanges} object then a
     \linkS4class{BSgenome} must be supplied to \code{bsgenome}, from which
-    the genomic sequence is obtained. Otherwise, all supplied sequences will
-    be treated as the \code{"+"} strands of chromosomes in a
-    \code{"custom"} genome.
+    the genomic sequence is obtained, unless the \code{bsgenome} can be
+    inferred from \code{genome(x)}, for example, \code{"hg38"}. Otherwise,
+    all supplied sequences are treated as the \code{"+"} strands of
+    chromosomes in a \code{"custom"} genome.
     
     Ranges or sequences in \code{x} may contain names where permitted. These
     names are stored in \code{region} in the \code{mcols} of the output,
@@ -74,7 +75,8 @@ If \code{x} is a \linkS4class{GRanges} object then a
 }
 \examples{
 # Using custom sequence as input:
-guides <- findSpacers("CCAANAGTGAAACCACGTCTCTATAAAGAATACAAAAAATTAGCCGGGTGTTA")
+my_seq <- c(my_seq="CCAANAGTGAAACCACGTCTCTATAAAGAATACAAAAAATTAGCCGGGTGTTA")
+guides <- findSpacers(my_seq)
 
 # Exon-intro region of human KRAS specified 
 # using a GRanges object:
@@ -84,7 +86,6 @@ if (requireNamespace("BSgenome.Hsapiens.UCSC.hg38")){
 
     gr_input <- GRanges(c("chr12"),
                         IRanges(start=25224014, end=25227007))
-    genome(gr_input) <- "hg38"
     guideSet <- findSpacers(gr_input, bsgenome=bsgenome)
 
     # Designing guides for enAsCas12a nuclease:

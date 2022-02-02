@@ -84,7 +84,7 @@ addSNPAnnotation <- function(guideSet,
                               maf,
                               vcf
 ){
-    genome <- S4Vectors::metadata(guideSet)[["genome"]]
+    genome <- .getGenome(guideSet)
     stopifnot("SNPs are only applicable for hg38 (human) genome" = {
         genome == "hg38"
     })

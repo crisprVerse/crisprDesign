@@ -64,7 +64,9 @@ GuideSet(
   pam_site = 0L,
   strand = "*",
   CrisprNuclease = NULL,
-  genome = NA
+  ...,
+  seqinfo = NULL,
+  seqlengths = NULL
 )
 
 \S4method{crisprNuclease}{GuideSet}(object)
@@ -132,7 +134,7 @@ Only accepted values are "+" and "-".}
 
 \item{CrisprNuclease}{\linkS4class{CrisprNuclease} object.}
 
-\item{genome}{String specifying genome (e.g, "mm10" or "hg38").}
+\item{seqinfo, seqlengths}{Passed to \linkS4class{GRanges} constructor.}
 
 \item{as.character}{Should sequences be returned as a character
 vector? FALSE by default, in which case sequences are returned

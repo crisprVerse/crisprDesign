@@ -143,7 +143,7 @@ addGeneAnnotation <- function(guideSet,
     stopifnot("'ignore.strand' must be TRUE or FALSE" = {
         S4Vectors::isTRUEorFALSE(ignore.strand)
     })
-    genome <- metadata(guideSet)[["genome"]]
+    genome <- .getGenome(guideSet)
     if (genome == "custom"){
         stop("gene annotation is not available for custom genomes")
     }

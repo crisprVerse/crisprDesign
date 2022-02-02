@@ -318,7 +318,7 @@ convertToProtospacerGRanges <- function(guideSet){
                                            upstream=abs(left),
                                            downstream=abs(right)+1))
     guideSet <- GenomicRanges::trim(guideSet) #Taking care of invalid values
-    genome <- metadata(guideSet)$genome
+    genome <- .getGenome(guideSet)
     if (genome=="custom"){
         seqs <- getSeq(metadata(guideSet)$custom_seq,
                        guideSet)

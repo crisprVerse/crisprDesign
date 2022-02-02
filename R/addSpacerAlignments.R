@@ -343,7 +343,7 @@ addSpacerAlignments <- function(guideSet,
                                ignore_pam=ignore_pam,
                                standard_chr_only=standard_chr_only,
                                both_strands=both_strands)
-    metadata(aln)[["genome"]] <- metadata(guideSet)[["genome"]]
+    metadata(aln)[["genome"]] <- .getGenome(guideSet)
 
 
     if (!is.null(txObject)){

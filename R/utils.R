@@ -114,6 +114,18 @@ S4Vectors::mcols
 }
 
 
+
+#' @importFrom GenomeInfoDb genome
+.getGenome <- function(guideSet){
+    genome <- unique(GenomeInfoDb::genome(guideSet))
+    stopifnot("Multiple genomes found for GuideSet object" = {
+        length(genome) == 1
+    })
+    return(genome)
+}
+
+
+
 .as_df <- function(dat){
   # check input
     if (!is.data.frame(dat) && !.isGRanges(dat)){
@@ -177,6 +189,16 @@ S4Vectors::mcols
         stop("Object must be a GuideSet")
     }
     return(object)
+}
+
+
+
+.validateGuideSetSequences <- function(argument,
+                                       value){
+    if (any(is.na(value) | value == "")){
+        stop("'", argument, "' cannot contain NAs, or empty strings")
+    }
+    return(value)
 }
 
 
@@ -318,29 +340,6 @@ S4Vectors::mcols
     return(x)
 }
 
-
-
-
-
-.validateInputFindSpacers <- function(dna){
-    if (!is(dna, "DNAStringSet")){
-        stop("dna is not a DNAStringSet")
-    }
-    if (is.null(mcols(dna))){
-        stop("mcols(dna) is NULL")
-    }
-    cols <- c("seqnames", "start", "end")
-    if (!all(cols %in% colnames(mcols(dna)))){
-        stop("seqnames, start, and end must be columns of mcols(dna)")
-    }
-    if (is.null(metadata(dna))){
-        stop("metadata(dna) is NULL.")
-    }
-    if (!"genome" %in% names(metadata(dna))){
-        stop("genome must be an element of metadata(dna)")
-    }
-    return(dna)
-}
 
 
 

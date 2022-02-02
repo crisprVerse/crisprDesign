@@ -6,7 +6,7 @@
 #                               addPfam=FALSE,
 #                               mart_dataset=NULL
 
-
+data("guideSetExample", "grListExample")
 
 
 test_that("guideSet argument is required to be a GuideSet object", {

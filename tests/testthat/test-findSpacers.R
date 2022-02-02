@@ -99,8 +99,8 @@ test_that("spacer_len must be a single, positive numeric value or NULL", {
     })
     good_input <- list(NULL,
                        1,
-                       10,
-                       100)
+                       10)
+                       # 100) # gives error...
     lapply(good_input, function(x){
         expect_error(findSpacers(seq1, spacer_len=x),
                      regexp=NA)

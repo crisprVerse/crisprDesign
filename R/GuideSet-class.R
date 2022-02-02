@@ -44,8 +44,8 @@ setClass("GuideSet", contains = "GRanges")
 #' @param strand Character vector of gRNA strand.
 #'    Only accepted values are "+" and "-".
 #' @param CrisprNuclease \linkS4class{CrisprNuclease} object.
-#' @param genome String specifying genome (e.g, "mm10" or "hg38").
 #' @param ... Additional arguments for class-specific methods
+#' @param seqinfo,seqlengths Passed to \linkS4class{GRanges} constructor.
 #' 
 #' @return A GuideSet object.
 #' @examples
@@ -78,14 +78,20 @@ GuideSet <- function(protospacers = NA_character_,
                      pam_site = 0L,
                      strand = "*",
                      CrisprNuclease = NULL,
-                     genome=NA
+                     ...,
+                     seqinfo = NULL,
+                     seqlengths = NULL
 ){
+    protospacers <- .validateGuideSetSequences("protospacers", protospacers)
+    pams <- .validateGuideSetSequences("pams", pams)
     gr <- GRanges(seqnames,
                   IRanges(start=pam_site,
                           width=1),
-                  strand=strand)
+                  strand=strand,
+                  ...,
+                  seqinfo=seqinfo,
+                  seqlengths=seqlengths)
     metadata(gr)$CrisprNuclease <- CrisprNuclease
-    metadata(gr)$genome <- genome
     mcols(gr)$protospacer <- DNAStringSet(protospacers)
     if (!is.null(pams)){
         mcols(gr)$pam <- DNAStringSet(pams)

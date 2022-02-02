@@ -34,6 +34,7 @@ test_that("GuideSet constructor requires non-NA protospacer value(s)", {
     crisprNuclease <- SpCas9
     bad_input <- list(NULL,
                       NA,
+                      "",
                       list("ACTG", "ACTG"))
     lapply(bad_input, function(x){
         seqnames <- rep("chr1", length(x))
@@ -44,7 +45,6 @@ test_that("GuideSet constructor requires non-NA protospacer value(s)", {
                               CrisprNuclease=crisprNuclease))
     })
     good_input <- list("ACTG",
-                       "",
                        c("ACTG", "ACTG"),
                        "actg")
     lapply(good_input, function(x){
@@ -63,6 +63,7 @@ test_that("GuideSet constructor requires non-NA pam value(s)", {
     crisprNuclease <- SpCas9
     bad_input <- list(NULL,
                       NA,
+                      "",
                       list("ACTG", "ACTG"))
     lapply(bad_input, function(x){
         seqnames <- rep("chr1", length(x))
@@ -73,7 +74,6 @@ test_that("GuideSet constructor requires non-NA pam value(s)", {
                               CrisprNuclease=crisprNuclease))
     })
     good_input <- list("ACTG",
-                       "",
                        c("ACTG", "ACTG"),
                        "actg")
     lapply(good_input, function(x){
@@ -165,14 +165,24 @@ test_that("GuideSet constructor requires pam_site to be an integer", {
 })
 
 
-test_that("GuideSet constructor stores genome in metadata and seqinfo", {
-    gs <- GuideSet(protospacers="ACTG",
-                   pams="ACTG",
-                   seqnames="chr1",
-                   CrisprNuclease=SpCas9,
-                   genome="test")
-    expect_equal(metadata(gs)$genome, "test")
+test_that("GuideSet constructor stores seqinfo", {
+    # gs <- GuideSet(protospacers="ACTG",
+    #                pams="ACTG",
+    #                seqnames="chr1",
+    #                CrisprNuclease=SpCas9,
+    #                genome="test")
+    # expect_equal(metadata(gs)$genome, "test")
     # expect_equal(unique(genome(gs)), "test")   # not yet implemented
+})
+
+
+test_that("GuideSet constructor stores seqlengths", {
+    
+})
+
+
+test_that("GuideSet consctructor stores mcol arguments", {
+    
 })
 
 

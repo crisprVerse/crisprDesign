@@ -32,9 +32,10 @@
 #' 
 #' @details If \code{x} is a \linkS4class{GRanges} object then a
 #'     \linkS4class{BSgenome} must be supplied to \code{bsgenome}, from which
-#'     the genomic sequence is obtained. Otherwise, all supplied sequences will
-#'     be treated as the \code{"+"} strands of chromosomes in a
-#'     \code{"custom"} genome.
+#'     the genomic sequence is obtained, unless the \code{bsgenome} can be
+#'     inferred from \code{genome(x)}, for example, \code{"hg38"}. Otherwise,
+#'     all supplied sequences are treated as the \code{"+"} strands of
+#'     chromosomes in a \code{"custom"} genome.
 #'     
 #'     Ranges or sequences in \code{x} may contain names where permitted. These
 #'     names are stored in \code{region} in the \code{mcols} of the output,
@@ -50,7 +51,8 @@
 #' 
 #' @examples
 #' # Using custom sequence as input:
-#' guides <- findSpacers("CCAANAGTGAAACCACGTCTCTATAAAGAATACAAAAAATTAGCCGGGTGTTA")
+#' my_seq <- c(my_seq="CCAANAGTGAAACCACGTCTCTATAAAGAATACAAAAAATTAGCCGGGTGTTA")
+#' guides <- findSpacers(my_seq)
 #' 
 #' # Exon-intro region of human KRAS specified 
 #' # using a GRanges object:
@@ -60,7 +62,6 @@
 #' 
 #'     gr_input <- GRanges(c("chr12"),
 #'                         IRanges(start=25224014, end=25227007))
-#'     genome(gr_input) <- "hg38"
 #'     guideSet <- findSpacers(gr_input, bsgenome=bsgenome)
 #' 
 #'     # Designing guides for enAsCas12a nuclease:
@@ -320,9 +321,7 @@ findSpacers <- function(x,
                    seqnames=hits$chr,
                    pam_site=hits$pam_site,
                    strand=hits$strand,
-                   CrisprNuclease=crisprNuclease,
-                   genome=S4Vectors::metadata(dna)$genome)
-    GenomeInfoDb::genome(gs) <- S4Vectors::metadata(dna)$genome # incorporate into GuideSet constructor
+                   CrisprNuclease=crisprNuclease)
     cut_site <- getCutSiteFromPamSite(
         pam_site=pamSites(gs),
         strand=as.character(BiocGenerics::strand(gs)),
@@ -397,14 +396,13 @@ findSpacers <- function(x,
                          
 ){
     if (.isGRanges(x)){
-        GenomeInfoDb::seqlevels(gs) <- GenomeInfoDb::seqlevels(x)
-        GenomeInfoDb::seqinfo(gs) <- GenomeInfoDb::seqinfo(x)
-        genome <- GenomeInfoDb::genome(GenomeInfoDb::seqinfo(gs))
-        S4Vectors::metadata(gs)[["genome"]] <- unique(genome)
         if (is.null(bsgenome)){
             genome <- unique(GenomeInfoDb::genome(x))
             bsgenome  <- .getBSGenome(genome)
         }
+        GenomeInfoDb::seqlevels(gs) <- GenomeInfoDb::seqlevels(bsgenome)
+        GenomeInfoDb::seqinfo(gs) <- GenomeInfoDb::seqinfo(bsgenome)
+        genome <- GenomeInfoDb::genome(GenomeInfoDb::seqinfo(gs))
         S4Vectors::metadata(gs)[["bsgenome"]] <- bsgenome
     } else {
         dna_names <- unique(names(dna))
@@ -414,8 +412,7 @@ findSpacers <- function(x,
                                  isCircular=NA,
                                  genome="custom")
         GenomeInfoDb::seqinfo(gs) <- customSeqInfo
-        S4Vectors::metadata(gs)[["genome"]] <- "custom"
-        S4Vectors::metadata(gs)[["custom_seq"]] <- dna
+        S4Vectors::metadata(gs)[["custom_sequence"]] <- dna
     }
     return(gs)
 }
