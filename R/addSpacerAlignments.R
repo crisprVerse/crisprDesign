@@ -171,8 +171,8 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                          n1_max=100,
                                          n2_max=100
 ){
-    tssObject   <- .validateTssObject(tssObject)
     guideSet    <- .validateGuideSet(guideSet)
+    tssObject   <- .validateTssObject(tssObject)
     tss_window  <- .validateTssWindow(tss_window)
     seqlevelsStyle <- match.arg(seqlevelsStyle)
     guideSetTemp <- addSpacerAlignments(guideSet, 

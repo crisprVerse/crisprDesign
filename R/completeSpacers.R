@@ -132,9 +132,9 @@ getCutSiteFromPamSite <- function(pam_site,
 
 
 #' @rdname completeSpacers
-#' @export
 #' @importFrom GenomeInfoDb seqlengths
 #' @importFrom BSgenome getSeq
+#' @export
 getPAMSequence <- function(chr,
                            pam_site,
                            strand, 

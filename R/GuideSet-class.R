@@ -109,12 +109,12 @@ setMethod("show",
           function(object){
     callNextMethod()
     name <- nucleaseName(metadata(object)$CrisprNuclease)
-    cat(paste0("with CrisprNuclease object ",
-               name, ". \n"))
+    cat(paste0("  crisprNuclease: ", name, "\n"))
 })
 
 
-setValidity("GuideSet", function(object) {
+
+setValidity("GuideSet", function(object){
 
     df <- mcols(object)
     mandatoryCols <- c("protospacer", "pam_site","pam")
@@ -179,6 +179,7 @@ setMethod("spacers", "GuideSet",
     if (as.character){
         out <- as.character(out)
     }
+    names(out) <- names(object)
     return(out)
 })
 
@@ -193,6 +194,7 @@ setMethod("pams", "GuideSet",
     if (as.character){
         out <- as.character(out)
     }
+    names(out) <- names(object)
     return(out)
 })
 
@@ -201,6 +203,7 @@ setMethod("pams", "GuideSet",
 setMethod("pamSites", "GuideSet", 
     function(object){
     out <- mcols(object)[["pam_site"]]
+    names(out) <- names(object)
     return(out)
 })
 
@@ -218,6 +221,7 @@ setMethod("cutSites", "GuideSet",
     out <- getCutSiteFromPamSite(pam_site=pamSites,
                                  strand=strand,
                                  crisprNuclease=nuc)
+    names(out) <- names(object)
     return(out)
 })
 
@@ -242,6 +246,7 @@ setMethod("protospacers", "GuideSet",
     if (as.character){
         out <- as.character(out)
     }
+    names(out) <- names(object)
     return(out)
 })
 
@@ -366,7 +371,7 @@ setMethod("onTargets", "GuideSet",
     } else {
         out <- mcols(object)[[columnName]]
         out <- BiocGenerics::unlist(out)
-        out <- out[out$n_mismatches==0]
+        out <- out[out$n_mismatches == 0]
         names(out) <- NULL
         if (!unlist){
             spacers <- spacers(object, as.character=TRUE)
@@ -397,8 +402,8 @@ setMethod("offTargets", "GuideSet",
     } else {
         out <- mcols(object)[[columnName]]
         out <- BiocGenerics::unlist(out)
-        out <- out[out$n_mismatches>0]
-        out <- out[out$n_mismatches<=max_mismatches]
+        out <- out[out$n_mismatches > 0]
+        out <- out[out$n_mismatches <= max_mismatches]
         names(out) <- NULL
         if (!unlist){
             spacers <- spacers(object, as.character=TRUE)
@@ -527,11 +532,3 @@ setMethod("enzymeAnnotation", "GuideSet",
     }
     return(out)
 })
-
-
-
-
-
-
-
-
