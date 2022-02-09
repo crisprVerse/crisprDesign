@@ -143,11 +143,11 @@ addGeneAnnotation <- function(guideSet,
     stopifnot("'ignore.strand' must be TRUE or FALSE" = {
         S4Vectors::isTRUEorFALSE(ignore.strand)
     })
-    genome <- .getGenome(guideSet)
-    if (genome == "custom"){
+
+    if (targetOrigin(guideSet)=="customSequences"){
         stop("gene annotation is not available for custom genomes")
     }
-    bsgenome <- .getBSGenome(genome)
+    bsgenome <- bsgenome(guideSet)
     
     geneAnn <- .annotateGeneOverlaps(guideSet=guideSet,
                                      txObject=txObject,

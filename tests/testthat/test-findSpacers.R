@@ -70,10 +70,6 @@ test_that("bsgenome must be a BSgenome object or NULL when x is GRanges", {
         expect_error(findSpacers(gr1, bsgenome=x),
                      regexp=NA)
     })
-    # requires x have genome annotation if bsgenome is NULL
-    genome(gr1) <- "hg38"
-    expect_error(findSpacers(gr1, bsgenome=NULL),
-                 regexp=NA)
 })
 
 
@@ -82,8 +78,7 @@ test_that("if provided, bsgenome must match genome annotation for x", {
     expect_error(findSpacers(gr1, bsgenome=bsgenome_mouse))
     expect_error(findSpacers(gr1, bsgenome=bsgenome_human),
                  regexp=NA)
-    expect_error(findSpacers(gr1, bsgenome=NULL),
-                 regexp=NA)
+    expect_error(findSpacers(gr1, bsgenome=NULL))
 })
 
 
@@ -239,10 +234,6 @@ test_that("function uses bsgenome argument appropriately", {
     names(protospacers) <- names(mouse)
     expect_equal(getSeq(bsgenome_mouse, mouse, as.character=TRUE),
                  protospacers)
-    
-    genome(gr1) <- "hg38"
-    fromX <- findSpacers(gr1, bsgenome=NULL)
-    expect_equal(metadata(fromX)$bsgenome, bsgenome_human)
 })
 
 

@@ -3,6 +3,9 @@
 \docType{class}
 \name{crisprNuclease}
 \alias{crisprNuclease}
+\alias{targetOrigin}
+\alias{customSequences}
+\alias{bsgenome}
 \alias{spacers}
 \alias{protospacers}
 \alias{pamSites}
@@ -15,6 +18,9 @@
 \alias{enzymeAnnotation}
 \alias{GuideSet-class}
 \alias{GuideSet}
+\alias{targetOrigin,GuideSet-method}
+\alias{customSequences,GuideSet-method}
+\alias{bsgenome,GuideSet-method}
 \alias{crisprNuclease,GuideSet-method}
 \alias{spacers,GuideSet-method}
 \alias{pams,GuideSet-method}
@@ -36,6 +42,12 @@
 \title{An S4 class to store CRISPR gRNA sequences with modular annotations.}
 \usage{
 crisprNuclease(object, ...)
+
+targetOrigin(object, ...)
+
+customSequences(object, ...)
+
+bsgenome(object, ...)
 
 spacers(object, ...)
 
@@ -64,10 +76,19 @@ GuideSet(
   pam_site = 0L,
   strand = "*",
   CrisprNuclease = NULL,
+  targetOrigin = c("bsgenome", "customSequences"),
+  bsgenome = NULL,
+  customSequences = NULL,
   ...,
   seqinfo = NULL,
   seqlengths = NULL
 )
+
+\S4method{targetOrigin}{GuideSet}(object)
+
+\S4method{customSequences}{GuideSet}(object)
+
+\S4method{bsgenome}{GuideSet}(object)
 
 \S4method{crisprNuclease}{GuideSet}(object)
 
@@ -134,7 +155,20 @@ Only accepted values are "+" and "-".}
 
 \item{CrisprNuclease}{\linkS4class{CrisprNuclease} object.}
 
-\item{seqinfo, seqlengths}{Passed to \linkS4class{GRanges} constructor.}
+\item{targetOrigin}{String specifying the origin of the DNA target.
+Must be either 'bsgenome' or 'customSequences'.}
+
+\item{bsgenome}{\linkS4class{BSgenome} object. Must be specified when
+\code{targetOrigin} is equal to "bsgenome".}
+
+\item{customSequences}{\linkS4class{DNAStringSet} object. Must be specified
+when \code{targetOrigin} is equal to "customSequences".}
+
+\item{seqinfo}{A \linkS4class{Seqinfo} object containing informatioon
+about the set of genomic sequences present in the target genome.}
+
+\item{seqlengths}{\code{NULL}, or an integer vector named with \code{levels(seqnames)}
+and containing the lengths (or NA) for each level in \code{levels(seqnames)}.}
 
 \item{as.character}{Should sequences be returned as a character
 vector? FALSE by default, in which case sequences are returned
@@ -167,6 +201,13 @@ A GuideSet object.
 }
 \description{
 Return \linkS4class{CrisprNuclease} object.
+
+Return string speecifying origin of DNA target.
+    Either 'bsgenome' or 'customSequence'.
+
+Return custom DNA sequences used for designing gRNAs.
+
+Return BSgenome object used for designing gRNAs.
 
 Return spacer sequences.
 
@@ -239,6 +280,8 @@ gr <- GuideSet(protospacers=protospacers,
                seqnames=seqnames,
                CrisprNuclease=CrisprNuclease,
                pam_site=pam_site,
-               strand=strand)
+               strand=strand,
+               targetOrigin="customSequences",
+               customSequences=protospacers)
 
 }

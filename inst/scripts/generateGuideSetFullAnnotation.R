@@ -1,8 +1,9 @@
 library(crisprDesign)
-library(crisprDesignDataS4)
+library(crisprDesignData)
 library(crisprScore)
 library(biomaRt)
 library(devtools)
+
 
 txObject  <- txdb_human
 tssObject <- tss_human

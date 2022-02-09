@@ -84,9 +84,15 @@ findSpacers <- function(x,
                         strict_overlap=TRUE,
                         remove_ambiguities=TRUE
 ){
-    crisprNuclease <- .setupCrisprNucleaseForFindSpacers(
-        crisprNuclease=crisprNuclease,
-        spacer_len=spacer_len)
+    if (.isGRanges(x)){
+        targetOrigin <- "bsgenome"
+        customSequences <- NULL
+    } else {
+        targetOrigin <- "customSequences"
+        customSequences <- x
+    }
+    crisprNuclease <- .setupCrisprNucleaseForFindSpacers(crisprNuclease=crisprNuclease,
+                                                         spacer_len=spacer_len)
     for (i in (c("canonical", "both_strands", "remove_ambiguities"))){
         .checkBoolean(i, get(i))
     }
@@ -95,12 +101,15 @@ findSpacers <- function(x,
                            crisprNuclease=crisprNuclease,
                            both_strands=both_strands)
     gs <- .findSpacersFromDNAStringSet(dna=dna,
+                                       bsgenome=bsgenome,
+                                       customSequences=customSequences,
                                        crisprNuclease=crisprNuclease,
-                                       canonical=canonical)
-    gs <- .addMetadata(gs=gs,
-                       x=x,
-                       dna=dna,
-                       bsgenome=bsgenome)
+                                       canonical=canonical,
+                                       targetOrigin=targetOrigin)
+    gs <- .cleanSeqInfo(gs=gs,
+                        x=x,
+                        dna=dna,
+                        bsgenome=bsgenome)
     gs <- .applyStrictOverlap(gs=gs,
                               x=x,
                               strict_overlap=strict_overlap)
@@ -201,7 +210,6 @@ findSpacers <- function(x,
         start=BiocGenerics::start(x),
         end=BiocGenerics::end(x),
         strand=as.character(BiocGenerics::strand(x)))
-    S4Vectors::metadata(dna)$genome  <- genome
     return(dna)
 }
 
@@ -211,9 +219,9 @@ findSpacers <- function(x,
                                    genome
 ){
     if (is.null(bsgenome)){
-        bsgenome <- .getBSGenome(genome)
+        stop("bsgenome must be provided.")
     } else {
-        bsgenome <- .validateBSgenome(bsgenome)
+        .isBSGenome(bsgenome)
         bsgenome_genome <- unique(GenomeInfoDb::genome(bsgenome))
         if (!is.na(genome) && genome != bsgenome_genome){
             stop("genome stored in the bsgenome object (",
@@ -225,8 +233,7 @@ findSpacers <- function(x,
 }
 
 
-.assignRegionNames <- function(x
-){
+.assignRegionNames <- function(x){
     regionNames <- names(x)
     if (is.null(regionNames) ||
         all(is.na(regionNames)) ||
@@ -303,9 +310,13 @@ findSpacers <- function(x,
 #' @importFrom GenomeInfoDb genome<-
 #' @importFrom BiocGenerics strand
 .findSpacersFromDNAStringSet <- function(dna,
+                                         bsgenome,
+                                         customSequences,
                                          crisprNuclease,
-                                         canonical
+                                         canonical,
+                                         targetOrigin
 ){
+
     pams <- crisprBase::pams(crisprNuclease, primary=canonical)
     hits <- lapply(seq_along(dna), function(i){
         .spacersPerSequence(seq=dna[i],
@@ -321,16 +332,48 @@ findSpacers <- function(x,
                    seqnames=hits$chr,
                    pam_site=hits$pam_site,
                    strand=hits$strand,
-                   CrisprNuclease=crisprNuclease)
-    cut_site <- getCutSiteFromPamSite(
-        pam_site=pamSites(gs),
-        strand=as.character(BiocGenerics::strand(gs)),
-        crisprNuclease=crisprNuclease(gs))
+                   CrisprNuclease=crisprNuclease,
+                   targetOrigin=targetOrigin,
+                   bsgenome=bsgenome,
+                   customSequences=customSequences)
+    cut_site <- getCutSiteFromPamSite(pam_site=pamSites(gs),
+                                      strand=as.character(BiocGenerics::strand(gs)),
+                                      crisprNuclease=crisprNuclease(gs))
     S4Vectors::mcols(gs)[["cut_site"]] <- cut_site
     S4Vectors::mcols(gs)[['region']] <- hits$region
     S4Vectors::metadata(gs)[["CrisprNuclease"]] <- crisprNuclease
     return(gs)
 }
+
+
+
+
+#=
+
+#' @importFrom GenomeInfoDb seqlevels seqlevels<- seqinfo seqinfo<- genome
+#' @importFrom S4Vectors metadata<-
+#' @importFrom BiocGenerics width
+.cleanSeqInfo <- function(gs,
+                          x,
+                          dna,
+                          bsgenome
+){
+    if (.isGRanges(x)){
+        GenomeInfoDb::seqlevels(gs) <- GenomeInfoDb::seqlevels(bsgenome)
+        GenomeInfoDb::seqinfo(gs) <- GenomeInfoDb::seqinfo(bsgenome)
+    } else {
+        dna_names <- unique(names(dna))
+        dna_lengths <- BiocGenerics::width(dna[dna_names])
+        customSeqInfo <- Seqinfo(seqnames=dna_names,
+                                 seqlengths=dna_lengths,
+                                 isCircular=NA,
+                                 genome="custom")
+        GenomeInfoDb::seqinfo(gs) <- customSeqInfo
+    }
+    return(gs)
+}
+
+
 
 
 #' @importFrom Biostrings matchPDict extractAt
@@ -386,36 +429,7 @@ findSpacers <- function(x,
 }
 
 
-#' @importFrom GenomeInfoDb seqlevels seqlevels<- seqinfo seqinfo<- genome
-#' @importFrom S4Vectors metadata<-
-#' @importFrom BiocGenerics width
-.addMetadata <- function(gs,
-                         x,
-                         dna,
-                         bsgenome
-                         
-){
-    if (.isGRanges(x)){
-        if (is.null(bsgenome)){
-            genome <- unique(GenomeInfoDb::genome(x))
-            bsgenome  <- .getBSGenome(genome)
-        }
-        GenomeInfoDb::seqlevels(gs) <- GenomeInfoDb::seqlevels(bsgenome)
-        GenomeInfoDb::seqinfo(gs) <- GenomeInfoDb::seqinfo(bsgenome)
-        genome <- GenomeInfoDb::genome(GenomeInfoDb::seqinfo(gs))
-        S4Vectors::metadata(gs)[["bsgenome"]] <- bsgenome
-    } else {
-        dna_names <- unique(names(dna))
-        dna_lengths <- BiocGenerics::width(dna[dna_names])
-        customSeqInfo <- Seqinfo(seqnames=dna_names,
-                                 seqlengths=dna_lengths,
-                                 isCircular=NA,
-                                 genome="custom")
-        GenomeInfoDb::seqinfo(gs) <- customSeqInfo
-        S4Vectors::metadata(gs)[["custom_sequence"]] <- dna
-    }
-    return(gs)
-}
+
 
 
 #' @importFrom GenomeInfoDb seqnames

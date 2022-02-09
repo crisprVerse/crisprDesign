@@ -5,6 +5,30 @@ setGeneric("crisprNuclease",
            function(object, ...) standardGeneric("crisprNuclease"))
 
 
+#' @description Return string speecifying origin of DNA target.
+#'     Either 'bsgenome' or 'customSequence'.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("targetOrigin",
+           function(object, ...) standardGeneric("targetOrigin"))
+
+
+#' @description Return custom DNA sequences used for designing gRNAs.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("customSequences",
+           function(object, ...) standardGeneric("customSequences"))
+
+
+#' @description Return BSgenome object used for designing gRNAs.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("bsgenome",
+           function(object, ...) standardGeneric("bsgenome"))
+
+
+
+
 #' @description Return spacer sequences.
 #' @rdname GuideSet-class
 #' @export

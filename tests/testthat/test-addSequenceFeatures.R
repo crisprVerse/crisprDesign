@@ -88,6 +88,8 @@ test_that("percentGC is correctly calculated", {
                       "GCGCGCGCGCGCGCGCGCAT", "GCGCGCGCGCGCGCGCGCGT",
                       "GCGCGCGCGCGCGCGCGCGC")
     guides <- GuideSet(protospacers=spacer_input,
+                       customSequences=spacer_input,
+                       targetOrigin="customSequences",
                        pams=rep("CGG", 21),
                        seqnames=rep("chr1", 21),
                        CrisprNuclease=SpCas9,
@@ -103,6 +105,8 @@ test_that("spacers with homopolymers are correctly identified", {
                       "CATGCAGCTTGGGGTATATG",
                       "CATGCATTTTGACGTCTATG")
     guides <- GuideSet(protospacers=spacer_input,
+                       customSequences=spacer_input,
+                       targetOrigin="customSequences",
                        pams=rep("CGG", 4),
                        seqnames=rep("chr1", 4),
                        CrisprNuclease=SpCas9,
@@ -121,6 +125,8 @@ test_that("spacers with startingGGGGG are correctly identified", {
                       "CATGCAGCTTGGGGGATATG")
     hasStartingGGGGG <- c(TRUE, FALSE, FALSE)
     guides <- GuideSet(protospacers=spacer_input,
+                       customSequences=spacer_input,
+                       targetOrigin="customSequences",
                        pams=rep("CGG", 3),
                        seqnames=rep("chr1", 3),
                        CrisprNuclease=SpCas9,
@@ -140,6 +146,8 @@ test_that("selfHairpin and backboneHairpin are correctly predicted", {
                  "ACAccaaTGTCagcgggaca"=TRUE,     # with flanking 5' G
                  "ACATccaacaggagcgggAT"=TRUE)     # with flanking 3' GT
     guides <- GuideSet(protospacers=names(spacers),
+                       customSequences=names(spacers),
+                       targetOrigin="customSequences",
                        pams=rep("CGG", 8),
                        seqnames=rep("chr", 8),
                        CrisprNuclease=SpCas9,
@@ -155,6 +163,8 @@ test_that("selfHairpin and backboneHairpin are correctly predicted", {
                       "agaTAGCCggaa"=TRUE,        # with flanking 5' G
                       "aggACCCCaggaa"=TRUE)       # with flanking 3' GT
     guides <- GuideSet(protospacers=spacer,
+                       customSequences=spacer,
+                       targetOrigin="customSequences",
                        pams="CGG",
                        seqnames="chr",
                        CrisprNuclease=SpCas9,

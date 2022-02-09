@@ -36,6 +36,11 @@ S4Vectors::mcols
 
 
 
+.isDNAStringSet <- function(x){
+    is(x, "DNAStringSet")
+}
+
+
 
 #' @importFrom methods is
 .validateCrisprNuclease <- function(crisprNuclease){
@@ -70,48 +75,54 @@ S4Vectors::mcols
     return(nuc)
 }
 
-#' @importFrom methods is
-.validateBSgenome <- function(bsgenome){
-    if (is.null(bsgenome)){
-        bsgenome <- .getDefaultBSgenome()
-    } else {
-        if (!is(bsgenome, "BSgenome")){
-            stop("Provided genome must be a 'BSgenome' object. ")
-        }
+
+.isBSGenome <- function(bsgenome){
+    if (!is(bsgenome, "BSgenome")){
+        stop("Provided genome must be a 'BSgenome' object. ")
     }
-    return(bsgenome)
 }
 
-.getDefaultBSgenome <- function(){
-    if (requireNamespace("BSgenome.Hsapiens.UCSC.hg38")){
-        out <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38 
-    } else {
-        out <- NULL
-    }
-    return(out)
-}
 
-.getBSGenome <- function(genome){
-    choices <- c("hg38", "mm10")
-    if (!genome %in% choices){
-        stop("Could not automatically find a corresponding BSgenome object ",
-             "for genome ", genome, ". Please specify BSgenome object using ",
-             "the 'bsgenome' argument.")
-    } else if (genome=='hg38'){
-        if (requireNamespace("BSgenome.Hsapiens.UCSC.hg38")){
-            out <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
-        } else {
-            stop("BSgenome.Hsapiens.UCSC.hg38 must be installed.")
-        }
-    } else if (genome=="mm10"){
-        if (requireNamespace("BSgenome.Mmusculus.UCSC.mm10")){
-            out <- BSgenome.Mmusculus.UCSC.mm10::BSgenome.Mmusculus.UCSC.mm10
-        } else {
-            stop("BSgenome.Mmusculus.UCSC.mm10 must be installed.")
-        }
-    } 
-    return(out)
-}
+# #' @importFrom methods is
+# .validateBSgenome <- function(bsgenome){
+#     if (is.null(bsgenome)){
+#         bsgenome <- .getDefaultBSgenome()
+#     } else {
+#         .isBSGenome(bsgenome)
+#     }
+#     return(bsgenome)
+# }
+
+# .getDefaultBSgenome <- function(){
+#     if (requireNamespace("BSgenome.Hsapiens.UCSC.hg38")){
+#         out <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38 
+#     } else {
+#         out <- NULL
+#     }
+#     return(out)
+# }
+
+# .getBSGenome <- function(genome){
+#     choices <- c("hg38", "mm10")
+#     if (!genome %in% choices){
+#         stop("Could not automatically find a corresponding BSgenome object ",
+#              "for genome ", genome, ". Please specify BSgenome object using ",
+#              "the 'bsgenome' argument.")
+#     } else if (genome=='hg38'){
+#         if (requireNamespace("BSgenome.Hsapiens.UCSC.hg38")){
+#             out <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
+#         } else {
+#             stop("BSgenome.Hsapiens.UCSC.hg38 must be installed.")
+#         }
+#     } else if (genome=="mm10"){
+#         if (requireNamespace("BSgenome.Mmusculus.UCSC.mm10")){
+#             out <- BSgenome.Mmusculus.UCSC.mm10::BSgenome.Mmusculus.UCSC.mm10
+#         } else {
+#             stop("BSgenome.Mmusculus.UCSC.mm10 must be installed.")
+#         }
+#     } 
+#     return(out)
+# }
 
 
 
@@ -142,8 +153,7 @@ S4Vectors::mcols
 
 #' @importFrom S4Vectors DataFrame
 #' @importFrom BiocGenerics rownames
-.asDataFrame <- function(data
-){
+.asDataFrame <- function(data){
     spacerIds <- names(data)
     # intermediate data.frame preserves GPos/GRanges formatting
     data <- as.data.frame(data)
@@ -416,7 +426,7 @@ S4Vectors::mcols
 .isValidPAM <- function(chr,
                         pam_site,
                         strand,
-                        genome=c("hg38", "mm10"),
+                        bsgenome=NULL,
                         crisprNuclease=NULL,
                         canonical=TRUE
 ){
@@ -424,7 +434,7 @@ S4Vectors::mcols
     pams <- getPAMSequence(chr=chr,
                            pam_site=pam_site,
                            strand=strand,
-                           genome=genome,
+                           bsgenome=bsgenome,
                            crisprNuclease=crisprNuclease)
     choices <- pams(crisprNuclease, primary=canonical)
     wh <- pams %in% choices

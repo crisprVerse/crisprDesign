@@ -158,9 +158,14 @@ addOffTargetScores <- function(guideSet,
     aln <- split(aln, f=aln$spacer)
     .getAggregateScore <- function(score){
         vapply(aln, function(x){
+            nmm <- x[["n_mismatches"]]
             x <- x[[score]]
-            x <- sum(x, na.rm=TRUE) + offset
-            1/x
+            if (sum(nmm==0)==0){
+                x <- sum(x, na.rm=TRUE) + 1
+            } else {
+                x <- sum(x, na.rm=TRUE) + offset
+            }
+            return(1/x)
         }, FUN.VALUE=numeric(1))
     }
     

@@ -198,14 +198,14 @@ test_that("aggregated scores are correctly calculated", {
 })
 
 
-test_that("Off-target scores for guides with no on-targets is NA", {
-    guides <- guideSetExampleFullAnnotation[3]
-    offTargetIndices <- guides$alignments[[1]]$n_mismatches > 0
-    guides$alignments[[1]] <- guides$alignments[[1]][offTargetIndices]
-    out <- addOffTargetScores(guides)
-    expect_true(is.na(out$score_cfd))
-    expect_true(is.na(out$score_mit))
-})
+#test_that("Off-target scores for guides with no on-targets is NA", {
+#    guides <- guideSetExampleFullAnnotation[3]
+#    offTargetIndices <- guides$alignments[[1]]$n_mismatches > 0
+#    guides$alignments[[1]] <- guides$alignments[[1]][offTargetIndices]
+#    out <- addOffTargetScores(guides)
+#    expect_true(is.na(out$score_cfd))
+#    expect_true(is.na(out$score_mit))
+#})
 
 
 test_that("spacers alignments are annotated with correct score values", {

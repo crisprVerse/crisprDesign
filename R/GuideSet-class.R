@@ -44,8 +44,17 @@ setClass("GuideSet", contains = "GRanges")
 #' @param strand Character vector of gRNA strand.
 #'    Only accepted values are "+" and "-".
 #' @param CrisprNuclease \linkS4class{CrisprNuclease} object.
+#' @param targetOrigin String specifying the origin of the DNA target.
+#'     Must be either 'bsgenome' or 'customSequences'.
+#' @param bsgenome \linkS4class{BSgenome} object. Must be specified when
+#'     \code{targetOrigin} is equal to "bsgenome".
+#' @param customSequences \linkS4class{DNAStringSet} object. Must be specified
+#'     when \code{targetOrigin} is equal to "customSequences".
 #' @param ... Additional arguments for class-specific methods
-#' @param seqinfo,seqlengths Passed to \linkS4class{GRanges} constructor.
+#' @param seqinfo A \linkS4class{Seqinfo} object containing informatioon
+#'     about the set of genomic sequences present in the target genome.
+#' @param seqlengths \code{NULL}, or an integer vector named with \code{levels(seqnames)}
+#'     and containing the lengths (or NA) for each level in \code{levels(seqnames)}.
 #' 
 #' @return A GuideSet object.
 #' @examples
@@ -62,7 +71,9 @@ setClass("GuideSet", contains = "GRanges")
 #'                seqnames=seqnames,
 #'                CrisprNuclease=CrisprNuclease,
 #'                pam_site=pam_site,
-#'                strand=strand)
+#'                strand=strand,
+#'                targetOrigin="customSequences",
+#'                customSequences=protospacers)
 #' 
 #' @importFrom crisprBase CrisprNuclease
 #' @importFrom Biostrings DNAStringSet
@@ -78,10 +89,14 @@ GuideSet <- function(protospacers = NA_character_,
                      pam_site = 0L,
                      strand = "*",
                      CrisprNuclease = NULL,
+                     targetOrigin = c("bsgenome", "customSequences"),
+                     bsgenome = NULL,
+                     customSequences = NULL,
                      ...,
                      seqinfo = NULL,
                      seqlengths = NULL
 ){
+    targetOrigin <- match.arg(targetOrigin)
     protospacers <- .validateGuideSetSequences("protospacers", protospacers)
     pams <- .validateGuideSetSequences("pams", pams)
     gr <- GRanges(seqnames,
@@ -91,12 +106,28 @@ GuideSet <- function(protospacers = NA_character_,
                   ...,
                   seqinfo=seqinfo,
                   seqlengths=seqlengths)
-    metadata(gr)$CrisprNuclease <- CrisprNuclease
-    mcols(gr)$protospacer <- DNAStringSet(protospacers)
+
+    # Adding global metadata:
+    metadata(gr)[["CrisprNuclease"]] <- CrisprNuclease
+    metadata(gr)[["targetOrigin"]] <- targetOrigin
+    if (targetOrigin=="bsgenome"){
+        .isBSGenome(bsgenome)
+        metadata(gr)[["bsgenome"]] <- bsgenome
+    } else if (targetOrigin=="customSequences"){
+        if (is.character(customSequences)){
+            customSequences <- .string2DNAStringSet(customSequences,
+                                                    both_strands=FALSE)
+        }
+        .isDNAStringSet(customSequences)
+        metadata(gr)[["customSequences"]] <- customSequences
+    }
+
+    # Adding metadata columns:
+    mcols(gr)[["protospacer"]] <- DNAStringSet(protospacers)
     if (!is.null(pams)){
         mcols(gr)$pam <- DNAStringSet(pams)
     }
-    mcols(gr)$pam_site <- pam_site
+    mcols(gr)[["pam_site"]] <- pam_site
     new("GuideSet", gr)
 }
 
@@ -135,20 +166,81 @@ setValidity("GuideSet", function(object){
     } 
 
     meta <- metadata(object)
-    mandatoryMetaFields <- c("CrisprNuclease")
+    mandatoryMetaFields <- c("CrisprNuclease", "targetOrigin")
     if (!all(mandatoryMetaFields %in% names(meta))){
         out <- paste0("The following field must be present",
-                      " in metadata(object): CrisprNuclease.")
+                      " in metadata(object): CrisprNuclease and targetOrigin.")
         return(out)
     } 
+
+    targetOriginChoices <- c("bsgenome", "customSequences")
+    target <- meta[["targetOrigin"]]
+    if (length(target)!=1){
+        stop("targetOrigin must be a character vector of length 1.")
+    }
+    if (!target %in% targetOriginChoices){
+        stop("targetOrigin must be either 'bsgenome' or 'customSequences'.")
+    }
+
+    if (!target%in% names(meta)){
+        stop("When 'targetOrigin' is set to ", target, ", '",
+         target, "' must be specified in the metadata field.")
+    }    
+    if (target=="bsgenome"){
+        .isBSGenome(meta[["bsgenome"]])
+    } else if (target=="customSequences"){
+        .isDNAStringSet(meta[["customSequences"]])
+    }
+
 
     nuc <- meta[["CrisprNuclease"]]
     if (!is(nuc, "CrisprNuclease")){
         out <- "metadata(object)$CrisprNuclease must be a CrisprNuclease object"
         return(out)
-    } 
+    }
     return(out)
 })
+
+
+
+#' @rdname GuideSet-class
+#' @param object \linkS4class{GuideSet} object.
+#' @export
+setMethod("targetOrigin", "GuideSet", 
+    function(object){
+    out <- metadata(object)[["targetOrigin"]]
+    return(out)
+})
+
+
+
+#' @rdname GuideSet-class
+#' @param object \linkS4class{GuideSet} object.
+#' @export
+setMethod("customSequences", "GuideSet", 
+    function(object){
+    out <- metadata(object)[["customSequences"]]
+    return(out)
+})
+
+
+#' @rdname GuideSet-class
+#' @param object \linkS4class{GuideSet} object.
+#' @export
+setMethod("bsgenome", "GuideSet", 
+    function(object){
+    out <- metadata(object)[["bsgenome"]]
+    return(out)
+})
+
+
+
+
+
+
+
+
+
 
 
 
@@ -447,10 +539,10 @@ setMethod("geneAnnotation", "GuideSet",
             gene_id <- unique(out$gene_id)
         }
         if (is.null(tx_id)){
-            tx_id <- unique(out$tx_id)  
+            tx_id <- unique(out$tx_id)
         }
         if (is.null(gene_symbol)){
-            gene_symbol <- unique(out$gene_symbol)     
+            gene_symbol <- unique(out$gene_symbol)
         }
         cols <- c("gene_id", "tx_id", "gene_symbol")
         whs <- lapply(cols, function(col){

@@ -10,7 +10,7 @@
 #' @param pam_site Coordinate of the first nucleotide of the PAM sequence.
 #' @param strand Either "+" or "-".
 #' @param crisprNuclease A \linkS4class{CrisprNuclease} object.
-#' @param genome Either hg38 or mm10.
+#' @param bsgenome A \linkS4class{BSgenome} object.
 #' @param spacerLen Spacer sequence length.
 #'     If NULL, the information is obtained from \code{crisprNuclease}.
 #' 
@@ -31,7 +31,9 @@
 #'     strand-independent, and always obeys \code{start <= end}.
 #'
 #' @examples
-#' genome="hg38"
+#' if (requireNamespace("BSgenome.Hsapiens.UCSC.hg38")){
+#' library(BSgenome.Hsapiens.UCSC.hg38)
+#' bsgenome <- BSgenome.Hsapiens.UCSC.hg38
 #' dat <- data.frame(chr='chr4', start=1642343, strand='+')
 #' dat$pam_site <- getPAMSiteFromStartAndEnd(start=dat$start,
 #'                                           strand=dat$strand)
@@ -40,12 +42,12 @@
 #' dat$pam <- getPAMSequence(chr=dat$chr,
 #'                           pam_site=dat$pam_site,
 #'                           strand=dat$strand,
-#'                           genome=genome)
+#'                           bsgenome=bsgenome)
 #' dat$spacer <- getSpacerSequence(chr=dat$chr,
 #'                                 pam_site=dat$pam_site,
 #'                                 strand=dat$strand,
-#'                                 genome=genome)
-#' 
+#'                                 bsgenome=bsgenome)
+#' }
 #' @name completeSpacers
 NULL
 
@@ -139,7 +141,7 @@ getPAMSequence <- function(chr,
                            pam_site,
                            strand, 
                            crisprNuclease=NULL,
-                           genome=NULL
+                           bsgenome=NULL
 ){
     # handle inputs
     crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
@@ -155,7 +157,6 @@ getPAMSequence <- function(chr,
     }
     pam_site <- .validatePamSite(pam_site)
     strand   <- .validateStrand(strand)
-    bsgenome   <- .getBSGenome(genome)
 
 
     bad_chr <- !chr %in% names(seqlengths(bsgenome))
@@ -220,7 +221,7 @@ getSpacerSequence <- function(chr,
                               pam_site,
                               strand,
                               crisprNuclease=NULL,
-                              genome=NULL,
+                              bsgenome=NULL,
                               spacerLen=NULL
 ){
     crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
@@ -234,7 +235,6 @@ getSpacerSequence <- function(chr,
     }
     pam_site <- .validatePamSite(pam_site)
     strand   <- .validateStrand(strand)
-    bsgenome   <- .getBSGenome(genome)
 
 
     bad_chr <- !chr %in% names(seqlengths(bsgenome))
@@ -318,13 +318,10 @@ convertToProtospacerGRanges <- function(guideSet){
                                            upstream=abs(left),
                                            downstream=abs(right)+1))
     guideSet <- GenomicRanges::trim(guideSet) #Taking care of invalid values
-    genome <- .getGenome(guideSet)
-    if (genome=="custom"){
-        seqs <- getSeq(metadata(guideSet)$custom_seq,
-                       guideSet)
+    if (targetOrigin(guideSet)=="customSequences"){
+        seqs <- getSeq(customSequences(guideSet),guideSet)
     } else {
-        bsgenome <- metadata(guideSet)$bsgenome
-        seqs <- getSeq(bsgenome, guideSet)
+        seqs <- getSeq(bsgenome(guideSet), guideSet)
     }
     seqs <- as.character(seqs)
 
@@ -334,6 +331,10 @@ convertToProtospacerGRanges <- function(guideSet){
     seqs[nchar(seqs)<len] <- NA
     return(seqs)
 }
+
+
+
+
 
 
 .validatePamSite <- function(pam_site){
