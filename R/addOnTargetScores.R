@@ -37,7 +37,8 @@ addOnTargetScores <- function(guideSet,
                                         "ruleset1",
                                         "lindel",
                                         "deepcpf1",
-                                        "enpamgb")
+                                        "enpamgb",
+                                        "crisprscan")
 ){
     if (!requireNamespace("crisprScore")){
         message("Please install crisprScore to use 'addOnTargetScores'.")
@@ -93,7 +94,8 @@ addOnTargetScores <- function(guideSet,
         choices <- c("azimuth",
                      "deephf",
                      "lindel",
-                     "ruleset1")
+                     "ruleset1",
+                     "crisprscan")
     } else if (.identicalNucleases(crisprNuclease, AsCas12a)){
         choices <- c("deepcpf1")
     } else if (.identicalNucleases(crisprNuclease, enAsCas12a)){
@@ -167,10 +169,12 @@ addOnTargetScores <- function(guideSet,
                                "ruleset1"=crisprScore::getRuleSet1Scores,
                                "deepcpf1"=crisprScore::getDeepCpf1Scores,
                                "lindel"=crisprScore::getLindelScores,
-                               "enpamgb"=crisprScore::getEnPAMGBScores)
+                               "enpamgb"=crisprScore::getEnPAMGBScores,
+                               "crisprscan"=crisprScore::getCRISPRscanScores)
             results <- scoreFun(seqs)
         }
         scores[good] <- results$score
     }
     return(scores)
 }
+
