@@ -226,7 +226,7 @@ S4Vectors::mcols
     }
     column <- BiocGenerics::unlist(column)
     alignmentColumnNames <- c("spacer", "protospacer", "pam", "pam_site",
-                              "n_mismatches", "mm1", "mm2", "mm3", "canonical",
+                              "n_mismatches", "canonical",
                               "cut_site")
     isAlignmentsColumns <- all(alignmentColumnNames %in%
                                    colnames(S4Vectors::mcols(column)))
@@ -513,6 +513,35 @@ compact <- function(x) {
                        motifs(nuc2, as.character=TRUE))
     cond0 & cond1 & cond2 & cond3 & cond4 & cond5 
 }  
+
+
+
+.annotateMismatches <- function(df,
+                                n_mismatches
+){
+    cols <- c("n_mismatches",
+              paste0("mm", seq_len(n_mismatches)))
+    df[cols] <- NA
+    spacer_col <- "spacer"
+    protospacer_col <- "protospacer"
+    words1 <- df[[spacer_col]]
+    words2 <- df[[protospacer_col]]
+    df[["n_mismatches"]] <- vapply(seq_len(nrow(df)), function(i){
+        utils::adist(words1[i], words2[i])[[1]]
+    }, FUN.VALUE=1)
+    words1 <- Biostrings::DNAStringSet(words1)
+    words2 <- Biostrings::DNAStringSet(words2)
+    x1 <- as.matrix(words1)
+    x2 <- as.matrix(words2)
+    whs <- apply(x1!=x2,1,which, simplify=FALSE)
+    mm <- lapply(whs, function(wh){
+        wh <- c(wh, rep(NA, n_mismatches-length(wh)))
+        return(wh)
+    }) 
+    mm <- do.call(rbind, mm)
+    df[, paste0("mm", seq_len(n_mismatches))] <- mm
+    return(df)
+}
 
 
 

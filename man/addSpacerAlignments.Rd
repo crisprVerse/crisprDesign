@@ -187,15 +187,6 @@ The columns stored in
 \item \code{n_mismatches} Integer value specifying the number
     of nucleotide mismatches between the gRNA spacer sequence 
     and the protospacer sequence found in the genome or custom sequence.
-\item \code{mm1} Numeric value specifying the relative position of the
-    first mismatch with respect to the PAM site. NA if there is no
-    mismatch.
-\item \code{mm2} Numeric value specifying the relative position of the
-    second mismatch with respect to the PAM site. NA if there is no
-    second mismatch.
-\item \code{mm3} Numeric value specifying the relative position of the
-    third mismatch with respect to the PAM site. NA if there is no
-    third mismatch.
 \item \code{canonical} Is the PAM sequence of the found protospacer sequence
     canonical?
 \item \code{cds} Character vector specifying gene names of CDS overlapping

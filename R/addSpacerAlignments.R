@@ -92,15 +92,6 @@
 #' \item \code{n_mismatches} Integer value specifying the number
 #'     of nucleotide mismatches between the gRNA spacer sequence 
 #'     and the protospacer sequence found in the genome or custom sequence.
-#' \item \code{mm1} Numeric value specifying the relative position of the
-#'     first mismatch with respect to the PAM site. NA if there is no
-#'     mismatch.
-#' \item \code{mm2} Numeric value specifying the relative position of the
-#'     second mismatch with respect to the PAM site. NA if there is no
-#'     second mismatch.
-#' \item \code{mm3} Numeric value specifying the relative position of the
-#'     third mismatch with respect to the PAM site. NA if there is no
-#'     third mismatch.
 #' \item \code{canonical} Is the PAM sequence of the found protospacer sequence
 #'     canonical?
 #' \item \code{cds} Character vector specifying gene names of CDS overlapping
@@ -490,6 +481,7 @@ getSpacerAlignments <- function(spacers,
     #Performing alignment:
     results <- runCrisprBowtie(spacers=spacers,
                                bowtie_index=bowtie_index,
+                               bsgenome=bsgenome,
                                n_mismatches=n_mismatches,
                                n_max_alignments=n_max_alignments,
                                crisprNuclease=crisprNuclease,
@@ -497,14 +489,10 @@ getSpacerAlignments <- function(spacers,
                                ignore_pam=ignore_pam,
                                all_alignments=all_alignments,
                                force_spacer_length=TRUE)
-    results$mmnuc1 <- NULL
-    results$mmnuc2 <- NULL
-    results$mmnuc3 <- NULL
 
     #If no alignments, return empty data frame:
     if (nrow(results)==0){
-        emptyDF <- .returnEmptyAlignments(spacers,
-                                          n_mismatches=n_mismatches)
+        emptyDF <- .returnEmptyAlignments(spacers)
         return(emptyDF)
     }
 
@@ -514,23 +502,9 @@ getSpacerAlignments <- function(spacers,
     results$cut_site <- getCutSiteFromPamSite(pam_site=results$pam_site,
                                               strand=results$strand,
                                               crisprNuclease=crisprNuclease)
-    #Setting mismatch locations relative to PAM site:
-    wh <- which(results$n_mismatches!=0)
-    if (pamside=="3prime"){
-        rel.pam <- -(spacer_len + 1)
-    } else {
-        rel.pam <- pamlen-1
-    }
-    results$mm1[wh] <- results$mm1[wh] + rel.pam
-    results$mm2[wh] <- results$mm2[wh] + rel.pam
-    results$mm3[wh] <- results$mm3[wh] + rel.pam
-
 
     #Transforming to a GRanges:
     results <- .as_gr(results)
-    #results$query  <- DNAStringSet(results$spacer)
-    #results$spacer <- DNAStringSet(results$protospacer)
-    #results$protospacer <- NULL
     results$pam         <- DNAStringSet(results$pam)
 
 
@@ -548,8 +522,6 @@ getSpacerAlignments <- function(spacers,
     } 
     metadata(results)$spacer_len <- unique(nchar(as.character(results$spacer)))
     names(results) <- paste0("aln_", seq_along(results))
-
-
 
     if (!is.null(bsgenome)){
         info <- seqinfo(bsgenome)
@@ -616,8 +588,7 @@ getSpacerAlignments <- function(spacers,
 
     #If no alignments, return empty data frame:
     if (nrow(results)==0){
-        emptyDF <- .returnEmptyAlignments(spacers,
-                                          n_mismatches=n_mismatches)
+        emptyDF <- .returnEmptyAlignments(spacers)
         return(emptyDF)
     }
 
@@ -628,25 +599,8 @@ getSpacerAlignments <- function(spacers,
                                               strand=results$strand,
                                               crisprNuclease=crisprNuclease)
     
-    #Setting mismatch locations relative to PAM site:
-    wh <- which(results$n_mismatches!=0)
-    if (pamside=="3prime"){
-        rel.pam <- -(spacer_len + 1)
-    } else {
-        rel.pam <- pamlen-1
-    }
-    if (n_mismatches>0){
-        for (k in seq_len(n_mismatches)){
-            col <- paste0("mm", k)
-            results[[col]][wh] <- results[[col]][wh] + rel.pam
-        }
-    }
-  
     #Transforming to a GRanges:
     results <- .as_gr(results)
-    #results$query  <- DNAStringSet(results$spacer)
-    #results$spacer <- DNAStringSet(results$protospacer)
-    #results$protospacer <- NULL
     results$pam         <- DNAStringSet(results$pam)
 
     # Adding metadata:
@@ -657,8 +611,6 @@ getSpacerAlignments <- function(spacers,
     } 
     metadata(results)$spacer_len <- unique(nchar(as.character(results$spacer)))
     names(results) <- paste0("aln_", seq_along(results))
-
-
 
     if (!is.null(bsgenome)){
         info <- seqinfo(bsgenome)
@@ -750,8 +702,7 @@ getSpacerAlignments <- function(spacers,
                                            custom_seq=custom_seq,
                                            n_mismatches=n_mismatches)
         if (is.null(locs)){
-            locs <- .returnEmptyAlignments(spacers,
-                                           n_mismatches=n_mismatches)
+            locs <- .returnEmptyAlignments(spacers)
         }
         return(locs)
     })
@@ -759,22 +710,17 @@ getSpacerAlignments <- function(spacers,
     # Combining
     ns <- vapply(results, nrow, FUN.VALUE=1)
     if (sum(ns==0)==length(ns)){
-        locs <- .returnEmptyAlignments(spacers,
-                                       n_mismatches=n_mismatches)
+        locs <- .returnEmptyAlignments(spacers)
         return(locs)
     } else {
         locs <- results[ns>0]
         locs <- do.call(rbind, locs)
     }
-    locs <- .annotateMismatches(locs,
-                                n_mismatches=n_mismatches)
+
 
     #Transforming to a GRanges:
     locs <- .as_gr(locs)
-    #locs$query  <- DNAStringSet(locs$spacer)
-    #locs$spacer <- DNAStringSet(locs$protospacer)
-    #locs$protospacer <- NULL
-    locs$pam         <- DNAStringSet(locs$pam)
+    locs$pam <- DNAStringSet(locs$pam)
     metadata(locs)$crisprNuclease   <- crisprNuclease
     metadata(locs)$genome     <- "custom"
     metadata(locs)$aligner    <- "biostrings"
@@ -803,33 +749,6 @@ getSpacerAlignments <- function(spacers,
 
   
 
-.annotateMismatches <- function(df,
-                                n_mismatches
-){
-    cols <- c("n_mismatches",
-              paste0("mm", seq_len(n_mismatches)))
-    df[cols] <- NA
-    spacer_col <- "spacer"
-    protospacer_col <- "protospacer"
-    words1 <- df[[spacer_col]]
-    words2 <- df[[protospacer_col]]
-    df[["n_mismatches"]] <- vapply(seq_len(nrow(df)), function(i){
-        utils::adist(words1[i], words2[i])[[1]]
-    }, FUN.VALUE=1)
-    words1 <- Biostrings::DNAStringSet(words1)
-    words2 <- Biostrings::DNAStringSet(words2)
-    x1 <- as.matrix(words1)
-    x2 <- as.matrix(words2)
-    whs <- apply(x1!=x2,1,which, simplify=FALSE)
-    mm <- lapply(whs, function(wh){
-        wh <- c(wh, rep(NA, n_mismatches-length(wh)))
-        return(wh)
-    }) 
-    mm <- do.call(rbind, mm)
-    df[, paste0("mm", seq_len(n_mismatches))] <- mm
-    return(df)
-}
-
 
 # Remove targets with invalid PAM sequences,
 # or outside of custom sequence. 
@@ -854,8 +773,7 @@ getSpacerAlignments <- function(spacers,
     }
     good <- good_fwd | good_rev
     if (sum(good)==0){
-        df <- .returnEmptyAlignments(spacers,
-                                     n_mismatches=n_mismatches)
+        df <- .returnEmptyAlignments(spacers)
         return(df)
     } else {
         df <- df[good,,drop=FALSE]
@@ -927,9 +845,7 @@ getSpacerAlignments <- function(spacers,
 
 
 
-.returnEmptyAlignments <- function(spacers,
-                                   n_mismatches
-){
+.returnEmptyAlignments <- function(spacers){
     spacer_len <- unique(nchar(spacers))
     spacer_col <- paste0('spacer_', spacer_len, 'mer')
     protospacer_col <- paste0('protospacer_', spacer_len, 'mer')
@@ -940,12 +856,6 @@ getSpacerAlignments <- function(spacers,
                           cut_site=numeric(0),
                           canonical=logical(0),
                           n_mismatches=numeric(0))
-    if (n_mismatches>0){
-        for (k in seq_len(n_mismatches)){
-            col <- paste0("mm", k)
-            emptyDF[[col]] <- numeric(0)
-        }
-    }
 
     emptyDF[[spacer_col]] <- character(0)
     emptyDF[[protospacer_col]] <- character(0)
