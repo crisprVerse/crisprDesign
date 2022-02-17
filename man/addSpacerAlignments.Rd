@@ -28,7 +28,9 @@ addSpacerAlignmentsIterative(
   tss_window = NULL,
   n0_max = 5,
   n1_max = 100,
-  n2_max = 100
+  n2_max = 100,
+  n3_max = 1000,
+  n4_max = 1000
 )
 
 addSpacerAlignments(
@@ -138,6 +140,12 @@ which includes 500bp upstream and downstream of the TSS.}
 for \code{\link{addSpacerAlignmentsIterative}}.}
 
 \item{n2_max}{Number of maximum 2mm off-target alignments tolerated
+for \code{\link{addSpacerAlignmentsIterative}}.}
+
+\item{n3_max}{Number of maximum 3mm off-target alignments tolerated
+for \code{\link{addSpacerAlignmentsIterative}}.}
+
+\item{n4_max}{Number of maximum 4mm off-target alignments tolerated
 for \code{\link{addSpacerAlignmentsIterative}}.}
 
 \item{n_max_alignments}{Maximum number of alignments to report by bowtie 

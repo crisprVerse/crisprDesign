@@ -57,6 +57,10 @@
 #'     for \code{\link{addSpacerAlignmentsIterative}}.
 #' @param n2_max Number of maximum 2mm off-target alignments tolerated
 #'     for \code{\link{addSpacerAlignmentsIterative}}.
+#' @param n3_max Number of maximum 3mm off-target alignments tolerated
+#'     for \code{\link{addSpacerAlignmentsIterative}}.
+#' @param n4_max Number of maximum 4mm off-target alignments tolerated
+#'     for \code{\link{addSpacerAlignmentsIterative}}.
 #'
 #' @return \code{\link{getSpacerAlignments}} returns a \linkS4class{GRanges} 
 #'     object storing spacer alignment data, including genomic coordinates, 
@@ -160,8 +164,14 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                          tss_window=NULL,
                                          n0_max=5,
                                          n1_max=100,
-                                         n2_max=100
+                                         n2_max=100,
+                                         n3_max=1000,
+                                         n4_max=1000
 ){
+    aligner <- match.arg(aligner)
+    if (aligner=="bowtie" & n_mismatches>3){
+        stop("For bowtie aligner, n_mismatches must be either 0,1,2 or 3.")
+    }
     guideSet    <- .validateGuideSet(guideSet)
     tssObject   <- .validateTssObject(tssObject)
     tss_window  <- .validateTssWindow(tss_window)
@@ -184,8 +194,7 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                         tss_window=tss_window,
                                         txObject=txObject,
                                         tssObject=tssObject)
-
-    cols <- .aln_cols(n_mismatches=n_mismatches)
+    cols <- .aln_cols(aligner=aligner)
             
     for (col in cols){
         mcols(guideSetTemp)[[col]] <- as.numeric(mcols(guideSetTemp)[[col]])
@@ -254,6 +263,48 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                                                 both_strands=both_strands,
                                                                 tss_window=tss_window))
     }
+    good <- which(guideSetTemp$n0<=n0_max & guideSetTemp$n3<=n3_max)
+    if (length(good)>0 & n_mismatches>=4){
+        mcols(guideSetTemp)[good,] <- mcols(addSpacerAlignments(guideSetTemp[good],
+                                                                aligner=aligner,
+                                                                columnName=columnName,
+                                                                addSummary=TRUE,
+                                                                txObject=txObject,
+                                                                tssObject=tssObject,
+                                                                custom_seq=custom_seq,
+                                                                bowtie_index=bowtie_index,
+                                                                bwa_index=bwa_index,
+                                                                seqlevelsStyle=seqlevelsStyle,
+                                                                bsgenome=bsgenome, 
+                                                                n_mismatches=4,
+                                                                all_alignments=all_alignments,
+                                                                canonical=canonical,
+                                                                ignore_pam=ignore_pam,
+                                                                standard_chr_only=standard_chr_only,
+                                                                both_strands=both_strands,
+                                                                tss_window=tss_window))
+    }
+    good <- which(guideSetTemp$n0<=n0_max & guideSetTemp$n4<=n4_max)
+    if (length(good)>0 & n_mismatches>=5){
+        mcols(guideSetTemp)[good,] <- mcols(addSpacerAlignments(guideSetTemp[good],
+                                                                aligner=aligner,
+                                                                columnName=columnName,
+                                                                addSummary=TRUE,
+                                                                txObject=txObject,
+                                                                tssObject=tssObject,
+                                                                custom_seq=custom_seq,
+                                                                bowtie_index=bowtie_index,
+                                                                bwa_index=bwa_index,
+                                                                seqlevelsStyle=seqlevelsStyle,
+                                                                bsgenome=bsgenome, 
+                                                                n_mismatches=5,
+                                                                all_alignments=all_alignments,
+                                                                canonical=canonical,
+                                                                ignore_pam=ignore_pam,
+                                                                standard_chr_only=standard_chr_only,
+                                                                both_strands=both_strands,
+                                                                tss_window=tss_window))
+    }
     mcols(guideSet)[[columnName]] <- mcols(guideSetTemp)[[columnName]]
     if (addSummary){
         mcols(guideSet)[cols] <- mcols(guideSetTemp)[cols]
@@ -263,11 +314,13 @@ addSpacerAlignmentsIterative <- function(guideSet,
 
 
 
-.aln_cols <- function(n_mismatches,
+.aln_cols <- function(aligner,
                       excludePromoter=FALSE
 ){
-    if (n_mismatches<=3){
-        n_mismatches=3
+    if (aligner=="bwa" | aligner=="biostrings"){
+        n_mismatches <- 6
+    } else {
+        n_mismatches <- 3
     }
     cols <- c()
     for (k in c(0,seq_len(n_mismatches))){
@@ -348,10 +401,11 @@ addSpacerAlignments <- function(guideSet,
     }
     if (addSummary){
         summary <- .getAlignmentsSummary(aln=aln,
+                                         aligner=aligner,
                                          possibleGuides=spacers)           
         summary <- summary[, !grepl("_nc$", colnames(summary))]
         summary <- summary[match(spacers, summary$spacer),, drop=FALSE]
-        cols <- .aln_cols(n_mismatches)
+        cols <- .aln_cols(aligner)
         if (sum(cols %in% colnames(mcols(guideSet)))>0){
             warning("Overwriting existing alignments summary. To ",
                     "avoid overwriting, set addSummary=FALSE.")
@@ -869,7 +923,9 @@ getSpacerAlignments <- function(spacers,
 
 
 .getAlignmentsSummary <- function(aln,
-                                  possibleGuides=NULL
+                                  possibleGuides=NULL,
+                                  aligner
+
 ){
 
     max_mm=metadata(aln)$n_mismatches
@@ -899,7 +955,12 @@ getSpacerAlignments <- function(spacers,
 
     # Create summary columns:
     cols <- c('', '_c', '_nc', '_p')
-    nn <- ifelse(max_mm<=3,3, max_mm)
+    if (aligner=="bwa" | aligner=="biostrings"){
+        nn <- 6
+    } else {
+        nn <- 3
+    }
+    #nn <- ifelse(max_mm<=3,3, max_mm)
     cols <- lapply(cols, function(x){
         paste0('n', c(0,seq_len(nn)), x)
     })
