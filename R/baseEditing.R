@@ -35,7 +35,7 @@ addEditedAlleles <- function(guideSet,
     }
 
     if (verbose){
-        cat("[addEditedAlleles] Obtaining edited alleles for each gRNA. \n")
+        cat("[addEditedAlleles] Obtaining edited alleles at each gRNA target site. \n")
     }
     alleles <- lapply(seq_along(guideSet), function(guide){
         .getEditedAllelesPerGuide(gs=guideSet[guide],
