@@ -390,6 +390,18 @@ S4Vectors::mcols
 
 
 
+.checkString <- function(argument,
+                         value
+){
+    isCharacterVector <- is.vector(value, mode="character")
+    hasLengthOne <- length(value) == 1
+    if (!isCharacterVector || !hasLengthOne){
+        stop(sprintf("%s argument must be a character string", argument))
+    }
+}
+
+
+
 
 #' @importFrom Biostrings DNA_BASES DNA_ALPHABET
 .validateDNACharacterVariable <- function(seq,

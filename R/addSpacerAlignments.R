@@ -22,13 +22,9 @@
 #' @param custom_seq Optional string specifying the target DNA sequence for
 #'     the search space. This will limit the off-target
 #'     search to the specified custom sequence. 
-#' @param bowtie_index String specifying bowtie index.
-#'     Must be provided when \code{aligner=="bowtie"}.
-#' @param bwa_index String specifying BWA index.
-#'     Must be provided when \code{aligner=="bwa"}.
-#' @param seqlevelsStyle String specifying which type of seqnames
-#'     should be used. Default is "UCSC" (e.g. "chr7"; "NCBI"
-#'     style would be "7").
+#' @param aligner_index String specifying bowtie or BWA index.
+#'     Must be provided when \code{aligner} is either \code{"bowtie"} or
+#'     \code{"bwa"}.
 #' @param bsgenome A \linkS4class{BSgenome} object from which to extract
 #'     sequences if a \linkS4class{GRanges} object is provided as input. 
 #' @param n_mismatches Maximum number of mismatches permitted between guide RNA
@@ -51,6 +47,9 @@
 #'     which includes 500bp upstream and downstream of the TSS.
 #' @param both_strands When \code{custom_seq} is specified,
 #'     should both strands be considered? TRUE by default.
+#' @param anchor The position within the protospacer as determined by
+#'     \linkS4class{CrisprNuclease} to use when annotating with overlapping
+#'     gene regions.
 #' @param n0_max Number of maximum on-target alignments tolerated for
 #'     \code{\link{addSpacerAlignmentsIterative}}.
 #' @param n1_max Number of maximum 1mm off-target alignments tolerated
@@ -80,38 +79,53 @@
 #' 
 #' @details 
 #' 
-#' The columns stored in
-#' \code{mcols(guideSet)[["geneAnnotation"]]} are:
+#' The columns stored in \code{mcols(guideSet)[["alignments"]]} are:
 #' 
 #' \itemize{
 #' \item \code{spacer} Spacer sequence of the query gRNA.
 #' \item \code{protospacer} Protospacer sequence in the target DNA.
 #' \item \code{pam} PAM sequence.
 #' \item \code{pam_site} PAM site of the found protospacer.
-#' \item \code{cute_site} Cut site of the found protospacer.
 #' \item \code{n_mismatches} Integer value specifying the number
 #'     of nucleotide mismatches between the gRNA spacer sequence 
 #'     and the protospacer sequence found in the genome or custom sequence.
-#' \item \code{canonical} Is the PAM sequence of the found protospacer sequence
-#'     canonical?
+#' \item \code{canonical} Whether the PAM sequence of the found protospacer
+#'     sequence is canonical.
+#' \item \code{cute_site} Cut site of the found protospacer.
+#' }
+#' 
+#' The following columns are also stored when a \code{txObject} is provided:
+#' 
+#' \itemize{
 #' \item \code{cds} Character vector specifying gene names of CDS overlapping
 #'     the found protospacer sequence.
-#' \item \code{fiveUTRs} Character vector specifying gene names of 5'UTRs overlapping
+#' \item \code{fiveUTRs} Character vector specifying gene names of 5'UTRs
+#'     overlapping the found protospacer sequence.
+#' \item \code{threeUTRs} Character vector specifying gene names of 3'UTRs
+#'     overlapping the found protospacer sequence.
+#' \item \code{exons} Character vector specifying gene names of exons
+#'     overlapping the found protospacer sequence.
+#' \item \code{introns} Character vector specifying gene names of introns
+#'     overlapping the found protospacer sequence.
+#' \item \code{intergenic} Character vector specifying the nearest gene when
+#'     the found protospacer sequence is not located in a gene.
+#' \item \code{intergenic_distance} Distance in base pairs from the nearest
+#'     gene when the found protospacer sequence is not located in a gene.
+#' }
+#' 
+#' The following columns are also stored when a \code{tssObject} is provided:
+#' 
+#' \itemize{
+#' \item \code{promoters} Character vector specifying gene names of promoters,
+#'     as defined by \code{tss_window} relative to the gene TSS, overlapping
 #'     the found protospacer sequence.
-#' \item \code{threeUTRs} Character vector specifying gene names of 3'UTRs overlapping
-#'     the found protospacer sequence.
-#' \item \code{exons} Character vector specifying gene names of exons overlapping
-#'     the found protospacer sequence.
-#' \item \code{introns} Character vector specifying gene names of introns overlapping
-#'     the found protospacer sequence.
-#' \item \code{intergenic} Character vector specifying neighborhood genes when the found
-#'     protospacer sequence is not located in a gene.
 #' }
 #' 
 #' @examples 
 #' 
 #' # Creating a bowtie index:
 #' library(Rbowtie)
+#' library(BSgenome.Hsapiens.UCSC.hg38)
 #' fasta <- system.file(package="crisprDesign", "fasta/chr12.fa")
 #' outdir <- tempdir()
 #' Rbowtie::bowtie_build(fasta,
@@ -125,21 +139,22 @@
 #' data(grListExample, package="crisprDesign")
 #' guideSet <- addSpacerAlignments(guideSetExample,
 #'                                 aligner="bowtie",
-#'                                 bowtie_index=bowtieIndex,
+#'                                 aligner_index=bowtieIndex,
+#'                                 bsgenome=BSgenome.Hsapiens.UCSC.hg38,
 #'                                 n_mismatches=2,
 #'                                 txObject=grListExample)
 #' 
 #' 
-#' @author Jean-Philippe Fortin
+#' @author Jean-Philippe Fortin, Luke Hoberecht
 #' 
 #' @name addSpacerAlignments
 NULL
 
 
 
-
 #' @rdname addSpacerAlignments
 #' @export
+#' @importFrom S4Vectors mcols
 addSpacerAlignmentsIterative <- function(guideSet,
                                          aligner=c("bowtie", "bwa", "biostrings"),
                                          columnName="alignments",
@@ -147,9 +162,7 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                          txObject=NULL,
                                          tssObject=NULL,
                                          custom_seq=NULL,
-                                         bowtie_index=NULL,
-                                         bwa_index=NULL,
-                                         seqlevelsStyle=c("UCSC", "NCBI"),
+                                         aligner_index=NULL,
                                          bsgenome=NULL,
                                          n_mismatches=0,
                                          all_alignments=FALSE,
@@ -157,137 +170,58 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                          ignore_pam=FALSE,
                                          standard_chr_only=TRUE,
                                          both_strands=TRUE,
+                                         anchor=c("cut_site", "pam_site"),
                                          tss_window=NULL,
                                          n0_max=5,
                                          n1_max=100,
                                          n2_max=100
 ){
     guideSet    <- .validateGuideSet(guideSet)
-    tssObject   <- .validateTssObject(tssObject)
-    tss_window  <- .validateTssWindow(tss_window)
-    seqlevelsStyle <- match.arg(seqlevelsStyle)
-    guideSetTemp <- addSpacerAlignments(guideSet, 
-                                        aligner=aligner,
-                                        columnName=columnName,
-                                        addSummary=TRUE,
-                                        custom_seq=custom_seq,
-                                        bowtie_index=bowtie_index,
-                                        bwa_index=bwa_index,
-                                        seqlevelsStyle=seqlevelsStyle,
-                                        bsgenome=bsgenome,
-                                        n_mismatches=0,
-                                        all_alignments=FALSE, #To reduce burden
-                                        canonical=canonical,
-                                        ignore_pam=ignore_pam,
-                                        standard_chr_only=standard_chr_only,
-                                        both_strands=both_strands,
-                                        tss_window=tss_window,
-                                        txObject=txObject,
-                                        tssObject=tssObject)
-
-    cols <- .aln_cols(n_mismatches=n_mismatches)
-            
-    for (col in cols){
-        mcols(guideSetTemp)[[col]] <- as.numeric(mcols(guideSetTemp)[[col]])
+    aligner <- match.arg(aligner)
+    n_mismatches <- .validateNumberOfMismatches(n_mismatches, aligner)
+    maxAlignments <- c("n0_max", "n1_max", "n2_max")
+    maxAlignments <- vapply(maxAlignments, function(x){
+        .checkSingleInteger(x, get(x), null_ok=FALSE, sign="non-negative")
+        get(x)
+    }, FUN.VALUE=numeric(1))
+    
+    .iterateAddSpacerAlignments <- function(guideSet,
+                                            n_mismatches
+    ){
+        addSpacerAlignments(guideSet,
+                            aligner=aligner,
+                            columnName=columnName,
+                            addSummary=addSummary,
+                            txObject=txObject,
+                            tssObject=tssObject,
+                            custom_seq=custom_seq,
+                            aligner_index=aligner_index,
+                            bsgenome=bsgenome,
+                            n_mismatches=n_mismatches,
+                            all_alignments=all_alignments,
+                            canonical=canonical,
+                            ignore_pam=ignore_pam,
+                            standard_chr_only=standard_chr_only,
+                            both_strands=both_strands,
+                            anchor=anchor,
+                            tss_window=tss_window)
     }
-    #Not calculating off-targets for guides with more than 5 on-targets:
-    good <- which(guideSetTemp$n0<=n0_max)
-    if (length(good)>0 & n_mismatches>=1){
-        mcols(guideSetTemp)[good,] <- mcols(addSpacerAlignments(guideSetTemp[good],
-                                                                aligner=aligner,
-                                                                columnName=columnName,
-                                                                addSummary=TRUE,
-                                                                txObject=txObject,
-                                                                tssObject=tssObject,
-                                                                custom_seq=custom_seq,
-                                                                bowtie_index=bowtie_index,
-                                                                bwa_index=bwa_index,
-                                                                seqlevelsStyle=seqlevelsStyle,
-                                                                bsgenome=bsgenome, 
-                                                                n_mismatches=1,
-                                                                all_alignments=all_alignments,
-                                                                canonical=canonical,
-                                                                ignore_pam=ignore_pam,
-                                                                standard_chr_only=standard_chr_only,
-                                                                both_strands=both_strands,
-                                                                tss_window=tss_window))
-    }
-    good <- which(guideSetTemp$n0<=n0_max & guideSetTemp$n1<=n1_max)
-    if (length(good)>0 & n_mismatches>=2){
-        mcols(guideSetTemp)[good,] <- mcols(addSpacerAlignments(guideSetTemp[good],
-                                                                aligner=aligner,
-                                                                columnName=columnName,
-                                                                addSummary=TRUE,
-                                                                txObject=txObject,
-                                                                tssObject=tssObject,
-                                                                custom_seq=custom_seq,
-                                                                bowtie_index=bowtie_index,
-                                                                bwa_index=bwa_index,
-                                                                seqlevelsStyle=seqlevelsStyle,
-                                                                bsgenome=bsgenome, 
-                                                                n_mismatches=2,
-                                                                all_alignments=all_alignments,
-                                                                canonical=canonical,
-                                                                ignore_pam=ignore_pam,
-                                                                standard_chr_only=standard_chr_only,
-                                                                both_strands=both_strands,
-                                                                tss_window=tss_window))
-    }
-    good <- which(guideSetTemp$n0<=n0_max & guideSetTemp$n2<=n2_max)
-    if (length(good)>0 & n_mismatches>=3){
-        mcols(guideSetTemp)[good,] <- mcols(addSpacerAlignments(guideSetTemp[good],
-                                                                aligner=aligner,
-                                                                columnName=columnName,
-                                                                addSummary=TRUE,
-                                                                txObject=txObject,
-                                                                tssObject=tssObject,
-                                                                custom_seq=custom_seq,
-                                                                bowtie_index=bowtie_index,
-                                                                bwa_index=bwa_index,
-                                                                seqlevelsStyle=seqlevelsStyle,
-                                                                bsgenome=bsgenome, 
-                                                                n_mismatches=3,
-                                                                all_alignments=all_alignments,
-                                                                canonical=canonical,
-                                                                ignore_pam=ignore_pam,
-                                                                standard_chr_only=standard_chr_only,
-                                                                both_strands=both_strands,
-                                                                tss_window=tss_window))
-    }
-    mcols(guideSet)[[columnName]] <- mcols(guideSetTemp)[[columnName]]
-    if (addSummary){
-        mcols(guideSet)[cols] <- mcols(guideSetTemp)[cols]
+    guideSet <- .iterateAddSpacerAlignments(guideSet, 0)
+    good <- TRUE
+    for (i in seq_len(n_mismatches)){
+        mismatch_col <- paste0("n", i-1)
+        good <- good &
+            S4Vectors::mcols(guideSet)[[mismatch_col]] <= maxAlignments[i]
+        guideSet[good] <- .iterateAddSpacerAlignments(guideSet[good], i)
     }
     return(guideSet)
 }
 
 
 
-.aln_cols <- function(n_mismatches,
-                      excludePromoter=FALSE
-){
-    if (n_mismatches<=3){
-        n_mismatches=3
-    }
-    cols <- c()
-    for (k in c(0,seq_len(n_mismatches))){
-        temp <- paste0("n", k, c("", "_c", "_p"))
-        cols <- c(cols, temp)
-    }
-    
-    if (excludePromoter){
-        cols <- cols[!grepl("_p", cols)]
-    }
-    return(cols)
-}
-
-
-
-
-
 #' @rdname addSpacerAlignments
 #' @export
-#' @importFrom S4Vectors split
+#' @importFrom S4Vectors split mcols<-
 addSpacerAlignments <- function(guideSet,
                                 aligner=c("bowtie", "bwa", "biostrings"),
                                 columnName="alignments",
@@ -295,9 +229,7 @@ addSpacerAlignments <- function(guideSet,
                                 txObject=NULL,
                                 tssObject=NULL,
                                 custom_seq=NULL,
-                                bowtie_index=NULL,
-                                bwa_index=NULL,
-                                seqlevelsStyle=c("UCSC", "NCBI"),
+                                aligner_index=NULL,
                                 bsgenome=NULL,
                                 n_mismatches=0,
                                 n_max_alignments=1000,
@@ -306,87 +238,60 @@ addSpacerAlignments <- function(guideSet,
                                 ignore_pam=FALSE,
                                 standard_chr_only=TRUE,
                                 both_strands=TRUE,
+                                anchor=c("cut_site", "pam_site"),
                                 tss_window=NULL
 ){
-    aligner <- match.arg(aligner)
-    tssObject <- .validateTssObject(tssObject)
     guideSet  <- .validateGuideSet(guideSet)
-    crisprNuclease <- crisprNuclease(guideSet)
-    seqlevelsStyle <- match.arg(seqlevelsStyle)
-    tss_window   <- .validateTssWindow(tss_window)
-    n_mismatches <- .validateNumberOfMismatches(n_mismatches,
-                                                isBowtie=aligner=="bowtie")
+    aligner <- match.arg(aligner)
+    .checkString("columnName", columnName)
+    n_mismatches <- .validateNumberOfMismatches(n_mismatches, aligner)
+    anchor <- match.arg(anchor)
+    
     spacers <- spacers(guideSet,
                        as.character=TRUE)
     uniqueSpacers <- unique(spacers)
-    aln <- getSpacerAlignments(uniqueSpacers,
+    
+    aln <- getSpacerAlignments(spacers=uniqueSpacers,
                                aligner=aligner,
                                n_mismatches=n_mismatches,
                                custom_seq=custom_seq,
-                               bowtie_index=bowtie_index,
-                               bwa_index=bwa_index,
-                               seqlevelsStyle=seqlevelsStyle,
+                               aligner_index=aligner_index,
                                bsgenome=bsgenome,
                                n_max_alignments=n_max_alignments,
                                all_alignments=all_alignments,
-                               crisprNuclease=crisprNuclease,
+                               crisprNuclease=crisprNuclease(guideSet),
                                canonical=canonical,
                                ignore_pam=ignore_pam,
                                standard_chr_only=standard_chr_only,
                                both_strands=both_strands)
-    metadata(aln)[["genome"]] <- .getGenome(guideSet)
-
-
-    if (!is.null(txObject)){
-        aln <- .addGeneAnnotationColumns(aln,
-                                         txObject=txObject)
-    }
-    if (!is.null(tssObject)){
-        aln <- .addPromoterAnnotationColumns(aln,
-                                             tssObject=tssObject,
-                                             tss_window=tss_window)
-    }
-    if (addSummary){
-        summary <- .getAlignmentsSummary(aln=aln,
-                                         possibleGuides=spacers)           
-        summary <- summary[, !grepl("_nc$", colnames(summary))]
-        summary <- summary[match(spacers, summary$spacer),, drop=FALSE]
-        cols <- .aln_cols(n_mismatches)
-        if (sum(cols %in% colnames(mcols(guideSet)))>0){
-            warning("Overwriting existing alignments summary. To ",
-                    "avoid overwriting, set addSummary=FALSE.")
-        }
-        for (col in cols){
-            mcols(guideSet)[[col]] <- summary[[col]]
-        }
-
-    }
-
-    dfs <- S4Vectors::split(aln,
-                            f=factor(aln$spacer,
-                                     levels=uniqueSpacers))
-    dfs <- dfs[spacers]
-    names(dfs) <- names(guideSet)
-    mcols(guideSet)[[columnName]] <- dfs
+    aln <- .addGeneAnnotationColumns(aln,
+                                     txObject=txObject,
+                                     anchor=anchor)
+    aln <- .addPromoterAnnotationColumns(aln,
+                                         tssObject=tssObject,
+                                         tss_window=tss_window,
+                                         anchor=anchor)
+    guideSet <- .addAlignmentsSummary(guideSet=guideSet,
+                                      aln=aln,
+                                      addSummary=addSummary,
+                                      n_mismatches=n_mismatches,
+                                      spacers=spacers)
+    aln <- S4Vectors::split(aln,
+                            f=factor(aln$spacer, levels=uniqueSpacers))
+    aln <- aln[spacers]
+    names(aln) <- names(guideSet)
+    S4Vectors::mcols(guideSet)[[columnName]] <- aln
     return(guideSet)
 }
 
 
 
-
-
-
-
-
 #' @rdname addSpacerAlignments
 #' @export
-#' @importFrom GenomeInfoDb seqlevelsStyle<-
 getSpacerAlignments <- function(spacers,
                                 aligner=c("bowtie", "bwa", "biostrings"),
                                 custom_seq=NULL,
-                                bowtie_index=NULL,
-                                bwa_index=NULL,
-                                seqlevelsStyle=c("UCSC", "NCBI"),
+                                aligner_index=NULL,
                                 bsgenome=NULL,
                                 n_mismatches=0,
                                 n_max_alignments=1000,
@@ -397,743 +302,578 @@ getSpacerAlignments <- function(spacers,
                                 standard_chr_only=TRUE,
                                 both_strands=TRUE
 ){
-    if (is(spacers, "GuideSet")){
+    
+    if (.isGuideSet(spacers)){
         spacers <- spacers(spacers)
     }
+    spacers <- as.character(spacers)
     aligner <- match.arg(aligner)
+    # should obtain from spacers if spacers is GuideSet
+    crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
+    n_mismatches <- .validateNumberOfMismatches(n_mismatches, aligner)
+    
     if (!is.null(custom_seq) & aligner != "biostrings"){
         aligner <- "biostrings"
-        message("Setting aligner to biostrings since a custom_seq is provided.")
-
+        message("Setting aligner to 'biostrings' since custom_seq is provided.")
     }
-    if (aligner=="bwa" & .Platform$OS.type=="windows"){
-        stop("BWA aligner is not available for Windows machines. Choose bowtie instead. ")   
-    }
-    spacers <- as.character(spacers)
-    seqlevelsStyle <- match.arg(seqlevelsStyle)
-    if (aligner=="bowtie"){
-        results <- .getSpacerAlignments_bowtie(spacers,
-                                               bowtie_index=bowtie_index,
-                                               bsgenome=bsgenome,
-                                               n_mismatches=n_mismatches,
-                                               n_max_alignments=n_max_alignments,
-                                               all_alignments=all_alignments,
-                                               crisprNuclease=crisprNuclease,
-                                               canonical=canonical,
-                                               ignore_pam=ignore_pam,
-                                               standard_chr_only=standard_chr_only)
-    } else if (aligner=="bwa"){
-        results <- .getSpacerAlignments_bwa(spacers,
-                                            bwa_index=bwa_index,
+    
+    if (aligner %in% c("bowtie", "bwa")){
+        aln <- .getSpacerAlignments_indexed(spacers=spacers,
+                                            aligner=aligner,
+                                            aligner_index=aligner_index,
                                             bsgenome=bsgenome,
                                             n_mismatches=n_mismatches,
+                                            n_max_alignments=n_max_alignments,
+                                            all_alignments=all_alignments,
                                             crisprNuclease=crisprNuclease,
                                             canonical=canonical,
                                             ignore_pam=ignore_pam,
                                             standard_chr_only=standard_chr_only)
-    } else if (aligner=="biostrings"){
-        results <- .getSpacerAlignments_biostrings(spacers,
-                                                   custom_seq=custom_seq,
-                                                   n_mismatches=n_mismatches, 
-                                                   crisprNuclease=crisprNuclease,
-                                                   canonical=canonical,
-                                                   both_strands=both_strands)
-    }
-    if (aligner %in% c("bowtie", "bwa")){
-        if (length(results)>0){
-            seqlevelsStyle(results) <- seqlevelsStyle
-        }
-    }
-    return(results)
-}
-
-
-
-
-
-
-#' @importFrom crisprBowtie runCrisprBowtie
-#' @importFrom crisprBase pamLength pamSide
-#' @importFrom GenomeInfoDb keepStandardChromosomes
-#' @importFrom GenomeInfoDb isCircular<- isCircular
-#' @importFrom GenomeInfoDb seqinfo<- seqinfo Seqinfo
-#' @importFrom GenomeInfoDb genome<- genome
-.getSpacerAlignments_bowtie <- function(spacers,
-                                        bowtie_index=NULL,
-                                        bsgenome=NULL,
-                                        n_mismatches=0,
-                                        n_max_alignments=1000,
-                                        all_alignments=TRUE,
-                                        crisprNuclease=NULL,
-                                        canonical=TRUE,
-                                        ignore_pam=FALSE,
-                                        standard_chr_only=TRUE
-){
-    crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
-    spacers    <- as.character(spacers)
-    spacer_len <- unique(nchar(spacers))
-    pamside <- pamSide(crisprNuclease)
-    pamlen  <- pamLength(crisprNuclease)
-    if (length(spacer_len) > 1){
-        stop("All spacer sequences must have the same length.")
-    }
-
-    #Performing alignment:
-    results <- runCrisprBowtie(spacers=spacers,
-                               bowtie_index=bowtie_index,
-                               bsgenome=bsgenome,
-                               n_mismatches=n_mismatches,
-                               n_max_alignments=n_max_alignments,
-                               crisprNuclease=crisprNuclease,
-                               canonical=canonical,
-                               ignore_pam=ignore_pam,
-                               all_alignments=all_alignments,
-                               force_spacer_length=TRUE)
-
-    #If no alignments, return empty data frame:
-    if (nrow(results)==0){
-        emptyDF <- .returnEmptyAlignments(spacers)
-        return(emptyDF)
-    }
-
-    #Filter and rename chromosomes:
-    results <- results[results$chr!="chrEBV",,drop=FALSE]
-    results$chr[results$chr=="chrMT"] <- "chrM"
-    results$cut_site <- getCutSiteFromPamSite(pam_site=results$pam_site,
-                                              strand=results$strand,
-                                              crisprNuclease=crisprNuclease)
-
-    #Transforming to a GRanges:
-    results <- .as_gr(results)
-    results$pam         <- DNAStringSet(results$pam)
-
-
-    # Adding metadata:
-    metadata(results)$crisprNuclease <- crisprNuclease
-    metadata(results)$aligner  <- "bowtie"
-    if (exists("n_mismatches")){
-        metadata(results)$n_mismatches <- n_mismatches
-    }
-    if (exists("n_max_alignments")){
-        metadata(results)$n_max_alignments <- n_max_alignments
-    }
-    if (exists("all_alignments")){
-        metadata(results)$all_alignments <- all_alignments
-    } 
-    metadata(results)$spacer_len <- unique(nchar(as.character(results$spacer)))
-    names(results) <- paste0("aln_", seq_along(results))
-
-    if (!is.null(bsgenome)){
-        info <- seqinfo(bsgenome)
     } else {
-        levs <- unique(as.character(seqnames(results)))
-        info <- GenomeInfoDb::Seqinfo(levs)
+        aln <- .getSpacerAlignments_biostrings(spacers=spacers,
+                                               custom_seq=custom_seq,
+                                               n_mismatches=n_mismatches,
+                                               crisprNuclease=crisprNuclease,
+                                               canonical=canonical,
+                                               ignore_pam=ignore_pam,
+                                               both_strands=both_strands)
     }
-
-
-    if (standard_chr_only){
-        info <- keepStandardChromosomes(info)
-        valid <- as.character(seqnames(results)) %in% seqnames(info)
-        results <- results[valid]
-        results <- keepStandardChromosomes(results)
-    }
-    
-    if (!is.null(bsgenome)){
-        genome(results)  <- genome(info)[1]
-        lens  <- seqlengths(info)[as.character(seqnames(seqinfo(results)))]
-        circs <- isCircular(info)[as.character(seqnames(seqinfo(results)))]
-        seqlengths(seqinfo(results)) <- lens
-        isCircular(seqinfo(results)) <- circs
-    }
-     
-    return(results)
+    return(aln)
 }
-
-
-
-
-#' @importFrom crisprBwa runCrisprBwa
-#' @importFrom crisprBase pamLength pamSide
-#' @importFrom GenomeInfoDb keepStandardChromosomes
-#' @importFrom GenomeInfoDb isCircular<- isCircular
-#' @importFrom GenomeInfoDb seqinfo<- seqinfo Seqinfo
-#' @importFrom GenomeInfoDb genome<- genome
-.getSpacerAlignments_bwa <- function(spacers,
-                                     bwa_index=NULL,
-                                     bsgenome=NULL,
-                                     n_mismatches=0,
-                                     crisprNuclease=NULL,
-                                     canonical=TRUE,
-                                     ignore_pam=FALSE,
-                                     standard_chr_only=TRUE
-){
-    crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
-    spacers    <- as.character(spacers)
-    spacer_len <- unique(nchar(spacers))
-    pamside <- pamSide(crisprNuclease)
-    pamlen  <- pamLength(crisprNuclease)
-    if (length(spacer_len) > 1){
-        stop("All spacer sequences must have the same length.")
-    }
-
-    #Performing alignment:
-    results <- runCrisprBwa(spacers=spacers,
-                            bwa_index=bwa_index,
-                            bsgenome=bsgenome,
-                            n_mismatches=n_mismatches,
-                            crisprNuclease=crisprNuclease,
-                            canonical=canonical,
-                            ignore_pam=ignore_pam,
-                            force_spacer_length=TRUE)
-
-    #If no alignments, return empty data frame:
-    if (nrow(results)==0){
-        emptyDF <- .returnEmptyAlignments(spacers)
-        return(emptyDF)
-    }
-
-    #Filter and rename chromosomes:
-    results <- results[results$chr!="chrEBV",,drop=FALSE]
-    results$chr[results$chr=="chrMT"] <- "chrM"
-    results$cut_site <- getCutSiteFromPamSite(pam_site=results$pam_site,
-                                              strand=results$strand,
-                                              crisprNuclease=crisprNuclease)
-    
-    #Transforming to a GRanges:
-    results <- .as_gr(results)
-    results$pam         <- DNAStringSet(results$pam)
-
-    # Adding metadata:
-    metadata(results)$crisprNuclease <- crisprNuclease
-    metadata(results)$aligner  <- "bwa"
-    if (exists("n_mismatches")){
-        metadata(results)$n_mismatches <- n_mismatches
-    } 
-    metadata(results)$spacer_len <- unique(nchar(as.character(results$spacer)))
-    names(results) <- paste0("aln_", seq_along(results))
-
-    if (!is.null(bsgenome)){
-        info <- seqinfo(bsgenome)
-    } else {
-        levs <- unique(as.character(seqnames(results)))
-        info <- GenomeInfoDb::Seqinfo(levs)
-    }
-
-
-    if (standard_chr_only){
-        info <- keepStandardChromosomes(info)
-        valid <- as.character(seqnames(results)) %in% seqnames(info)
-        results <- results[valid]
-        results <- keepStandardChromosomes(results)
-    }
-    
-    if (!is.null(bsgenome)){
-        genome(results)  <- genome(info)[1]
-        lens  <- seqlengths(info)[as.character(seqnames(seqinfo(results)))]
-        circs <- isCircular(info)[as.character(seqnames(seqinfo(results)))]
-        seqlengths(seqinfo(results)) <- lens
-        isCircular(seqinfo(results)) <- circs
-    }
-     
-    return(results)
-}
-
-
-
-
-
-#spacers = c("ACAAAACTGTGCTAGACATG","ACTAAACTGTGCTAGACAAC")
-#custom_seq = "ACGAAACTCTGCTAGACATGTGGCGGTTTAGCCAGCTCCCCACATGTCTAGCACAGTTTTGTATGTAT"
-#getSpacerAlignments(spacers, n_mismatches=5, nuclease="g", custom_seq=custom_seq, canonical=FALSE)
-#getSpacerAlignments(spacers, n_mismatches=5, nuclease="Cas9", custom_seq=custom_seq, canonical=FALSE, both_strands=TRUE)
-#spacers = c("ACAAAACTGTGCTAGACATGAGG","ACAAAACTATGCTAGACATGAGG", "ACAAAACTATAATAGACATGAGG")
-#custom_seq = "ACGAATTTCACAAAACTGTGCTAGACATGAGGCTCCCCACATGTCCTCATGTCTAGCACAGTTTTGTCAAA"
-#getSpacerAlignments(spacers, n_mismatches=5, nuclease="Cas12a", custom_seq=custom_seq, canonical=FALSE)
-#getSpacerAlignments(spacers, n_mismatches=5, nuclease="Cas12a", custom_seq=custom_seq, canonical=FALSE, both_strands=TRUE)
-#' @importFrom Biostrings matchPattern DNAStringSet
-#' @importFrom IRanges ranges
-#' @importFrom crisprBase pams pamLength pamSide
-#' @importFrom utils adist
-#' @importFrom GenomeInfoDb seqlengths<- isCircular<- genome<-
-.getSpacerAlignments_biostrings <- function(spacers,
-                                            custom_seq,
-                                            n_mismatches=0, 
-                                            crisprNuclease=NULL,
-                                            canonical=TRUE,
-                                            both_strands=TRUE
-){
-    crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
-    custom_seq <- .validateDNACharacterVariable(seq=custom_seq,
-                                                argument="custom_seq",
-                                                len=1,
-                                                nullOk=FALSE,
-                                                exactBases=FALSE)
-
-    # Iterating over spacers:
-    results <- lapply(spacers, function(spacer){
-        locs_fwd <-  Biostrings::matchPattern(spacer,
-                                              custom_seq,
-                                              max.mismatch=n_mismatches)
-        locs_fwd <- locs_fwd[BiocGenerics::start(locs_fwd)>0]
-        locs_fwd <- locs_fwd[BiocGenerics::end(locs_fwd)<=nchar(custom_seq)]
-        locs_fwd <- .view2df(locs_fwd,
-                             crisprNuclease=crisprNuclease,
-                             spacer=spacer,
-                             strand="+",
-                             custom_seq=custom_seq)
-
-        locs <- locs_fwd
-        if (both_strands){
-            locs_rev <-  Biostrings::matchPattern(spacer,
-                                                  .revComp(custom_seq),
-                                                  max.mismatch=n_mismatches)
-            locs_rev <- locs_rev[BiocGenerics::start(locs_rev)>0]
-            locs_rev <- locs_rev[BiocGenerics::end(locs_rev)<=nchar(custom_seq)]
-            locs_rev <- .view2df(locs_rev,
-                                 crisprNuclease=crisprNuclease,
-                                 spacer=spacer,
-                                 strand="-",
-                                 custom_seq=custom_seq)
-            locs <- rbind(locs, locs_rev)
-        }
-        locs <- .removeInvalidProtospacers(df=locs,
-                                           canonical=canonical,
-                                           crisprNuclease=crisprNuclease,
-                                           custom_seq=custom_seq,
-                                           n_mismatches=n_mismatches)
-        if (is.null(locs)){
-            locs <- .returnEmptyAlignments(spacers)
-        }
-        return(locs)
-    })
-
-    # Combining
-    ns <- vapply(results, nrow, FUN.VALUE=1)
-    if (sum(ns==0)==length(ns)){
-        locs <- .returnEmptyAlignments(spacers)
-        return(locs)
-    } else {
-        locs <- results[ns>0]
-        locs <- do.call(rbind, locs)
-    }
-
-
-    #Transforming to a GRanges:
-    locs <- .as_gr(locs)
-    locs$pam <- DNAStringSet(locs$pam)
-    metadata(locs)$crisprNuclease   <- crisprNuclease
-    metadata(locs)$genome     <- "custom"
-    metadata(locs)$aligner    <- "biostrings"
-    metadata(locs)$custom_seq <- DNAStringSet(custom_seq)
-    metadata(locs)$spacer_len <- unique(nchar(as.character(locs$spacer)))
-    if (exists("n_mismatches")) {
-        metadata(locs)$n_mismatches <- n_mismatches
-    }
-    if (exists("both_strands")){
-        metadata(locs)$both_strands <- both_strands  
-    }
-    names(locs) <- paste0("aln_", seq_along(locs))
-
-    locs$cut_site <- getCutSiteFromPamSite(pam_site=locs$pam_site,
-                                           strand=as.character(strand(locs)),
-                                           crisprNuclease=crisprNuclease)
-    #Taking care of seqinfo:
-    lens <- width(metadata(locs)$custom_seq)
-    names(lens) <- names(metadata(locs)$custom_seq)
-    seqlengths(locs) <- lens
-    isCircular(locs) <- FALSE
-    genome(locs) <- "custom"
-    return(locs)
-}
-
-
-  
-
-
-# Remove targets with invalid PAM sequences,
-# or outside of custom sequence. 
-.removeInvalidProtospacers <- function(df,
-                                       canonical,
-                                       custom_seq,
-                                       crisprNuclease,
-                                       n_mismatches
-){
-    if (is.null(df)) {
-        return(df)
-    }
-    pamlen <- pamLength(crisprNuclease)
-    seqlen <- nchar(custom_seq)
-    pamside <- pamSide(crisprNuclease)
-    if (pamside=="3prime"){
-        good_fwd <- df$strand=="+" & (df$pam_site + pamlen-1 <=seqlen)
-        good_rev <- df$strand=="-" & (df$pam_site - pamlen+1 >=1)
-    } else {
-        good_fwd <- df$strand=="+" & (df$pam_site >= 1)
-        good_rev <- df$strand=="-" & (df$pam_site <= seqlen)
-    }
-    good <- good_fwd | good_rev
-    if (sum(good)==0){
-        df <- .returnEmptyAlignments(spacers)
-        return(df)
-    } else {
-        df <- df[good,,drop=FALSE]
-    }
-    df$pam <- getPAMSequence_customSeq(custom_seq=custom_seq,
-                                       pam_site=df$pam_site,
-                                       strand=df$strand,
-                                       crisprNuclease=crisprNuclease)
-    df$canonical <- df$pam %in% pams(crisprNuclease,
-                                     primary=TRUE,
-                                     as.character=TRUE)
-    if (canonical){
-        df <- df[df$canonical,,drop=FALSE]
-        if (nrow(df)<1){
-            df <- NULL
-        }
-    }
-    return(df)
-}
-
-
-
-# Convert view object to a data.frame
-.view2df <- function(view,
-                     strand=c("+", "-"),
-                     crisprNuclease,
-                     spacer,
-                     custom_seq
-){
-    seqlen <- nchar(custom_seq)
-    strand <- match.arg(strand)
-    if (length(view)==0){
-        df <- NULL
-        return(df)
-    } 
-
-    df <- as.data.frame(IRanges::ranges(view))
-    df$strand <- strand
-    seqName <- names(custom_seq)
-    if (is.null(seqName)){
-        seqName <- "customSequence"
-    }
-    df$chr <- seqName
-    spacer_len <- unique(df$width)
-    if (strand=="-"){
-        start <- seqlen-df$end+1
-        end   <- seqlen-df$start+1
-        df$start <- start
-        df$end   <- end
-    }
-    df$pam_site <- getPAMSiteFromStartAndEnd(start=df$start,
-                                             end=df$end,
-                                             crisprNuclease=crisprNuclease,
-                                             strand=df$strand)
-
-    df$start <- df$end <- df$width <- NULL
-    df[["protospacer"]] <- as.character(view)
-    df[["spacer"]] <- spacer
-    cols <- c("chr", "pam_site", "strand")
-    cols <- c(cols, setdiff(colnames(df), cols))
-    df <- df[,cols,drop=FALSE]
-    return(df)
-}
-
-
-
-
-
-
-
-
-.returnEmptyAlignments <- function(spacers){
-    spacer_len <- unique(nchar(spacers))
-    spacer_col <- paste0('spacer_', spacer_len, 'mer')
-    protospacer_col <- paste0('protospacer_', spacer_len, 'mer')
-    emptyDF <- data.frame(chr=character(0),
-                          strand=character(0),
-                          pam_site=numeric(0),
-                          pam=character(0),
-                          cut_site=numeric(0),
-                          canonical=logical(0),
-                          n_mismatches=numeric(0))
-
-    emptyDF[[spacer_col]] <- character(0)
-    emptyDF[[protospacer_col]] <- character(0)
-    cols <- c((ncol(emptyDF)-1), ncol(emptyDF), seq_len(ncol(emptyDF)-2))
-    emptyDF <- emptyDF[,cols]
-    emptyDF <- .as_gr(emptyDF)
-    return(emptyDF)
-}
-
-
-
-
-.getAlignmentsSummary <- function(aln,
-                                  possibleGuides=NULL
-){
-
-    max_mm=metadata(aln)$n_mismatches
-    if (.isGRanges(aln)){
-        aln <- .as_df(aln)
-    }
-    stopifnot(is.data.frame(aln))
-
-    if (nrow(aln)==0){
-        if (is.null(possibleGuides)){
-            stop('No alignments to summarize. Pass input guides",
-                 " to "possibleGuides" to avoid this error.')
-        }
-        warning('No alignments found, still adding summary data.')
-        # return "empty" alignment summary (all values set to 0)
-        df <- data.frame(spacer=possibleGuides)
-        cols <- c('nx', 'nx_c', 'nx_nc', 'nx_p')
-        for (i in cols){
-            for (j in 0:max_mm){
-                df[[gsub('x', j, i)]] <- 0
-            }
-        }
-        return(df)
-    }
-
-    df <- data.frame(spacer=unique(aln$spacer))
-
-    # Create summary columns:
-    cols <- c('', '_c', '_nc', '_p')
-    nn <- ifelse(max_mm<=3,3, max_mm)
-    cols <- lapply(cols, function(x){
-        paste0('n', c(0,seq_len(nn)), x)
-    })
-    cols <- unlist(cols)
-    df[cols] <- NA
-    default.p <- ifelse('promoters' %in% colnames(aln), 0, NA)
-    df[grep(paste0('^n[0-', max_mm, ']$'), cols, value=TRUE)] <- 0
-    df[grep(paste0('^n[0-', max_mm, ']\\_n?c$'), cols, value=TRUE)] <- 0
-    df[grep(paste0('^n[0-', max_mm, ']\\_p$'), cols, value=TRUE)]  <- default.p
-
-    # return default values if there are no alignments
-    if (sum(aln$pam_site==0)==nrow(aln)){
-        return(df)
-    }
-
-    # count number of alignments per column
-    .countAlignments <- function(col, cond){
-        mm <- as.integer(substr(col, start=2, stop=2))
-        tab <- table(aln$spacer[aln$n_mismatches==mm & cond])
-        if (length(tab) > 0){
-            wh <- match(names(tab), df$spacer)
-            temp <- df[,col]
-            temp[wh] <- tab
-            return(temp)
-        } else {
-            return(df[,col])
-        }
-    }
-
-    # loop over columns
-    for (col in colnames(df)[-1]){
-        if (sum(is.na(df[[col]]))==0){
-            aln.type <- gsub('[0-9]', '', col)
-            cond <- switch(EXPR=aln.type,
-                           'n'=TRUE,
-                           'n_c'=!is.na(aln$cds),
-                           'n_nc'=is.na(aln$cds),
-                           'n_p'=!is.na(aln$promoters))
-            df[[col]] <- .countAlignments(col=col,
-                                          cond=cond)
-        }
-    }
-
-    # add non-aligning guides, if any
-    if (!is.null(possibleGuides)){
-        missing <- setdiff(possibleGuides, df$spacer)
-        if (length(missing)>0){
-            temp <- data.frame(spacer=missing)
-            cols <- setdiff(colnames(df), "spacer")
-            mat <- matrix(0, length(missing), length(cols))
-            temp <- cbind(temp, mat)
-            colnames(temp)[-1] <- cols
-            df <- rbind(df, temp)
-        }
-    }
-    return(df)
-}
-
-
 
 
 
 .validateNumberOfMismatches <- function(n_mismatches,
-                                        isBowtie=FALSE
+                                        aligner
 ){
-    stopifnot(is.numeric(n_mismatches))
-    if (isBowtie){
-        if (!n_mismatches %in% c(0, 1, 2, 3)){
-            stop('For bowtie, "n_mismatches" must be an integer ',
-                 'between 0 and 3, inclusive.')
-        }
+    errorMessage <- "'n_mismatches' must be an integer value"
+    if (aligner == "bowtie"){
+        errorMessage <- paste("For bowtie alignments",
+                              errorMessage,
+                              "between 0 and 3, inclusive")
+    }
+    if (!is.vector(n_mismatches, mode="numeric")){
+        stop(errorMessage)
+    }
+    isInteger <- n_mismatches == round(n_mismatches)
+    isSingleValue <- length(n_mismatches) == 1
+    isValidValue <- aligner != "bowtie" || n_mismatches %in% 0:3
+    if (!isInteger || !isSingleValue || !isValidValue){
+        stop(errorMessage)
     }
     return(n_mismatches)
 }
 
 
 
-
-
-
-
-
-
-
-
-## This function adds gene annotation columns to the alignments 
-## obtained from getSpacerAlignments.
-##
-#' @importFrom S4Vectors metadata mcols mcols<- subjectHits queryHits
-#' @importFrom S4Vectors subjectHits queryHits
-#' @importFrom IRanges IRanges ranges ranges<- findOverlaps
-#' @importFrom IRanges precede follow 
-#' @importFrom GenomeInfoDb seqlevelsStyle seqlevelsStyle<-
-.addGeneAnnotationColumns <- function(aln,
-                                      anchor=c("cut_site", "pam_site"),
-                                      txObject=NULL,
-                                      ignore.strand=TRUE
+#' @importFrom crisprBowtie runCrisprBowtie
+#' @importFrom crisprBwa runCrisprBwa
+.getSpacerAlignments_indexed <- function(spacers,
+                                         aligner,
+                                         aligner_index,
+                                         bsgenome,
+                                         n_mismatches,
+                                         n_max_alignments,
+                                         all_alignments,
+                                         crisprNuclease,
+                                         canonical,
+                                         ignore_pam,
+                                         standard_chr_only
 ){
-    genome <- metadata(aln)$genome
-    anchor <- match.arg(anchor)
-    anchor <- .validateAnchor(anchor, aln)
+    if (aligner == "bwa" && .Platform$OS.type=="windows"){
+        stop("BWA aligner is not available for Windows machines. ",
+             "Choose bowtie instead.")   
+    }
+    spacerLength <- unique(nchar(spacers))
+    if (length(spacerLength) > 1){
+        stop("All spacer sequences must have the same length.")
+    }
+    .isBSGenome(bsgenome)
     
-    #To change...
-    if (length(aln) == 0) {
-        aln$cds         <- character(0)
-        aln$fiveUTRs    <- character(0)
-        aln$threeUTRs   <- character(0)
-        aln$exons       <- character(0)
-        aln$introns     <- character(0)
-        aln$intergenics <- character(0)
+    results <- switch(
+        aligner,
+        "bowtie"=crisprBowtie::runCrisprBowtie(spacers=spacers,
+                                               bowtie_index=aligner_index,
+                                               bsgenome=bsgenome,
+                                               n_mismatches=n_mismatches,
+                                               n_max_alignments=n_max_alignments,
+                                               crisprNuclease=crisprNuclease,
+                                               canonical=canonical,
+                                               ignore_pam=ignore_pam,
+                                               all_alignments=all_alignments,
+                                               force_spacer_length=TRUE),
+        "bwa"=crisprBwa::runCrisprBwa(spacers=spacers,
+                                      bwa_index=aligner_index,
+                                      bsgenome=bsgenome,
+                                      n_mismatches=n_mismatches,
+                                      crisprNuclease=crisprNuclease,
+                                      canonical=canonical,
+                                      ignore_pam=ignore_pam,
+                                      force_spacer_length=TRUE)
+    )
+    results <- .alignmentOutput2GRanges(alignments=results,
+                                        crisprNuclease=crisprNuclease)
+    results <- .setAlignmentSeqInfo(alignments=results,
+                                    bsgenome=bsgenome,
+                                    standard_chr_only=standard_chr_only)
+    alignmentParams <- list(n_mismatches=n_mismatches,
+                            canonical=canonical,
+                            spacer_len=spacerLength)
+    if (aligner == "bowtie"){
+        alignmentParams[["n_max_alignments"]] <- n_max_alignments
+        alignmentParams[["all_alignments"]] <- all_alignments
+    }
+    results <- .addAlignmentsMetadata(results,
+                                      aligner=aligner,
+                                      crisprNuclease=crisprNuclease,
+                                      alignmentParams=alignmentParams)
+    names(results) <- paste0("aln_", seq_along(results), recycle0=TRUE)
+    return(results)
+}
+
+
+
+#' @importClassesFrom GenomicRanges GRanges
+#' @importFrom IRanges IRanges
+#' @importFrom S4Vectors mcols mcols<-
+#' @importFrom Biostrings DNAStringSet
+#' @importFrom BiocGenerics strand
+.alignmentOutput2GRanges <- function(alignments,
+                                     crisprNuclease
+){
+    mcols <- c("spacer", "protospacer", "pam", "pam_site", "n_mismatches",
+               "canonical")
+    mcols <- alignments[, mcols, drop=FALSE]
+    alignments <- GenomicRanges::GRanges(alignments$chr,
+                                         IRanges::IRanges(start=alignments$pam_site,
+                                                          width=1),
+                                         strand=as.character(alignments$strand))
+    S4Vectors::mcols(alignments) <- mcols
+    seqCols <- c("spacer", "protospacer", "pam")
+    for (i in seqCols){
+        S4Vectors::mcols(alignments)[[i]] <-
+            Biostrings::DNAStringSet(S4Vectors::mcols(alignments)[[i]])
+    }
+    strandChar <- as.character(BiocGenerics::strand(alignments))
+    alignments$cut_site <- getCutSiteFromPamSite(pam_site=alignments$pam_site,
+                                                 strand=strandChar,
+                                                 crisprNuclease=crisprNuclease)
+    return(alignments)
+}
+
+
+
+#' @importFrom GenomeInfoDb seqnames seqlevels seqlevels<-
+#' @importFrom GenomeInfoDb seqinfo seqinfo<- keepStandardChromosomes
+.setAlignmentSeqInfo <- function(alignments,
+                                 bsgenome,
+                                 standard_chr_only
+){
+    alignments <- alignments[GenomeInfoDb::seqnames(alignments) != "chrEBV"]
+    mtChr <- GenomeInfoDb::seqlevels(alignments) == "chrMT"
+    GenomeInfoDb::seqlevels(alignments)[mtChr] <- "chrM"
+    
+    GenomeInfoDb::seqlevels(alignments) <- GenomeInfoDb::seqlevels(bsgenome)
+    GenomeInfoDb::seqinfo(alignments) <- GenomeInfoDb::seqinfo(bsgenome)
+    if (standard_chr_only){
+        alignments <- GenomeInfoDb::keepStandardChromosomes(alignments,
+                                                            pruning.mode="coarse")
+    }
+    return(alignments)
+}
+
+
+
+#' @importFrom S4Vectors metadata<-
+.addAlignmentsMetadata <- function(alignments,
+                                   aligner,
+                                   crisprNuclease,
+                                   alignmentParams
+){
+    S4Vectors::metadata(alignments)[["aligner"]] <- aligner
+    S4Vectors::metadata(alignments)[["crisprNuclease"]] <- crisprNuclease
+    for (i in seq_along(alignmentParams)){
+        name <- names(alignmentParams)[i]
+        value <- alignmentParams[[i]]
+        S4Vectors::metadata(alignments)[[name]] <- value
+    }
+    return(alignments)
+}
+
+
+
+#' @importFrom BiocGenerics rbind
+#' @importFrom GenomicRanges GRanges
+#' @importFrom IRanges IRanges
+#' @importFrom Biostrings DNAStringSet
+#' @importFrom crisprBase motifs
+#' @importClassesFrom GenomeInfoDb Seqinfo
+.getSpacerAlignments_biostrings <- function(spacers,
+                                            custom_seq,
+                                            n_mismatches, 
+                                            crisprNuclease,
+                                            canonical,
+                                            ignore_pam,
+                                            both_strands
+){
+    custom_seq <- .validateDNACharacterVariable(seq=custom_seq,
+                                                argument="custom_seq",
+                                                len=1,
+                                                nullOk=FALSE,
+                                                exactBases=FALSE)
+    
+    results <- lapply(spacers, function(x){
+        .getCustomSeqAlignments(spacer=x,
+                                custom_seq=custom_seq,
+                                n_mismatches=n_mismatches,
+                                crisprNuclease=crisprNuclease,
+                                both_strands=both_strands)
+    })
+    results <- Reduce(BiocGenerics::rbind, results)
+    results <- GenomicRanges::GRanges(
+        seqnames=rep("custom", nrow(results)),
+        ranges=IRanges::IRanges(start=results$pam_site, width=1),
+        strand=results$strand,
+        spacer=Biostrings::DNAStringSet(results$spacer),
+        protospacer=Biostrings::DNAStringSet(results$seq),
+        pam=Biostrings::DNAStringSet(results$pam),
+        pam_site=results$pam_site)
+    if (!ignore_pam){
+        pamMotifs <- crisprBase::motifs(crisprNuclease,
+                                        primary=canonical,
+                                        expand=TRUE,
+                                        as.character=TRUE)
+        results <- results[results$pam %in% pamMotifs]
+    }
+    results$n_mismatches <- vapply(seq_along(results), function(x){
+        adist(results$spacer[x], results$protospacer[x])
+    }, FUN.VALUE=numeric(1))
+    canonicalMotifs <- crisprBase::motifs(crisprNuclease,
+                                          primary=TRUE,
+                                          expand=TRUE,
+                                          as.character=TRUE)
+    results$canonical <- results$pam %in% canonicalMotifs
+    results$cut_site <- getCutSiteFromPamSite(pam_site=results$pam_site,
+                                              strand=as.character(strand(results)),
+                                              crisprNuclease=crisprNuclease)
+    seqinfo(results) <- GenomeInfoDb::Seqinfo(seqnames="custom",
+                                              seqlengths=nchar(custom_seq),
+                                              isCircular=FALSE,
+                                              genome="custom")
+    
+    alignmentParams <- list(n_mismatches=n_mismatches,
+                            canonical=canonical,
+                            both_strands=both_strands,
+                            spacer_len <- unique(nchar(results$spacer)),
+                            custom_seq=Biostrings::DNAStringSet(custom_seq))
+    results <- .addAlignmentsMetadata(results,
+                                      aligner="biostrings",
+                                      crisprNuclease=crisprNuclease,
+                                      alignmentParams=alignmentParams)
+    
+    names(results) <- paste0("aln_", seq_along(results), recycle0=TRUE)
+    return(results)
+}
+
+
+
+#' @importFrom BiocGenerics rbind
+.getCustomSeqAlignments <- function(spacer,
+                                    custom_seq,
+                                    n_mismatches,
+                                    crisprNuclease,
+                                    both_strands
+){
+    hits <- .getCustomSeqPatternHits(spacer=spacer,
+                                     custom_seq=custom_seq,
+                                     n_mismatches=n_mismatches,
+                                     strand="+")
+    if (both_strands){
+        hits_rev <- .getCustomSeqPatternHits(spacer=spacer,
+                                             custom_seq=.revComp(custom_seq),
+                                             n_mismatches=n_mismatches,
+                                             strand="-")
+        new_start <- nchar(custom_seq) - hits_rev$end + 1
+        hits_rev$end <- nchar(custom_seq) - hits_rev$start + 1
+        hits_rev$start <- new_start
+        hits <- BiocGenerics::rbind(hits, hits_rev)
+    }
+    hits$spacer <- rep(spacer, nrow(hits))
+    hits$pam_site <- .getPamSiteFromSpacerRange(start=hits$start,
+                                                end=hits$end,
+                                                strand=hits$strand,
+                                                crisprNuclease=crisprNuclease)
+    hits$pam <- .getPamFromCustomSeq(custom_seq=custom_seq,
+                                     pam_site=hits$pam_site,
+                                     strand=hits$strand,
+                                     crisprNuclease=crisprNuclease)
+    return(hits)
+}
+
+
+
+#' @importFrom Biostrings matchPattern
+#' @importFrom BiocGenerics start end as.data.frame
+.getCustomSeqPatternHits <- function(spacer,
+                                     custom_seq,
+                                     n_mismatches,
+                                     strand
+){
+    hits <-  Biostrings::matchPattern(spacer,
+                                      custom_seq,
+                                      max.mismatch=n_mismatches)
+    inRange5Prime <- BiocGenerics::start(hits) > 0
+    inRange3Prime <- BiocGenerics::end(hits) <= nchar(custom_seq)
+    hits <- hits[inRange5Prime & inRange3Prime]
+    hits <- BiocGenerics::as.data.frame(hits)
+    hits$strand <- rep(strand, nrow(hits))
+    return(hits)
+}
+
+
+
+#' @importFrom crisprBase pamSide pamLength spacerGap
+.getPamSiteFromSpacerRange <- function(start,
+                                       end,
+                                       strand,
+                                       crisprNuclease
+){
+    pamSide <- crisprBase::pamSide(crisprNuclease)
+    pamLength <- crisprBase::pamLength(crisprNuclease)
+    gap <- crisprBase::spacerGap(crisprNuclease)
+    pam_site <- rep(0, length(start))
+    
+    if (pamSide == "3prime"){
+        pam_site[strand == "+"] <- end[strand == "+"] + gap + 1
+        pam_site[strand == "-"] <- start[strand == "-"] - gap - 1
+    } else {
+        pam_site[strand == "+"] <- start[strand == "+"] - gap - pamLength - 1
+        pam_site[strand == "-"] <- end[strand == "-"] + gap + pamLength + 1
+    }
+    return(pam_site)
+}
+
+
+
+#' @importFrom crisprBase pamLength
+.getPamFromCustomSeq <- function(custom_seq,
+                                 pam_site,
+                                 strand,
+                                 crisprNuclease
+){
+    pamLength <- crisprBase::pamLength(crisprNuclease)
+    pams <- vapply(seq_along(pam_site), function(x){
+        if (strand[x] == "+"){
+            start <- pam_site[x]
+            seq <- custom_seq
+        } else {
+            start <- nchar(custom_seq) - pam_site[x] + 1
+            seq <- .revComp(custom_seq)
+        }
+        substr(seq, start, start+pamLength-1)
+    }, FUN.VALUE=character(1))
+    return(pams)
+}
+
+
+
+#' @importFrom S4Vectors mcols mcols<- subjectHits
+#' @importFrom GenomicRanges distanceToNearest
+.addGeneAnnotationColumns <- function(aln,
+                                      txObject,
+                                      anchor
+){
+    if (is.null(txObject)){
         return(aln)
     }
+    txObject <- .validateGRangesList(txObject)
     
-    aln_gr <- aln
-    ranges(aln_gr) <- IRanges(start=mcols(aln_gr)[[anchor]], width=1)
-    ref <- .validateGRangesList(txObject)
-    GenomeInfoDb::seqlevelsStyle(ref) <- GenomeInfoDb::seqlevelsStyle(aln)
-    
-    # Adding gene info columns:
-    regions <- c("cds",
-                 "fiveUTRs",
-                 "threeUTRs",
-                 "exons",
-                 "introns")
-    for (region in regions) {
-        overlaps <- suppressWarnings(findOverlaps(aln_gr,
-                                                  ref[[region]],
-                                                  ignore.strand=ignore.strand))
-        aln <- .addOverlapGenes(dat=aln,
-                                ref=ref,
-                                overlaps=overlaps,
-                                region=region)
+    regions <- c("cds", "fiveUTRs", "threeUTRs", "exons", "introns")
+    for (i in regions) {
+        regionAnnotation <- .addGeneOverlapByRegion(aln=aln,
+                                                    geneRegionModel=txObject[[i]],
+                                                    anchor=anchor)
+        S4Vectors::mcols(aln)[[i]] <- regionAnnotation
     }
     
-    # Adding intergenic info when everything is empty:
-    mcols(aln)$intergenic <- NA
-    geneAnn <- mcols(aln[, regions, drop=FALSE])
-    wh <- which(rowSums(is.na(geneAnn)) == ncol(geneAnn))
-    if (length(wh) > 0) {
-        upstream   <- precede(aln_gr[wh], ref$transcripts)
-        downstream <- follow(aln_gr[wh], ref$transcripts)
-        genes_up   <- ref$transcripts$gene_symbol[upstream]
-        genes_up[is.na(genes_up)] <- ref$transcripts$tx_id[upstream][is.na(genes_up)]
-        genes_down <- ref$transcripts$gene_symbol[downstream]
-        genes_down[is.na(genes_down)] <- ref$transcripts$tx_id[downstream][is.na(genes_down)]
-        flanking_genes <- paste(genes_up, "<->", genes_down)
-        flanking_genes[flanking_genes == "NA <-> NA"] <- NA
-        mcols(aln)$intergenic[wh] <- flanking_genes
-    }
+    intergenicAnnotation <- lapply(seq_along(aln), function(x){
+        geneRegionAnnotation <- S4Vectors::mcols(aln)[x, regions]
+        if (any(!is.na(geneRegionAnnotation))){
+            results <- data.frame(gene=NA_character_,
+                                  dist=NA_integer_)
+            return(results)
+        }
+        hit <- GenomicRanges::distanceToNearest(aln[x],
+                                                txObject[["transcripts"]],
+                                                ignore.strand=TRUE)
+        nearestGene <- txObject[["transcripts"]][S4Vectors::subjectHits(hit)]
+        geneSymbol <- S4Vectors::mcols(nearestGene)[["gene_symbol"]]
+        if (is.na(geneSymbol) || geneSymbol == ""){
+            nearestGene <- S4Vectors::mcols(nearestGene)[["gene_id"]]
+        } else {
+            nearestGene <- geneSymbol
+        }
+        nearestGene <- paste0(nearestGene, collapse=";")
+        nearestDistance <- S4Vectors::mcols(hit)[["distance"]]
+        results <- data.frame(gene=nearestGene,
+                              dist=nearestDistance)
+        return(results)
+    })
+    intergenicAnnotation <- Reduce(rbind, intergenicAnnotation)
+    S4Vectors::mcols(aln)[["intergenic"]] <- intergenicAnnotation$gene
+    S4Vectors::mcols(aln)[["intergenic_distance"]] <- intergenicAnnotation$dist
+    
     return(aln)
 }
 
 
 
-.addOverlapGenes <- function(dat,
-                             ref,
-                             overlaps,
-                             region
+#' @importFrom IRanges IRanges ranges<-
+#' @importFrom GenomicRanges findOverlaps
+#' @importFrom S4Vectors queryHits subjectHits mcols
+.addGeneOverlapByRegion <- function(aln,
+                                    geneRegionModel,
+                                    anchor
 ){
-    mcols(dat)[[region]] <- NA
-    if (length(overlaps) == 0) {
-        return(dat)
-    }
-    if (.isGRangesList(ref)) {
-        tx <- mcols(ref$transcripts)
-        gr_gene <- mcols(ref[[region]])
-    } else {
-        tx <- NULL
-        gr_gene <- mcols(ref)
-    }
-    if ("gene_symbol" %in% names(gr_gene)){
-        gene_col <- "gene_symbol"
-    } else if ("gene_id" %in% names(gr_gene)){
-        gene_col <- "gene_id"
-    } else {
-        gene_col <- "tx_id"
-    }
-    mcols(overlaps)$gene <- gr_gene[[gene_col]][subjectHits(overlaps)]
-    if (!is.null(tx)) {
-        mcols(overlaps)$gene <- tx$gene_symbol[match(mcols(overlaps)$gene, 
-                                                     tx[[gene_col]])]
-    }
-    genes <- split(mcols(overlaps)$gene,
-                   f=queryHits(overlaps))
-    genes <- vapply(genes, function(x) {
-        paste0(unique(x), collapse = ";")
-    }, FUN.VALUE="a")
-    mcols(dat)[[region]][match(names(genes), seq_along(dat))] <- genes
-    return(dat)
+    anchor <- .validateAnchor(anchor, aln)
+    IRanges::ranges(aln) <- IRanges::IRanges(start=S4Vectors::mcols(aln)[[anchor]],
+                                             width=1)
+    overlaps <- suppressWarnings(
+        GenomicRanges::findOverlaps(aln,
+                                    geneRegionModel,
+                                    ignore.strand=TRUE)
+        )
+    
+    regionAnnotation <- vapply(seq_along(aln), function(x){
+        if (!x %in% S4Vectors::queryHits(overlaps)){
+            return(NA_character_)
+        }
+        indicesOfHits <- S4Vectors::queryHits(overlaps) == x
+        regionHits <- S4Vectors::subjectHits(overlaps)[indicesOfHits]
+        geneRegionModelSubset <- S4Vectors::mcols(geneRegionModel)[regionHits,]
+        geneHits <- geneRegionModelSubset[["gene_symbol"]]
+        geneIds <- geneRegionModelSubset[["gene_id"]]
+        missingSymbols <- is.na(geneHits) | geneHits == ""
+        geneHits[missingSymbols] <- geneIds[missingSymbols]
+        if (all(geneHits == "")){
+            return(NA_character_)
+        }
+        geneHits <- geneHits[geneHits != ""]
+        geneHits <- unique(geneHits)
+        paste0(geneHits, collapse=";")
+    }, FUN.VALUE=character(1))
+    
+    return(regionAnnotation)
 }
 
 
 
-
-
-
+#' @importFrom GenomicRanges promoters
+#' @importFrom S4Vectors mcols<-
 .addPromoterAnnotationColumns <- function(aln,
-                                          anchor=c("cut_site","pam_site"),
-                                          tssObject=NULL,
-                                          tss_window=NULL,
-                                          ignore.strand=TRUE
+                                          tssObject,
+                                          tss_window,
+                                          anchor
 ){
+    if (is.null(tssObject)){
+        return(aln)
+    }
     tssObject <- .validateTssObject(tssObject)
-    # genome <- metadata(aln)$genome
-    anchor <- match.arg(anchor)
-    anchor <- .validateAnchor(anchor, aln)
     tss_window <- .validateTssWindow(tss_window)
     
-    #To change...
-    if (length(aln) == 0) {
-        aln$promoters <- character(0)
-        return(aln)
-    }
-    
-    aln_gr <- aln
-    ranges(aln_gr) <- IRanges(start=mcols(aln_gr)[[anchor]], width=1)
-    if (!is.null(tssObject)){
-        ref_tss <- promoters(tssObject,
-                             upstream = (-1 * tss_window[1]), 
-                             downstream = tss_window[2])
-    } else {
-        ref_tss <- NULL
-    }
-    
-    # Adding TSS info columns:
-    if (!is.null(ref_tss)) {
-        overlaps <- suppressWarnings(findOverlaps(aln_gr,
-                                                  ref_tss,
-                                                  ignore.strand=ignore.strand))
-        
-        aln <- .addOverlapGenes(dat=aln,
-                                ref=ref_tss,
-                                overlaps=overlaps,
-                                region="promoters")
-    }
+    tssObject <- GenomicRanges::promoters(tssObject,
+                                          upstream=(-1*tss_window[1]),
+                                          downstream=tss_window[2])
+    promoterAnnotation <- .addGeneOverlapByRegion(aln,
+                                                  geneRegionModel=tssObject,
+                                                  anchor=anchor)
+    S4Vectors::mcols(aln)[["promoters"]] <- promoterAnnotation
     return(aln)
+}
+
+
+
+#' @importFrom S4Vectors mcols mcols<-
+#' @importFrom BiocGenerics cbind
+.addAlignmentsSummary <- function(guideSet,
+                                  aln,
+                                  addSummary,
+                                  spacers,
+                                  n_mismatches
+){
+    if (addSummary){
+        hasAlnSummaryCols <- any(grepl("^n[0-9](_[cp])?$",
+                                       colnames(S4Vectors::mcols(guideSet))))
+        if (hasAlnSummaryCols){
+            warning("Overwriting existing alignments summary. ",
+                    "To avoid overwriting, set addSummary=FALSE.")
+        }
+        
+        alignmentSummary <- .getAlignmentsSummary(aln=aln,
+                                                  spacers=spacers,
+                                                  n_mismatches=n_mismatches)
+        S4Vectors::mcols(guideSet) <- BiocGenerics::cbind(
+            S4Vectors::mcols(guideSet),
+            alignmentSummary)
+    }
+    return(guideSet)
+}
+
+
+
+#' @importFrom S4Vectors mcols
+.getAlignmentsSummary <- function(aln,
+                                  spacers,
+                                  n_mismatches
+){
+    seq_mismatches <- c(0, seq_len(n_mismatches))
+    alignmentsSummary <- .tallyAlignments(aln=aln,
+                                          seq_mismatches=seq_mismatches,
+                                          spacers=spacers,
+                                          suffix="")
+    
+    hasGeneAnnotation <- "cds" %in% colnames(S4Vectors::mcols(aln))
+    if (hasGeneAnnotation){
+        targetInCds <- !is.na(S4Vectors::mcols(aln)[["cds"]])
+        alnCds <- aln[targetInCds]
+        cdsAlignments <- .tallyAlignments(aln=alnCds,
+                                          seq_mismatches=seq_mismatches,
+                                          spacers=spacers,
+                                          suffix="_c")
+        alignmentsSummary <- cbind(alignmentsSummary, cdsAlignments)
+    }
+    
+    hasPromoterAnnotation <- "promoters" %in% colnames(S4Vectors::mcols(aln))
+    if (hasPromoterAnnotation){
+        targetInPromoter <- !is.na(S4Vectors::mcols(aln)[["promoters"]])
+        alnPromoter <- aln[targetInPromoter]
+        promoterAlignments <- .tallyAlignments(aln=alnPromoter,
+                                               seq_mismatches=seq_mismatches,
+                                               spacers=spacers,
+                                               suffix="_p")
+        alignmentsSummary <- cbind(alignmentsSummary, promoterAlignments)
+    }
+    
+    return(alignmentsSummary)
+}
+
+
+
+#' @importFrom S4Vectors mcols
+.tallyAlignments <- function(aln,
+                             seq_mismatches,
+                             spacers,
+                             suffix
+){
+    tally <- lapply(seq_mismatches, function(i){
+        tallyByMismatchType <- vapply(spacers, function(ii){
+            mismatchHits <- S4Vectors::mcols(aln)[["n_mismatches"]] == i
+            spacerHits <- S4Vectors::mcols(aln)[["spacer"]] == ii
+            sum(mismatchHits & spacerHits)
+        }, FUN.VALUE=numeric(1))
+        data.frame(tallyByMismatchType)
+    })
+    tally <- Reduce(cbind, tally)
+    colnames(tally) <- paste0("n", seq_mismatches, suffix)
+    return(tally)
 }

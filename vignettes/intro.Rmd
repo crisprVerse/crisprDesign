@@ -317,9 +317,12 @@ bowtie_index <- file.path(outdir, "chr12")
 and we pass the bowtie index path to the `addSpacerAlignments` function:
 
 ```{r, results='hide', warning=FALSE}
+library(BSgenome.Hsapiens.UCSC.hg38)
+bsgenome <- BSgenome.Hsapiens.UCSC.hg38
 guideSet <- addSpacerAlignments(guideSet,
                                 txObject=grListExample,
-                                bowtie_index=bowtie_index,
+                                aligner_index=bowtie_index,
+                                bsgenome=bsgenome,
                                 n_mismatches=1)
 ```
 
@@ -605,10 +608,10 @@ One can also search for off-targets in a custom sequence as follows:
 ontarget <- "AAGACCCGGGCGCGGGGCGGGGG"
 offtarget <- "TTGACCCGGGCGCGGGGCGGGGG"
 gs <- findSpacers(ontarget)
-gs <- addSpacerAlignments(gs,
-                          n_mismatches=2,
-                          aligner="biostrings",
-                          custom_seq=offtarget)
+# gs <- addSpacerAlignments(gs,
+#                           aligner="biostrings",
+#                           n_mismatches=2,
+#                           custom_seq=offtarget)
 ```
 
 

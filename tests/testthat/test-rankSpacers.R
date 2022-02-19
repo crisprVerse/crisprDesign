@@ -1,5 +1,4 @@
 update <- TRUE
-library(GenomicRanges)
 
 gs_as_gr <- GRanges(seqnames=seqnames(guideSetExample),
                     ranges=IRanges(start=start(guideSetExample),

@@ -15,9 +15,7 @@ addSpacerAlignmentsIterative(
   txObject = NULL,
   tssObject = NULL,
   custom_seq = NULL,
-  bowtie_index = NULL,
-  bwa_index = NULL,
-  seqlevelsStyle = c("UCSC", "NCBI"),
+  aligner_index = NULL,
   bsgenome = NULL,
   n_mismatches = 0,
   all_alignments = FALSE,
@@ -25,6 +23,7 @@ addSpacerAlignmentsIterative(
   ignore_pam = FALSE,
   standard_chr_only = TRUE,
   both_strands = TRUE,
+  anchor = c("cut_site", "pam_site"),
   tss_window = NULL,
   n0_max = 5,
   n1_max = 100,
@@ -39,9 +38,7 @@ addSpacerAlignments(
   txObject = NULL,
   tssObject = NULL,
   custom_seq = NULL,
-  bowtie_index = NULL,
-  bwa_index = NULL,
-  seqlevelsStyle = c("UCSC", "NCBI"),
+  aligner_index = NULL,
   bsgenome = NULL,
   n_mismatches = 0,
   n_max_alignments = 1000,
@@ -50,6 +47,7 @@ addSpacerAlignments(
   ignore_pam = FALSE,
   standard_chr_only = TRUE,
   both_strands = TRUE,
+  anchor = c("cut_site", "pam_site"),
   tss_window = NULL
 )
 
@@ -57,9 +55,7 @@ getSpacerAlignments(
   spacers,
   aligner = c("bowtie", "bwa", "biostrings"),
   custom_seq = NULL,
-  bowtie_index = NULL,
-  bwa_index = NULL,
-  seqlevelsStyle = c("UCSC", "NCBI"),
+  aligner_index = NULL,
   bsgenome = NULL,
   n_mismatches = 0,
   n_max_alignments = 1000,
@@ -95,15 +91,9 @@ on-target and off-target alignments using gene annotation.}
 the search space. This will limit the off-target
 search to the specified custom sequence.}
 
-\item{bowtie_index}{String specifying bowtie index.
-Must be provided when \code{aligner=="bowtie"}.}
-
-\item{bwa_index}{String specifying BWA index.
-Must be provided when \code{aligner=="bwa"}.}
-
-\item{seqlevelsStyle}{String specifying which type of seqnames
-should be used. Default is "UCSC" (e.g. "chr7"; "NCBI"
-style would be "7").}
+\item{aligner_index}{String specifying bowtie or BWA index.
+Must be provided when \code{aligner} is either \code{"bowtie"} or
+\code{"bwa"}.}
 
 \item{bsgenome}{A \linkS4class{BSgenome} object from which to extract
 sequences if a \linkS4class{GRanges} object is provided as input.}
@@ -125,6 +115,10 @@ TRUE by default.}
 
 \item{both_strands}{When \code{custom_seq} is specified,
 should both strands be considered? TRUE by default.}
+
+\item{anchor}{The position within the protospacer as determined by
+\linkS4class{CrisprNuclease} to use when annotating with overlapping
+gene regions.}
 
 \item{tss_window}{Window size of promoters upstream of gene TSS to search
 for overlap with spacer sequence. Must be a numeric vector of length 2:
@@ -175,38 +169,53 @@ Functions for finding and characterizing on- and off-targets of
     spacer sequences.
 }
 \details{
-The columns stored in
-\code{mcols(guideSet)[["geneAnnotation"]]} are:
+The columns stored in \code{mcols(guideSet)[["alignments"]]} are:
 
 \itemize{
 \item \code{spacer} Spacer sequence of the query gRNA.
 \item \code{protospacer} Protospacer sequence in the target DNA.
 \item \code{pam} PAM sequence.
 \item \code{pam_site} PAM site of the found protospacer.
-\item \code{cute_site} Cut site of the found protospacer.
 \item \code{n_mismatches} Integer value specifying the number
     of nucleotide mismatches between the gRNA spacer sequence 
     and the protospacer sequence found in the genome or custom sequence.
-\item \code{canonical} Is the PAM sequence of the found protospacer sequence
-    canonical?
+\item \code{canonical} Whether the PAM sequence of the found protospacer
+    sequence is canonical.
+\item \code{cute_site} Cut site of the found protospacer.
+}
+
+The following columns are also stored when a \code{txObject} is provided:
+
+\itemize{
 \item \code{cds} Character vector specifying gene names of CDS overlapping
     the found protospacer sequence.
-\item \code{fiveUTRs} Character vector specifying gene names of 5'UTRs overlapping
+\item \code{fiveUTRs} Character vector specifying gene names of 5'UTRs
+    overlapping the found protospacer sequence.
+\item \code{threeUTRs} Character vector specifying gene names of 3'UTRs
+    overlapping the found protospacer sequence.
+\item \code{exons} Character vector specifying gene names of exons
+    overlapping the found protospacer sequence.
+\item \code{introns} Character vector specifying gene names of introns
+    overlapping the found protospacer sequence.
+\item \code{intergenic} Character vector specifying the nearest gene when
+    the found protospacer sequence is not located in a gene.
+\item \code{intergenic_distance} Distance in base pairs from the nearest
+    gene when the found protospacer sequence is not located in a gene.
+}
+
+The following columns are also stored when a \code{tssObject} is provided:
+
+\itemize{
+\item \code{promoters} Character vector specifying gene names of promoters,
+    as defined by \code{tss_window} relative to the gene TSS, overlapping
     the found protospacer sequence.
-\item \code{threeUTRs} Character vector specifying gene names of 3'UTRs overlapping
-    the found protospacer sequence.
-\item \code{exons} Character vector specifying gene names of exons overlapping
-    the found protospacer sequence.
-\item \code{introns} Character vector specifying gene names of introns overlapping
-    the found protospacer sequence.
-\item \code{intergenic} Character vector specifying neighborhood genes when the found
-    protospacer sequence is not located in a gene.
 }
 }
 \examples{
 
 # Creating a bowtie index:
 library(Rbowtie)
+library(BSgenome.Hsapiens.UCSC.hg38)
 fasta <- system.file(package="crisprDesign", "fasta/chr12.fa")
 outdir <- tempdir()
 Rbowtie::bowtie_build(fasta,
@@ -220,12 +229,13 @@ data(guideSetExample, package="crisprDesign")
 data(grListExample, package="crisprDesign")
 guideSet <- addSpacerAlignments(guideSetExample,
                                 aligner="bowtie",
-                                bowtie_index=bowtieIndex,
+                                aligner_index=bowtieIndex,
+                                bsgenome=BSgenome.Hsapiens.UCSC.hg38,
                                 n_mismatches=2,
                                 txObject=grListExample)
 
 
 }
 \author{
-Jean-Philippe Fortin
+Jean-Philippe Fortin, Luke Hoberecht
 }
