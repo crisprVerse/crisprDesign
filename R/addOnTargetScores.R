@@ -153,8 +153,8 @@ addOnTargetScores <- function(guideSet,
     left <- -1*roster$left
     right <- roster$right
     extendedSequences <- .getExtendedSequences(guideSet,
-                                               left=left,
-                                               right=right)
+                                               start=left,
+                                               end=right)
     good <- !is.na(extendedSequences)
     scores <- rep(NA, length(extendedSequences))
     if (any(good)){

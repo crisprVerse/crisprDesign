@@ -306,27 +306,42 @@ convertToProtospacerGRanges <- function(guideSet){
 
 
 
-#' @importFrom IRanges promoters
+
+
 #' @importFrom IRanges trim
 #' @importFrom BSgenome getSeq
 .getExtendedSequences <- function(guideSet,
-                                  left,
-                                  right
+                                  start,
+                                  end
 ){
     guideSet <- .validateGuideSet(guideSet)
-    guideSet <- suppressWarnings(promoters(guideSet,
-                                           upstream=abs(left),
-                                           downstream=abs(right)+1))
-    guideSet <- GenomicRanges::trim(guideSet) #Taking care of invalid values
-    if (targetOrigin(guideSet)=="customSequences"){
-        seqs <- getSeq(customSequences(guideSet),guideSet)
+    
+    gr <- guideSet
+    wh_neg <- which(as.character(strand(gr))=="-")
+    # The order of resizing IRanges matters
+    # to presever the validity of a positive width.
+    if (start>0 & end>0){
+        end(gr)   <- end(guideSet)+end
+        start(gr) <- start(guideSet)+start
+        start(gr)[wh_neg] <- start(guideSet)[wh_neg]-end
+        end(gr)[wh_neg]   <- end(guideSet)[wh_neg]-start
     } else {
-        seqs <- getSeq(bsgenome(guideSet), guideSet)
+        start(gr) <- start(guideSet)+start
+        end(gr)   <- end(guideSet)+end
+        end(gr)[wh_neg]   <- end(guideSet)[wh_neg]-start
+        start(gr)[wh_neg] <- start(guideSet)[wh_neg]-end
+    }
+
+    gr <- GenomicRanges::trim(gr) #Taking care of invalid values
+    if (targetOrigin(guideSet)=="customSequences"){
+        seqs <- getSeq(customSequences(guideSet),gr)
+    } else {
+        seqs <- getSeq(bsgenome(guideSet), gr)
     }
     seqs <- as.character(seqs)
 
     #Making sure the sequences are not out of bound:
-    len = right+left+1 # Expected length
+    len = end-start+1 # Expected length
     seqs[seqs==""] <- NA
     seqs[nchar(seqs)<len] <- NA
     return(seqs)
