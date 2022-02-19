@@ -137,6 +137,8 @@ getTxInfoDataFrame <- function(tx_id,
     metadata(out)$tx_id <- tx_id
     metadata(out)$extend <- extend
     metadata(out)$bsgenome <- bsgenome@pkgname
+    metadata(out)$gene_strand <- out$strand[1]
+    out$strand <- NULL
     return(out)
 }
 
