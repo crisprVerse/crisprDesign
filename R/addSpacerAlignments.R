@@ -221,7 +221,7 @@ addSpacerAlignmentsIterative <- function(guideSet,
 
 #' @rdname addSpacerAlignments
 #' @export
-#' @importFrom S4Vectors split mcols<-
+#' @importFrom S4Vectors split mcols mcols<-
 addSpacerAlignments <- function(guideSet,
                                 aligner=c("bowtie", "bwa", "biostrings"),
                                 columnName="alignments",
@@ -246,9 +246,7 @@ addSpacerAlignments <- function(guideSet,
     .checkString("columnName", columnName)
     n_mismatches <- .validateNumberOfMismatches(n_mismatches, aligner)
     anchor <- match.arg(anchor)
-    
-    spacers <- spacers(guideSet,
-                       as.character=TRUE)
+    spacers <- spacers(guideSet, as.character=TRUE)
     uniqueSpacers <- unique(spacers)
     
     aln <- getSpacerAlignments(spacers=uniqueSpacers,
@@ -264,6 +262,7 @@ addSpacerAlignments <- function(guideSet,
                                ignore_pam=ignore_pam,
                                standard_chr_only=standard_chr_only,
                                both_strands=both_strands)
+    # for both, need to check if txObject/tssObject have compatible seqinfo with bsgenome (or custom_seq...)
     aln <- .addGeneAnnotationColumns(aln,
                                      txObject=txObject,
                                      anchor=anchor)
@@ -277,7 +276,8 @@ addSpacerAlignments <- function(guideSet,
                                       n_mismatches=n_mismatches,
                                       spacers=spacers)
     aln <- S4Vectors::split(aln,
-                            f=factor(aln$spacer, levels=uniqueSpacers))
+                            f=factor(S4Vectors::mcols(aln)$spacer,
+                                     levels=uniqueSpacers))
     aln <- aln[spacers]
     names(aln) <- names(guideSet)
     S4Vectors::mcols(guideSet)[[columnName]] <- aln
@@ -506,8 +506,10 @@ getSpacerAlignments <- function(spacers,
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
 #' @importFrom Biostrings DNAStringSet
+#' @importFrom S4Vectors mcols mcols<-
 #' @importFrom crisprBase motifs
 #' @importClassesFrom GenomeInfoDb Seqinfo
+#' @importFrom GenomeInfoDb seqinfo<-
 .getSpacerAlignments_biostrings <- function(spacers,
                                             custom_seq,
                                             n_mismatches, 
@@ -516,6 +518,7 @@ getSpacerAlignments <- function(spacers,
                                             ignore_pam,
                                             both_strands
 ){
+    ## change to allow custom_seq of any length, and as DNAStringSet
     custom_seq <- .validateDNACharacterVariable(seq=custom_seq,
                                                 argument="custom_seq",
                                                 len=1,
@@ -538,28 +541,34 @@ getSpacerAlignments <- function(spacers,
         protospacer=Biostrings::DNAStringSet(results$seq),
         pam=Biostrings::DNAStringSet(results$pam),
         pam_site=results$pam_site)
+    resultsPams <- as.character(S4Vectors::mcols(results)$pam)
     if (!ignore_pam){
         pamMotifs <- crisprBase::motifs(crisprNuclease,
                                         primary=canonical,
                                         expand=TRUE,
                                         as.character=TRUE)
-        results <- results[results$pam %in% pamMotifs]
+        results <- results[resultsPams %in% pamMotifs]
+        resultsPams <- resultsPams[resultsPams %in% pamMotifs]
     }
     results$n_mismatches <- vapply(seq_along(results), function(x){
-        adist(results$spacer[x], results$protospacer[x])
+        adist(S4Vectors::mcols(results)$spacer[x],
+              S4Vectors::mcols(results)$protospacer[x])
     }, FUN.VALUE=numeric(1))
     canonicalMotifs <- crisprBase::motifs(crisprNuclease,
                                           primary=TRUE,
                                           expand=TRUE,
                                           as.character=TRUE)
-    results$canonical <- results$pam %in% canonicalMotifs
-    results$cut_site <- getCutSiteFromPamSite(pam_site=results$pam_site,
-                                              strand=as.character(strand(results)),
-                                              crisprNuclease=crisprNuclease)
-    seqinfo(results) <- GenomeInfoDb::Seqinfo(seqnames="custom",
-                                              seqlengths=nchar(custom_seq),
-                                              isCircular=FALSE,
-                                              genome="custom")
+    S4Vectors::mcols(results)$canonical <- resultsPams %in% canonicalMotifs
+    S4Vectors::mcols(results)$cut_site <- getCutSiteFromPamSite(
+        pam_site=results$pam_site,
+        strand=as.character(strand(results)),
+        crisprNuclease=crisprNuclease)
+    
+    GenomeInfoDb::seqinfo(results) <- GenomeInfoDb::Seqinfo(
+        seqnames="custom",
+        seqlengths=nchar(custom_seq),
+        isCircular=FALSE,
+        genome="custom")
     
     alignmentParams <- list(n_mismatches=n_mismatches,
                             canonical=canonical,
@@ -589,16 +598,12 @@ getSpacerAlignments <- function(spacers,
                                      n_mismatches=n_mismatches,
                                      strand="+")
     if (both_strands){
-        hits_rev <- .getCustomSeqPatternHits(spacer=spacer,
-                                             custom_seq=.revComp(custom_seq),
+        hits_rev <- .getCustomSeqPatternHits(spacer=.revComp(spacer),
+                                             custom_seq=custom_seq,
                                              n_mismatches=n_mismatches,
                                              strand="-")
-        new_start <- nchar(custom_seq) - hits_rev$end + 1
-        hits_rev$end <- nchar(custom_seq) - hits_rev$start + 1
-        hits_rev$start <- new_start
         hits <- BiocGenerics::rbind(hits, hits_rev)
     }
-    hits$spacer <- rep(spacer, nrow(hits))
     hits$pam_site <- .getPamSiteFromSpacerRange(start=hits$start,
                                                 end=hits$end,
                                                 strand=hits$strand,
@@ -627,6 +632,11 @@ getSpacerAlignments <- function(spacers,
     hits <- hits[inRange5Prime & inRange3Prime]
     hits <- BiocGenerics::as.data.frame(hits)
     hits$strand <- rep(strand, nrow(hits))
+    hits$spacer <- rep(spacer, nrow(hits))
+    if (strand == "-" && nrow(hits) > 0){
+        hits$seq <- .revComp(hits$seq)
+        hits$spacer <- .revComp(spacer)
+    }
     return(hits)
 }
 
@@ -687,6 +697,7 @@ getSpacerAlignments <- function(spacers,
         return(aln)
     }
     txObject <- .validateGRangesList(txObject)
+    # check that gene_symbol and gene_id are in transcripts/cds/promoters
     
     regions <- c("cds", "fiveUTRs", "threeUTRs", "exons", "introns")
     for (i in regions) {
@@ -751,8 +762,8 @@ getSpacerAlignments <- function(spacers,
         indicesOfHits <- S4Vectors::queryHits(overlaps) == x
         regionHits <- S4Vectors::subjectHits(overlaps)[indicesOfHits]
         geneRegionModelSubset <- S4Vectors::mcols(geneRegionModel)[regionHits,]
-        geneHits <- geneRegionModelSubset[["gene_symbol"]]
-        geneIds <- geneRegionModelSubset[["gene_id"]]
+        geneHits <- geneRegionModelSubset[["gene_symbol"]]      ## can be missing
+        geneIds <- geneRegionModelSubset[["gene_id"]]           ## required
         missingSymbols <- is.na(geneHits) | geneHits == ""
         geneHits[missingSymbols] <- geneIds[missingSymbols]
         if (all(geneHits == "")){
