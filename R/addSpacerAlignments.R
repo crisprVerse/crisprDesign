@@ -308,14 +308,8 @@ getSpacerAlignments <- function(spacers,
     }
     spacers <- as.character(spacers)
     aligner <- match.arg(aligner)
-    # should obtain from spacers if spacers is GuideSet
     crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
     n_mismatches <- .validateNumberOfMismatches(n_mismatches, aligner)
-    
-    if (!is.null(custom_seq) & aligner != "biostrings"){
-        aligner <- "biostrings"
-        message("Setting aligner to 'biostrings' since custom_seq is provided.")
-    }
     
     if (aligner %in% c("bowtie", "bwa")){
         aln <- .getSpacerAlignments_indexed(spacers=spacers,
@@ -518,12 +512,20 @@ getSpacerAlignments <- function(spacers,
                                             ignore_pam,
                                             both_strands
 ){
-    ## change to allow custom_seq of any length, and as DNAStringSet
+    ## separate function
+    custom_seq_names <- names(custom_seq)
     custom_seq <- .validateDNACharacterVariable(seq=custom_seq,
                                                 argument="custom_seq",
-                                                len=1,
+                                                len=NULL,
                                                 nullOk=FALSE,
                                                 exactBases=FALSE)
+    if (is.null(custom_seq_names)){
+        names(custom_seq) <- paste0("custom_seq", seq_along(custom_seq))
+    }
+    missingNames <- which(is.na(custom_seq_names) | custom_seq_names=="")
+    newNames <- paste0("custom_seq", missingNames, recycle0=TRUE)
+    names(custom_seq)[missingNames] <- newNames
+    ####################
     
     results <- lapply(spacers, function(x){
         .getCustomSeqAlignments(spacer=x,
@@ -534,7 +536,7 @@ getSpacerAlignments <- function(spacers,
     })
     results <- Reduce(BiocGenerics::rbind, results)
     results <- GenomicRanges::GRanges(
-        seqnames=rep("custom", nrow(results)),
+        seqnames=results$seqnames,
         ranges=IRanges::IRanges(start=results$pam_site, width=1),
         strand=results$strand,
         spacer=Biostrings::DNAStringSet(results$spacer),
@@ -564,16 +566,17 @@ getSpacerAlignments <- function(spacers,
         strand=as.character(strand(results)),
         crisprNuclease=crisprNuclease)
     
+    GenomeInfoDb::seqlevels(results) <- names(custom_seq)
     GenomeInfoDb::seqinfo(results) <- GenomeInfoDb::Seqinfo(
-        seqnames="custom",
+        seqnames=names(custom_seq),
         seqlengths=nchar(custom_seq),
-        isCircular=FALSE,
+        isCircular=rep(FALSE, length(custom_seq)),
         genome="custom")
     
     alignmentParams <- list(n_mismatches=n_mismatches,
                             canonical=canonical,
                             both_strands=both_strands,
-                            spacer_len <- unique(nchar(results$spacer)),
+                            spacer_len=unique(nchar(results$spacer)),
                             custom_seq=Biostrings::DNAStringSet(custom_seq))
     results <- .addAlignmentsMetadata(results,
                                       aligner="biostrings",
@@ -604,33 +607,40 @@ getSpacerAlignments <- function(spacers,
                                              strand="-")
         hits <- BiocGenerics::rbind(hits, hits_rev)
     }
-    hits$pam_site <- .getPamSiteFromSpacerRange(start=hits$start,
-                                                end=hits$end,
-                                                strand=hits$strand,
-                                                crisprNuclease=crisprNuclease)
-    hits$pam <- .getPamFromCustomSeq(custom_seq=custom_seq,
-                                     pam_site=hits$pam_site,
-                                     strand=hits$strand,
-                                     crisprNuclease=crisprNuclease)
+    hits <- .addPamSiteFromSpacerRange(hits=hits,
+                                       crisprNuclease=crisprNuclease)
+    hits <- .addPamFromCustomSeq(hits=hits,
+                                 custom_seq=custom_seq,
+                                 crisprNuclease=crisprNuclease)
     return(hits)
 }
 
 
 
 #' @importFrom Biostrings matchPattern
-#' @importFrom BiocGenerics start end as.data.frame
+#' @importFrom BiocGenerics as.data.frame
 .getCustomSeqPatternHits <- function(spacer,
                                      custom_seq,
                                      n_mismatches,
                                      strand
 ){
-    hits <-  Biostrings::matchPattern(spacer,
-                                      custom_seq,
-                                      max.mismatch=n_mismatches)
-    inRange5Prime <- BiocGenerics::start(hits) > 0
-    inRange3Prime <- BiocGenerics::end(hits) <= nchar(custom_seq)
-    hits <- hits[inRange5Prime & inRange3Prime]
-    hits <- BiocGenerics::as.data.frame(hits)
+    hits <-  Biostrings::vmatchPattern(spacer,
+                                       custom_seq,
+                                       max.mismatch=n_mismatches)
+    hits <- lapply(seq_along(hits), function(x){
+        inRange5Prime <- BiocGenerics::start(hits[[x]]) > 0
+        inRange3Prime <- BiocGenerics::end(hits[[x]]) <= nchar(custom_seq[x])
+        perSeqHits <- hits[[x]][inRange5Prime & inRange3Prime]
+        perSeqHits <- BiocGenerics::as.data.frame(perSeqHits)
+        perSeqHits$seqnames <- rep(names(custom_seq)[x], nrow(perSeqHits))
+        perSeqHits
+    })
+    hits <- Reduce(rbind, hits)
+    hits$seq <- vapply(seq_len(nrow(hits)), function(x){
+        sourceSeq <- hits$seqnames[x]
+        sourceSeq <- custom_seq[[sourceSeq]]
+        substr(sourceSeq, hits$start[x], hits$end[x])
+    }, FUN.VALUE=character(1))
     hits$strand <- rep(strand, nrow(hits))
     hits$spacer <- rep(spacer, nrow(hits))
     if (strand == "-" && nrow(hits) > 0){
@@ -643,46 +653,48 @@ getSpacerAlignments <- function(spacers,
 
 
 #' @importFrom crisprBase pamSide pamLength spacerGap
-.getPamSiteFromSpacerRange <- function(start,
-                                       end,
-                                       strand,
+.addPamSiteFromSpacerRange <- function(hits,
                                        crisprNuclease
 ){
     pamSide <- crisprBase::pamSide(crisprNuclease)
     pamLength <- crisprBase::pamLength(crisprNuclease)
     gap <- crisprBase::spacerGap(crisprNuclease)
-    pam_site <- rep(0, length(start))
+    pam_site <- rep(0, nrow(hits))
+    forwardStrand <- hits$strand == "+"
+    reverseStrand <- hits$strand == "-"
     
     if (pamSide == "3prime"){
-        pam_site[strand == "+"] <- end[strand == "+"] + gap + 1
-        pam_site[strand == "-"] <- start[strand == "-"] - gap - 1
+        pam_site[forwardStrand] <- hits$end[forwardStrand] + gap + 1
+        pam_site[reverseStrand] <- hits$start[reverseStrand] - gap - 1
     } else {
-        pam_site[strand == "+"] <- start[strand == "+"] - gap - pamLength - 1
-        pam_site[strand == "-"] <- end[strand == "-"] + gap + pamLength + 1
+        pam_site[forwardStrand] <- hits$start[forwardStrand] - gap - pamLength - 1
+        pam_site[reverseStrand] <- hits$end[reverseStrand] + gap + pamLength + 1
     }
-    return(pam_site)
+    hits$pam_site <- pam_site
+    return(hits)
 }
 
 
 
 #' @importFrom crisprBase pamLength
-.getPamFromCustomSeq <- function(custom_seq,
-                                 pam_site,
-                                 strand,
+.addPamFromCustomSeq <- function(hits,
+                                 custom_seq,
                                  crisprNuclease
 ){
     pamLength <- crisprBase::pamLength(crisprNuclease)
-    pams <- vapply(seq_along(pam_site), function(x){
-        if (strand[x] == "+"){
-            start <- pam_site[x]
-            seq <- custom_seq
+    pams <- vapply(seq_len(nrow(hits)), function(x){
+        seq <- custom_seq[[hits$seqnames[x]]]
+        if (hits$strand[x] == "+"){
+            start <- hits$pam_site[x]
         } else {
-            start <- nchar(custom_seq) - pam_site[x] + 1
-            seq <- .revComp(custom_seq)
+            start <- nchar(seq) - hits$pam_site[x] + 1
+            seq <- .revComp(seq)
         }
-        substr(seq, start, start+pamLength-1)
+        end <- start + pamLength - 1
+        substr(seq, start, end)
     }, FUN.VALUE=character(1))
-    return(pams)
+    hits$pam <- pams
+    return(hits)
 }
 
 
