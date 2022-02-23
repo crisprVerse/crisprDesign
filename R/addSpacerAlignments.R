@@ -262,7 +262,6 @@ addSpacerAlignments <- function(guideSet,
                                ignore_pam=ignore_pam,
                                standard_chr_only=standard_chr_only,
                                both_strands=both_strands)
-    # for both, need to check if txObject/tssObject have compatible seqinfo with bsgenome (or custom_seq...)
     if (aligner != "biostrings"){
     aln <- .addGeneAnnotationColumns(aln,
                                      txObject=txObject,
@@ -514,21 +513,7 @@ getSpacerAlignments <- function(spacers,
                                             ignore_pam,
                                             both_strands
 ){
-    ## separate function
-    custom_seq_names <- names(custom_seq)
-    custom_seq <- .validateDNACharacterVariable(seq=custom_seq,
-                                                argument="custom_seq",
-                                                len=NULL,
-                                                nullOk=FALSE,
-                                                exactBases=FALSE)
-    if (is.null(custom_seq_names)){
-        names(custom_seq) <- paste0("custom_seq", seq_along(custom_seq))
-    }
-    missingNames <- which(is.na(custom_seq_names) | custom_seq_names=="")
-    newNames <- paste0("custom_seq", missingNames, recycle0=TRUE)
-    names(custom_seq)[missingNames] <- newNames
-    ####################
-    
+    custom_seq <- .setCustomSeqNames(custom_seq)
     results <- lapply(spacers, function(x){
         .getCustomSeqAlignments(spacer=x,
                                 custom_seq=custom_seq,
@@ -589,6 +574,24 @@ getSpacerAlignments <- function(spacers,
     return(results)
 }
 
+
+
+.setCustomSeqNames <- function(custom_seq
+){
+    custom_seq_names <- names(custom_seq)
+    custom_seq <- .validateDNACharacterVariable(seq=custom_seq,
+                                                argument="custom_seq",
+                                                len=NULL,
+                                                nullOk=FALSE,
+                                                exactBases=FALSE)
+    if (is.null(custom_seq_names)){
+        names(custom_seq) <- paste0("custom_seq", seq_along(custom_seq))
+    }
+    missingNames <- which(is.na(custom_seq_names) | custom_seq_names=="")
+    newNames <- paste0("custom_seq", missingNames, recycle0=TRUE)
+    names(custom_seq)[missingNames] <- newNames
+    return(custom_seq)
+}
 
 
 #' @importFrom BiocGenerics rbind
@@ -686,14 +689,14 @@ getSpacerAlignments <- function(spacers,
     pamLength <- crisprBase::pamLength(crisprNuclease)
     pams <- vapply(seq_len(nrow(hits)), function(x){
         seq <- custom_seq[[hits$seqnames[x]]]
+        start <- hits$pam_site[x]
         if (hits$strand[x] == "+"){
-            start <- hits$pam_site[x]
+            end <- start + pamLength - 1
+            substr(seq, start, end)
         } else {
-            start <- nchar(seq) - hits$pam_site[x] + 1
-            seq <- .revComp(seq)
+            end <- start - pamLength + 1
+            .revComp(substr(seq, end, start))
         }
-        end <- start + pamLength - 1
-        substr(seq, start, end)
     }, FUN.VALUE=character(1))
     hits$pam <- pams
     return(hits)
@@ -815,6 +818,7 @@ getSpacerAlignments <- function(spacers,
         return(aln)
     }
     tssObject <- .validateTssObject(tssObject)
+    checkCompatibleSeqinfo(aln, tssObject)
     tss_window <- .validateTssWindow(tss_window)
     
     tssObject <- GenomicRanges::promoters(tssObject,
