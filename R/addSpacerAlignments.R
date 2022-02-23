@@ -263,6 +263,7 @@ addSpacerAlignments <- function(guideSet,
                                standard_chr_only=standard_chr_only,
                                both_strands=both_strands)
     # for both, need to check if txObject/tssObject have compatible seqinfo with bsgenome (or custom_seq...)
+    if (aligner != "biostrings"){
     aln <- .addGeneAnnotationColumns(aln,
                                      txObject=txObject,
                                      anchor=anchor)
@@ -270,6 +271,7 @@ addSpacerAlignments <- function(guideSet,
                                          tssObject=tssObject,
                                          tss_window=tss_window,
                                          anchor=anchor)
+    }
     guideSet <- .addAlignmentsSummary(guideSet=guideSet,
                                       aln=aln,
                                       addSummary=addSummary,
@@ -709,7 +711,7 @@ getSpacerAlignments <- function(spacers,
         return(aln)
     }
     txObject <- .validateGRangesList(txObject)
-    # check that gene_symbol and gene_id are in transcripts/cds/promoters
+    checkCompatibleSeqinfo(aln, txObject)
     
     regions <- c("cds", "fiveUTRs", "threeUTRs", "exons", "introns")
     for (i in regions) {
@@ -730,11 +732,14 @@ getSpacerAlignments <- function(spacers,
                                                 txObject[["transcripts"]],
                                                 ignore.strand=TRUE)
         nearestGene <- txObject[["transcripts"]][S4Vectors::subjectHits(hit)]
-        geneSymbol <- S4Vectors::mcols(nearestGene)[["gene_symbol"]]
+        geneSymbol <- S4Vectors::mcols(nearestGene)[["gene_symbols"]]
         if (is.na(geneSymbol) || geneSymbol == ""){
             nearestGene <- S4Vectors::mcols(nearestGene)[["gene_id"]]
         } else {
             nearestGene <- geneSymbol
+        }
+        if (is.null(nearestGene)){
+            stop("No gene identifiers found in gene model.")
         }
         nearestGene <- paste0(nearestGene, collapse=";")
         nearestDistance <- S4Vectors::mcols(hit)[["distance"]]
@@ -774,10 +779,18 @@ getSpacerAlignments <- function(spacers,
         indicesOfHits <- S4Vectors::queryHits(overlaps) == x
         regionHits <- S4Vectors::subjectHits(overlaps)[indicesOfHits]
         geneRegionModelSubset <- S4Vectors::mcols(geneRegionModel)[regionHits,]
-        geneHits <- geneRegionModelSubset[["gene_symbol"]]      ## can be missing
-        geneIds <- geneRegionModelSubset[["gene_id"]]           ## required
-        missingSymbols <- is.na(geneHits) | geneHits == ""
-        geneHits[missingSymbols] <- geneIds[missingSymbols]
+        if ("gene_symbol" %in% colnames(geneRegionModelSubset)){
+            geneHits <- geneRegionModelSubset[["gene_symbol"]]
+            missingSymbols <- is.na(geneHits) | geneHits == ""
+            if ("gene_id" %in% colnames(geneRegionModelSubset)){
+                geneIds <- geneRegionModelSubset[["gene_id"]]
+                geneHits[missingSymbols] <- geneIds[missingSymbols]
+            }
+        } else if ("gene_id" %in% colnames(geneRegionModelSubset)){
+            geneHits <- geneRegionModelSubset[["gene_id"]]
+        } else {
+            stop("No gene identifiers found in gene model.")
+        }
         if (all(geneHits == "")){
             return(NA_character_)
         }
