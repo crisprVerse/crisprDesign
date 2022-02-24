@@ -25,7 +25,9 @@
 #' 
 #' @return The original \code{guideSet} object with an additional
 #'     metadata column (\code{editedAlleles}) storing the annotated
-#'     edited alelles.
+#'     edited alelles. The edited alleles are always reported 
+#'     from 5' to 3' direction on the strand corresponding to the
+#'     gRNA strand. 
 #' 
 #' @examples
 #' \dontrun{
@@ -239,7 +241,7 @@ addEditedAlleles <- function(guideSet,
 
 
 
-#' @importFrom Biostrings complement
+#' @importFrom Biostrings complement reverse
 .addFunctionalConsequences <- function(editedAlleles,
                                        txTable
 ){
@@ -264,13 +266,17 @@ addEditedAlleles <- function(guideSet,
     if (geneStrand!=guideStrand){
         sequences <- complement(sequences)
     }
+    if (guideStand=="-"){
+        sequences <- reverse(sequences)
+    }
     nucs <- as.matrix(sequences)
-    nucs <- nucs[,editingPositions %in% overlapPositions,drop=FALSE]
+    colnames(nucs) <- editingPositions
+    nucs <- nucs[, as.character(overlapPositions), drop=FALSE]
     
 
-    txTable$nuc_edited <- txTable$nuc
+    # Get wildtype protein:
     wh <- match(overlapPositions, txTable$pos)
-    protein <- txTable$aa
+    txTable <- txTable[order(txTable$pos_cds),,drop=FALSE]
     nuc <- txTable$nuc
     protein <- translate(DNAString(paste0(nuc, collapse="")))
     protein <- as.vector(protein)
