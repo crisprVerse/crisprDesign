@@ -1,3 +1,32 @@
+#' @title To add edited alleles for a CRISPR base editing GuideSet
+#' @description To add edited alleles for a CRISPR base editing GuideSet.
+#' 
+#' @param guideSet A \linkS4class{GuideSet} object.
+#' @param baseEditor A \linkS4class{BaseEditor} object.
+#' @param editingWindow A numeric vector of length 2 specifying
+#'     start and end positions of the editing window with 
+#'     respect to the PAM site. If \code{NULL} (default),
+#'     the editing window of the \code{BaseEditor} object
+#'     will be considered. 
+#' @param nMaxAlleles Maximum number of edited alleles to report
+#'     for each gRNA. Alleles from high to low scores.
+#'     100 by default. 
+#' @param addFunctionalConsequence Should variant classification
+#'     of the edited alleles be added? TRUE by default.
+#'     If \code{TRUE}, \code{txTable} must be provided.
+#' @param addSummary Should a summary of the variant classified
+#'     by added to the metadata columns of the \code{guideSet}
+#'     object? TRUE by default. 
+#' @param txTable Table of transcript-level nucleotide and amino
+#'     acid information needed for variant classification.
+#'     Usually returned by \code{\link{getTxInfoDataFrame}}.
+#' @param verbose Should messages be printed to console?
+#'     TRUE by default. 
+#' 
+#' @return The original \code{guideSet} object with an additional
+#'     metadata column (\code{editedAlleles}) storing the annotated
+#'     edited alelles. \ocde{}
+#' 
 #' @examples
 #' \dontrun{
 #' data(BE4max, package="crisprBase")
@@ -19,10 +48,13 @@
 #' gs <- gs[100:200]
 #' gs <- addEditedAlleles(gs, baseEditor=BE4max,txTable=txTable)
 #' }
+#' 
+#' @author Jean-Philippe Fortin
+#' 
 #' @export
 addEditedAlleles <- function(guideSet,
                              baseEditor,
-                             editingWindow=c(-20,-8),
+                             editingWindow=NULL,
                              nMaxAlleles=100,
                              addFunctionalConsequence=TRUE,
                              addSummary=TRUE,
@@ -78,8 +110,27 @@ addEditedAlleles <- function(guideSet,
     scores <- do.call(rbind, scores)
     scores <- scores[, 1:3, drop=FALSE]
     colnames(scores) <- paste0("score_", colnames(scores))
+    variants <- .voteVariant(scores)
     mcols(guideSet)[colnames(scores)] <- scores
+    mcols(guideSet)[["maxVariant"]] <- variants[["class"]]
+    mcols(guideSet)[["maxVariantScore"]] <- variants[["score"]]
     return(guideSet)
+}
+
+
+
+
+.voteVariant <- function(scores){
+    classes <- colnames(scores)
+    classes <- gsub("score_", "", classes)
+    pos <- apply(scores, 1, which.max)
+    maxes <- apply(scores, 1, max)
+    classes <- classes[pos]
+    sums <- rowSums(as.matrix(scores), na.rm=TRUE)    
+    classes[which(sums==0)] <- "not_targeting" 
+    maxes[which(sums==0)] <- NA
+    return(list(class=classes,
+                score=maxes))
 }
 
 
@@ -169,20 +220,22 @@ addEditedAlleles <- function(guideSet,
     # Adding metadata:
     metadata(editedAlleles)$wildtypeAllele <- seq
     if (strand=="+"){
-        start <- pamSite+editingWindow[1]
-        end   <- pamSite+editingWindow[2]
+        start <- pamSite + editingWindow[1]
+        end   <- pamSite + editingWindow[2]
     } else {
-        start <- pamSite-editingWindow[2]
-        end   <- pamSite-editingWindow[1]
+        start <- pamSite - editingWindow[2]
+        end   <- pamSite - editingWindow[1]
     }
     names(start) <- names(end) <- NULL
     metadata(editedAlleles)$start <- start
     metadata(editedAlleles)$end <- end
     metadata(editedAlleles)$chr <- chr
     metadata(editedAlleles)$strand <- strand
+    metadata(editedAlleles)$editingWindow <- editingWindow
     editedAlleles$seq <- DNAStringSet(editedAlleles$seq)
     return(editedAlleles)
 }
+
 
 
 
@@ -227,6 +280,7 @@ addEditedAlleles <- function(guideSet,
         editedNuc[wh] <- nucs[k,]
         editedNuc <- DNAString(paste0(editedNuc, collapse=""))
         protein_edited <- as.vector(translate(editedNuc))
+
         mismatches <- which(protein_edited!=protein)
         if (length(mismatches)==0){
             effect <- "silent"
@@ -240,9 +294,30 @@ addEditedAlleles <- function(guideSet,
         }
         return(effect)
     }, FUN.VALUE="a")
+
+    aminos <- vapply(seq_len(nrow(nucs)), function(k){
+        editedNuc <- nuc
+        editedNuc[wh] <- nucs[k,]
+        editedNuc <- DNAString(paste0(editedNuc, collapse=""))
+        protein_edited <- as.vector(translate(editedNuc))
+        # Getting amino acids
+        aas <- rep(protein_edited, each=3)
+        aas <- aas[wh]
+        aas <- paste0(aas, collapse="")
+
+        return(aas)
+    }, FUN.VALUE="a")
     editedAlleles$variant <- effects
+    editedAlleles$aa <- aminos
+
+    # Adding wildtype amino:
+    wildtypeAmino <- rep(protein, each=3)[wh]
+    wildtypeAmino <- paste0(wildtypeAmino, collapse="")
+    metadata(editedAlleles)$wildtypeAmino <- wildtypeAmino
     return(editedAlleles)
 }
+
+
 
 
 

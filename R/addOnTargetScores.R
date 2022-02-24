@@ -150,7 +150,7 @@ addOnTargetScores <- function(guideSet,
                 envir=environment())
     roster <- scoringMethodsInfo
     roster <- roster[roster$method == method, , drop=FALSE]
-    left <- -1*roster$left
+    left  <- roster$left
     right <- roster$right
     extendedSequences <- .getExtendedSequences(guideSet,
                                                start=left,

@@ -308,6 +308,7 @@ convertToProtospacerGRanges <- function(guideSet){
 
 
 
+
 #' @importFrom IRanges trim
 #' @importFrom BSgenome getSeq
 .getExtendedSequences <- function(guideSet,
