@@ -25,7 +25,7 @@
 #' 
 #' @return The original \code{guideSet} object with an additional
 #'     metadata column (\code{editedAlleles}) storing the annotated
-#'     edited alelles. \ocde{}
+#'     edited alelles.
 #' 
 #' @examples
 #' \dontrun{

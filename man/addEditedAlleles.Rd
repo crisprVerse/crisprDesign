@@ -48,7 +48,7 @@ TRUE by default.}
 \value{
 The original \code{guideSet} object with an additional
     metadata column (\code{editedAlleles}) storing the annotated
-    edited alelles. \ocde{}
+    edited alelles.
 }
 \description{
 To add edited alleles for a CRISPR base editing GuideSet.
