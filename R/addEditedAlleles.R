@@ -266,7 +266,7 @@ addEditedAlleles <- function(guideSet,
     if (geneStrand!=guideStrand){
         sequences <- complement(sequences)
     }
-    if (guideStand=="-"){
+    if (guideStrand=="-"){
         sequences <- reverse(sequences)
     }
     nucs <- as.matrix(sequences)
