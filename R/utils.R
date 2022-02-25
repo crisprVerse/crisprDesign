@@ -410,6 +410,9 @@ S4Vectors::mcols
                                           nullOk=TRUE,
                                           exactBases=TRUE
 ){
+    if (!nullOk && is.null(seq)){
+        stop(argument, " cannot be NULL")
+    }
     if (nullOk && is.null(seq)){
         return("")
     }

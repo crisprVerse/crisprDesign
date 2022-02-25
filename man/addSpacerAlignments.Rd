@@ -10,7 +10,7 @@
 addSpacerAlignmentsIterative(
   guideSet,
   aligner = c("bowtie", "bwa", "biostrings"),
-  columnName = "alignments",
+  colname = "alignments",
   addSummary = TRUE,
   txObject = NULL,
   tssObject = NULL,
@@ -33,7 +33,7 @@ addSpacerAlignmentsIterative(
 addSpacerAlignments(
   guideSet,
   aligner = c("bowtie", "bwa", "biostrings"),
-  columnName = "alignments",
+  colname = "alignments",
   addSummary = TRUE,
   txObject = NULL,
   tssObject = NULL,
@@ -75,7 +75,7 @@ getSpacerAlignments(
 "bowtie" by default. Note that "bwa" is not availble for 
  Windows machines.}
 
-\item{columnName}{String specifying the columm name storing the alignments
+\item{colname}{String specifying the columm name storing the alignments
 in \code{mcols(guideSet)}. "alignments" by default.}
 
 \item{addSummary}{Should summary columns be added to \code{guideSet}?
@@ -152,7 +152,7 @@ All sequences must be equal in length.}
 \code{\link{addSpacerAlignments}} is similar to 
     \code{\link{getSpacerAlignments}}, with the addition of adding the 
     alignment data to a list-column in \code{mcols(guideSet)} specified
-    by \code{columnName}.
+    by \code{colname}.
 
 \code{\link{addSpacerAlignmentsIterative}} is similar to
     \code{\link{addSpacerAlignments}}, except that it avoids finding 

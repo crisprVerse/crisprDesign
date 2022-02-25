@@ -9,7 +9,7 @@
 #'     Must be one of "bowtie", "bwa", and "biostrings".
 #'    "bowtie" by default. Note that "bwa" is not availble for 
 #'     Windows machines. 
-#' @param columnName String specifying the columm name storing the alignments
+#' @param colname String specifying the columm name storing the alignments
 #'     in \code{mcols(guideSet)}. "alignments" by default.
 #' @param addSummary Should summary columns be added to \code{guideSet}?
 #'     TRUE by default.
@@ -65,7 +65,7 @@
 #' @return \code{\link{addSpacerAlignments}} is similar to 
 #'     \code{\link{getSpacerAlignments}}, with the addition of adding the 
 #'     alignment data to a list-column in \code{mcols(guideSet)} specified
-#'     by \code{columnName}. 
+#'     by \code{colname}. 
 #' 
 #' @return \code{\link{addSpacerAlignmentsIterative}} is similar to
 #'     \code{\link{addSpacerAlignments}}, except that it avoids finding 
@@ -157,7 +157,7 @@ NULL
 #' @importFrom S4Vectors mcols
 addSpacerAlignmentsIterative <- function(guideSet,
                                          aligner=c("bowtie", "bwa", "biostrings"),
-                                         columnName="alignments",
+                                         colname="alignments",
                                          addSummary=TRUE,
                                          txObject=NULL,
                                          tssObject=NULL,
@@ -188,23 +188,25 @@ addSpacerAlignmentsIterative <- function(guideSet,
     .iterateAddSpacerAlignments <- function(guideSet,
                                             n_mismatches
     ){
-        addSpacerAlignments(guideSet,
-                            aligner=aligner,
-                            columnName=columnName,
-                            addSummary=addSummary,
-                            txObject=txObject,
-                            tssObject=tssObject,
-                            custom_seq=custom_seq,
-                            aligner_index=aligner_index,
-                            bsgenome=bsgenome,
-                            n_mismatches=n_mismatches,
-                            all_alignments=all_alignments,
-                            canonical=canonical,
-                            ignore_pam=ignore_pam,
-                            standard_chr_only=standard_chr_only,
-                            both_strands=both_strands,
-                            anchor=anchor,
-                            tss_window=tss_window)
+        suppressWarnings(
+            addSpacerAlignments(guideSet,
+                                aligner=aligner,
+                                colname=colname,
+                                addSummary=addSummary,
+                                txObject=txObject,
+                                tssObject=tssObject,
+                                custom_seq=custom_seq,
+                                aligner_index=aligner_index,
+                                bsgenome=bsgenome,
+                                n_mismatches=n_mismatches,
+                                all_alignments=all_alignments,
+                                canonical=canonical,
+                                ignore_pam=ignore_pam,
+                                standard_chr_only=standard_chr_only,
+                                both_strands=both_strands,
+                                anchor=anchor,
+                                tss_window=tss_window)
+        )
     }
     guideSet <- .iterateAddSpacerAlignments(guideSet, 0)
     good <- TRUE
@@ -212,7 +214,15 @@ addSpacerAlignmentsIterative <- function(guideSet,
         mismatch_col <- paste0("n", i-1)
         good <- good &
             S4Vectors::mcols(guideSet)[[mismatch_col]] <= maxAlignments[i]
-        guideSet[good] <- .iterateAddSpacerAlignments(guideSet[good], i)
+        if (any(good)){
+            updatedGuideSet <- .iterateAddSpacerAlignments(guideSet[good], i)
+            newCols <- setdiff(colnames(S4Vectors::mcols(updatedGuideSet)),
+                               colnames(S4Vectors::mcols(guideSet)))
+            for (ii in newCols){
+                S4Vectors::mcols(guideSet)[[ii]] <- NA
+            }
+            guideSet[good] <- updatedGuideSet
+        }
     }
     return(guideSet)
 }
@@ -224,7 +234,7 @@ addSpacerAlignmentsIterative <- function(guideSet,
 #' @importFrom S4Vectors split mcols mcols<-
 addSpacerAlignments <- function(guideSet,
                                 aligner=c("bowtie", "bwa", "biostrings"),
-                                columnName="alignments",
+                                colname="alignments",
                                 addSummary=TRUE,
                                 txObject=NULL,
                                 tssObject=NULL,
@@ -243,7 +253,7 @@ addSpacerAlignments <- function(guideSet,
 ){
     guideSet  <- .validateGuideSet(guideSet)
     aligner <- match.arg(aligner)
-    .checkString("columnName", columnName)
+    .checkString("colname", colname)
     n_mismatches <- .validateNumberOfMismatches(n_mismatches, aligner)
     anchor <- match.arg(anchor)
     spacers <- spacers(guideSet, as.character=TRUE)
@@ -281,7 +291,7 @@ addSpacerAlignments <- function(guideSet,
                                      levels=uniqueSpacers))
     aln <- aln[spacers]
     names(aln) <- names(guideSet)
-    S4Vectors::mcols(guideSet)[[columnName]] <- aln
+    S4Vectors::mcols(guideSet)[[colname]] <- aln
     return(guideSet)
 }
 
@@ -289,6 +299,7 @@ addSpacerAlignments <- function(guideSet,
 
 #' @rdname addSpacerAlignments
 #' @export
+#' @importFrom methods is
 getSpacerAlignments <- function(spacers,
                                 aligner=c("bowtie", "bwa", "biostrings"),
                                 custom_seq=NULL,
@@ -307,10 +318,19 @@ getSpacerAlignments <- function(spacers,
     if (.isGuideSet(spacers)){
         spacers <- spacers(spacers)
     }
-    spacers <- as.character(spacers)
+    if (methods::is(spacers, "XStringSet") || methods::is(spacers, "XString")){
+        spacers <- as.character(spacers)
+    }
+    if (!is.vector(spacers, mode="character")){
+        stop(paste("'spacers' argument must be a GuideSet, XString, or",
+                   "XStringSet object, or a character vector"))
+    }
     aligner <- match.arg(aligner)
     crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
     n_mismatches <- .validateNumberOfMismatches(n_mismatches, aligner)
+    for (i in c("canonical", "ignore_pam")){
+        .checkBoolean(i, get(i))
+    }
     
     if (aligner %in% c("bowtie", "bwa")){
         aln <- .getSpacerAlignments_indexed(spacers=spacers,
@@ -464,6 +484,8 @@ getSpacerAlignments <- function(spacers,
                                  bsgenome,
                                  standard_chr_only
 ){
+    .checkBoolean("standard_chr_only", standard_chr_only)
+    
     alignments <- alignments[GenomeInfoDb::seqnames(alignments) != "chrEBV"]
     mtChr <- GenomeInfoDb::seqlevels(alignments) == "chrMT"
     GenomeInfoDb::seqlevels(alignments)[mtChr] <- "chrM"
@@ -514,6 +536,7 @@ getSpacerAlignments <- function(spacers,
                                             both_strands
 ){
     custom_seq <- .setCustomSeqNames(custom_seq)
+    .checkBoolean("both_strands", both_strands)
     results <- lapply(spacers, function(x){
         .getCustomSeqAlignments(spacer=x,
                                 custom_seq=custom_seq,
@@ -524,7 +547,7 @@ getSpacerAlignments <- function(spacers,
     results <- Reduce(BiocGenerics::rbind, results)
     results <- GenomicRanges::GRanges(
         seqnames=results$seqnames,
-        ranges=IRanges::IRanges(start=results$pam_site, width=1),
+        ranges=IRanges::IRanges(start=results$pam_site, width=1), # handle null case
         strand=results$strand,
         spacer=Biostrings::DNAStringSet(results$spacer),
         protospacer=Biostrings::DNAStringSet(results$seq),
@@ -592,6 +615,7 @@ getSpacerAlignments <- function(spacers,
     names(custom_seq)[missingNames] <- newNames
     return(custom_seq)
 }
+
 
 
 #' @importFrom BiocGenerics rbind
@@ -704,6 +728,7 @@ getSpacerAlignments <- function(spacers,
 
 
 
+#' @importFrom GenomeInfoDb checkCompatibleSeqinfo
 #' @importFrom S4Vectors mcols mcols<- subjectHits
 #' @importFrom GenomicRanges distanceToNearest
 .addGeneAnnotationColumns <- function(aln,
@@ -714,7 +739,7 @@ getSpacerAlignments <- function(spacers,
         return(aln)
     }
     txObject <- .validateGRangesList(txObject)
-    checkCompatibleSeqinfo(aln, txObject)
+    GenomeInfoDb::checkCompatibleSeqinfo(aln, txObject)
     
     regions <- c("cds", "fiveUTRs", "threeUTRs", "exons", "introns")
     for (i in regions) {
@@ -723,19 +748,28 @@ getSpacerAlignments <- function(spacers,
                                                     anchor=anchor)
         S4Vectors::mcols(aln)[[i]] <- regionAnnotation
     }
-    
     intergenicAnnotation <- lapply(seq_along(aln), function(x){
+        ## separate function ###############################################################
         geneRegionAnnotation <- S4Vectors::mcols(aln)[x, regions]
         if (any(!is.na(geneRegionAnnotation))){
             results <- data.frame(gene=NA_character_,
                                   dist=NA_integer_)
             return(results)
         }
-        hit <- GenomicRanges::distanceToNearest(aln[x],
+        anchor <- .validateAnchor(anchor, aln)
+        temp <- aln
+        IRanges::ranges(temp) <- IRanges::IRanges(start=S4Vectors::mcols(aln)[[anchor]],
+                                                 width=1)
+        hit <- GenomicRanges::distanceToNearest(temp[x],
                                                 txObject[["transcripts"]],
                                                 ignore.strand=TRUE)
+        if (length(hit) == 0){
+            results <- data.frame(gene=NA_character_,
+                                  dist=NA_integer_)
+            return(results)
+        }
         nearestGene <- txObject[["transcripts"]][S4Vectors::subjectHits(hit)]
-        geneSymbol <- S4Vectors::mcols(nearestGene)[["gene_symbols"]]
+        geneSymbol <- S4Vectors::mcols(nearestGene)[["gene_symbol"]]
         if (is.na(geneSymbol) || geneSymbol == ""){
             nearestGene <- S4Vectors::mcols(nearestGene)[["gene_id"]]
         } else {
@@ -749,6 +783,7 @@ getSpacerAlignments <- function(spacers,
         results <- data.frame(gene=nearestGene,
                               dist=nearestDistance)
         return(results)
+        ###############################################################
     })
     intergenicAnnotation <- Reduce(rbind, intergenicAnnotation)
     S4Vectors::mcols(aln)[["intergenic"]] <- intergenicAnnotation$gene
@@ -807,6 +842,7 @@ getSpacerAlignments <- function(spacers,
 
 
 
+#' @importFrom GenomeInfoDb checkCompatibleSeqinfo
 #' @importFrom GenomicRanges promoters
 #' @importFrom S4Vectors mcols<-
 .addPromoterAnnotationColumns <- function(aln,
@@ -818,7 +854,7 @@ getSpacerAlignments <- function(spacers,
         return(aln)
     }
     tssObject <- .validateTssObject(tssObject)
-    checkCompatibleSeqinfo(aln, tssObject)
+    GenomeInfoDb::checkCompatibleSeqinfo(aln, tssObject)
     tss_window <- .validateTssWindow(tss_window)
     
     tssObject <- GenomicRanges::promoters(tssObject,
@@ -852,9 +888,12 @@ getSpacerAlignments <- function(spacers,
         alignmentSummary <- .getAlignmentsSummary(aln=aln,
                                                   spacers=spacers,
                                                   n_mismatches=n_mismatches)
-        S4Vectors::mcols(guideSet) <- BiocGenerics::cbind(
-            S4Vectors::mcols(guideSet),
-            alignmentSummary)
+        for (i in colnames(alignmentSummary)){
+            S4Vectors::mcols(guideSet)[[i]] <- alignmentSummary[[i]]
+        }
+        # S4Vectors::mcols(guideSet) <- BiocGenerics::cbind(
+        #     S4Vectors::mcols(guideSet),
+        #     alignmentSummary)
     }
     return(guideSet)
 }
