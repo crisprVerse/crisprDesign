@@ -56,6 +56,12 @@
 #'     for \code{\link{addSpacerAlignmentsIterative}}.
 #' @param n2_max Number of maximum 2mm off-target alignments tolerated
 #'     for \code{\link{addSpacerAlignmentsIterative}}.
+#' @param n3_max Number of maximum 3mm off-target alignments tolerated
+#'     for \code{\link{addSpacerAlignmentsIterative}}. Ignored when
+#'     \code{aligner="bowtie"}.
+#' @param n4_max Number of maximum 4mm off-target alignments tolerated
+#'     for \code{\link{addSpacerAlignmentsIterative}}. Ignored when
+#'     \code{aligner="bowtie"}.
 #'
 #' @return \code{\link{getSpacerAlignments}} returns a \linkS4class{GRanges} 
 #'     object storing spacer alignment data, including genomic coordinates, 
@@ -174,12 +180,14 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                          tss_window=NULL,
                                          n0_max=5,
                                          n1_max=100,
-                                         n2_max=100
+                                         n2_max=100,
+                                         n3_max=1000,
+                                         n4_max=1000
 ){
     guideSet    <- .validateGuideSet(guideSet)
     aligner <- match.arg(aligner)
     n_mismatches <- .validateNumberOfMismatches(n_mismatches, aligner)
-    maxAlignments <- c("n0_max", "n1_max", "n2_max")
+    maxAlignments <- c("n0_max", "n1_max", "n2_max", "n3_max", "n4_max")
     maxAlignments <- vapply(maxAlignments, function(x){
         .checkSingleInteger(x, get(x), null_ok=FALSE, sign="non-negative")
         get(x)
@@ -729,8 +737,7 @@ getSpacerAlignments <- function(spacers,
 
 
 #' @importFrom GenomeInfoDb checkCompatibleSeqinfo
-#' @importFrom S4Vectors mcols mcols<- subjectHits
-#' @importFrom GenomicRanges distanceToNearest
+#' @importFrom S4Vectors mcols<-
 .addGeneAnnotationColumns <- function(aln,
                                       txObject,
                                       anchor
@@ -749,41 +756,10 @@ getSpacerAlignments <- function(spacers,
         S4Vectors::mcols(aln)[[i]] <- regionAnnotation
     }
     intergenicAnnotation <- lapply(seq_along(aln), function(x){
-        ## separate function ###############################################################
-        geneRegionAnnotation <- S4Vectors::mcols(aln)[x, regions]
-        if (any(!is.na(geneRegionAnnotation))){
-            results <- data.frame(gene=NA_character_,
-                                  dist=NA_integer_)
-            return(results)
-        }
-        anchor <- .validateAnchor(anchor, aln)
-        temp <- aln
-        IRanges::ranges(temp) <- IRanges::IRanges(start=S4Vectors::mcols(aln)[[anchor]],
-                                                 width=1)
-        hit <- GenomicRanges::distanceToNearest(temp[x],
-                                                txObject[["transcripts"]],
-                                                ignore.strand=TRUE)
-        if (length(hit) == 0){
-            results <- data.frame(gene=NA_character_,
-                                  dist=NA_integer_)
-            return(results)
-        }
-        nearestGene <- txObject[["transcripts"]][S4Vectors::subjectHits(hit)]
-        geneSymbol <- S4Vectors::mcols(nearestGene)[["gene_symbol"]]
-        if (is.na(geneSymbol) || geneSymbol == ""){
-            nearestGene <- S4Vectors::mcols(nearestGene)[["gene_id"]]
-        } else {
-            nearestGene <- geneSymbol
-        }
-        if (is.null(nearestGene)){
-            stop("No gene identifiers found in gene model.")
-        }
-        nearestGene <- paste0(nearestGene, collapse=";")
-        nearestDistance <- S4Vectors::mcols(hit)[["distance"]]
-        results <- data.frame(gene=nearestGene,
-                              dist=nearestDistance)
-        return(results)
-        ###############################################################
+        .addIntergenicAnnotation(aln=aln[x],
+                                 regions=regions,
+                                 txObject=txObject,
+                                 anchor=anchor)
     })
     intergenicAnnotation <- Reduce(rbind, intergenicAnnotation)
     S4Vectors::mcols(aln)[["intergenic"]] <- intergenicAnnotation$gene
@@ -838,6 +814,45 @@ getSpacerAlignments <- function(spacers,
     }, FUN.VALUE=character(1))
     
     return(regionAnnotation)
+}
+
+
+
+#' @importFrom S4Vectors mcols subjectHits
+#' @importFrom IRanges IRanges
+#' @importFrom GenomicRanges distanceToNearest
+.addIntergenicAnnotation <- function(aln,
+                                     regions,
+                                     txObject,
+                                     anchor
+){
+    geneRegionAnnotation <- S4Vectors::mcols(aln)[regions]
+    anchor <- .validateAnchor(anchor, aln)
+    anchorSite <- S4Vectors::mcols(aln)[[anchor]]
+    IRanges::ranges(aln) <- IRanges::IRanges(start=anchorSite, width=1)
+    hit <- GenomicRanges::distanceToNearest(aln,
+                                            txObject[["transcripts"]],
+                                            ignore.strand=TRUE)
+    if (any(!is.na(geneRegionAnnotation)) || length(hit) == 0){
+        results <- data.frame(gene=NA_character_,
+                              dist=NA_integer_)
+        return(results)
+    }
+    nearestGene <- txObject[["transcripts"]][S4Vectors::subjectHits(hit)]
+    geneSymbol <- S4Vectors::mcols(nearestGene)[["gene_symbol"]]
+    if (is.null(geneSymbol) || is.na(geneSymbol) || geneSymbol == ""){
+        nearestGene <- S4Vectors::mcols(nearestGene)[["gene_id"]]
+    } else {
+        nearestGene <- geneSymbol
+    }
+    if (is.null(nearestGene)){
+        stop("No gene identifiers found in gene model.")
+    }
+    nearestGene <- paste0(nearestGene, collapse=";")
+    nearestDistance <- S4Vectors::mcols(hit)[["distance"]]
+    results <- data.frame(gene=nearestGene,
+                          dist=nearestDistance)
+    return(results)
 }
 
 
