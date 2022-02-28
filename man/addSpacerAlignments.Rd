@@ -20,16 +20,12 @@ addSpacerAlignmentsIterative(
   n_mismatches = 0,
   all_alignments = FALSE,
   canonical = TRUE,
-  ignore_pam = FALSE,
   standard_chr_only = TRUE,
   both_strands = TRUE,
   anchor = c("cut_site", "pam_site"),
+  annotationType = c("symbol", "id"),
   tss_window = NULL,
-  n0_max = 5,
-  n1_max = 100,
-  n2_max = 100,
-  n3_max = 1000,
-  n4_max = 1000
+  alignmentThresholds = c(n0 = 5, n1 = 100, n2 = 100, n3 = 1000, n4 = 1000)
 )
 
 addSpacerAlignments(
@@ -46,10 +42,10 @@ addSpacerAlignments(
   n_max_alignments = 1000,
   all_alignments = TRUE,
   canonical = TRUE,
-  ignore_pam = FALSE,
   standard_chr_only = TRUE,
   both_strands = TRUE,
   anchor = c("cut_site", "pam_site"),
+  annotationType = c("symbol", "id"),
   tss_window = NULL
 )
 
@@ -64,7 +60,6 @@ getSpacerAlignments(
   all_alignments = TRUE,
   crisprNuclease = NULL,
   canonical = TRUE,
-  ignore_pam = FALSE,
   standard_chr_only = TRUE,
   both_strands = TRUE
 )
@@ -106,11 +101,10 @@ and genomic DNA.}
 \item{all_alignments}{Should all all possible alignments be returned?
 FALSE by defaule.}
 
-\item{canonical}{Should only alignments corresponding to canonical
-PAM sequences be returned? TRUE by default.}
-
-\item{ignore_pam}{If TRUE, will return all matches regardless of
-PAM sequence. FALSE by default.}
+\item{canonical}{\code{TRUE} returns only those alignments having canonical
+PAM sequences; \code{FALSE} returns alignments having canonical or
+noncanonical PAM sequences; \code{NA} returns all alignments regardless
+of their PAM sequence.}
 
 \item{standard_chr_only}{Should only standard chromosomes be considered?
 TRUE by default.}
@@ -122,27 +116,19 @@ should both strands be considered? TRUE by default.}
 \linkS4class{CrisprNuclease} to use when annotating with overlapping
 gene regions.}
 
+\item{annotationType}{Gene identifier to return when annotating alignments
+with gene and/or promoter overlaps. Corresponding \code{txObject} or
+\code{tssObject} argument must have a \code{"gene_symbol"} mcol for
+\code{"symbol"} or \code{"gene_id"} mcol for \code{"id"}.}
+
 \item{tss_window}{Window size of promoters upstream of gene TSS to search
 for overlap with spacer sequence. Must be a numeric vector of length 2:
 upstream limit and downstream limit. Default is \code{c(-500, 500)},
 which includes 500bp upstream and downstream of the TSS.}
 
-\item{n0_max}{Number of maximum on-target alignments tolerated for
-\code{\link{addSpacerAlignmentsIterative}}.}
-
-\item{n1_max}{Number of maximum 1mm off-target alignments tolerated
-for \code{\link{addSpacerAlignmentsIterative}}.}
-
-\item{n2_max}{Number of maximum 2mm off-target alignments tolerated
-for \code{\link{addSpacerAlignmentsIterative}}.}
-
-\item{n3_max}{Number of maximum 3mm off-target alignments tolerated
-for \code{\link{addSpacerAlignmentsIterative}}. Ignored when
-\code{aligner="bowtie"}.}
-
-\item{n4_max}{Number of maximum 4mm off-target alignments tolerated
-for \code{\link{addSpacerAlignmentsIterative}}. Ignored when
-\code{aligner="bowtie"}.}
+\item{alignmentThresholds}{Named numeric vector of the maximum on-target
+alignments tolerated for \code{\link{addSpacerAlignmentsIterative}}.
+Thresholds not provided will take default values.}
 
 \item{n_max_alignments}{Maximum number of alignments to report by bowtie 
 for each spacer. Effectively set to \code{Inf} when \code{allPossible}

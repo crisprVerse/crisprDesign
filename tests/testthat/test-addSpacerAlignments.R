@@ -283,10 +283,9 @@ test_that("crisprNuclease arg is appropriately applied", {
 })
 
 
-test_that("canonical arg must be TRUE or FALSE", {
+test_that("canonical arg must be logical", {
     bad_input <- list(NULL,
                       0,
-                      NA,
                       "TRUE")
     lapply(bad_input, function(x){
         expect_error(getSpacerAlignments(spacers=spacers,
@@ -323,46 +322,17 @@ test_that("canonical arg is appropriately applied", {
     #                            n_mismatches=3)
     # expect_false(all(as.character(out$pam) %in% canonicalPams))
     # expect_true(all(as.character(out$pam) %in% noncanonicalPams))
-})
-
-
-test_that("ignore_pam arg must be TRUE or FALSE", {
-    bad_input <- list(NULL,
-                      0,
-                      NA,
-                      "TRUE")
-    lapply(bad_input, function(x){
-        expect_error(getSpacerAlignments(spacers=spacers,
-                                         aligner="bowtie",
-                                         aligner_index=bowtie_index,
-                                         bsgenome=bsgenome_human,
-                                         crisprNuclease=SpCas9,
-                                         ignore_pam=x))
-    })
-})
-
-
-test_that("ignore_pam arg is appropriately applied", {
-    ## skipped due to long runtime
-    # allPams <- motifs(SpCas9, primary=FALSE, expand=TRUE,
-    #                         as.character=TRUE)
-    # out <- getSpacerAlignments(spacers=spacers,
-    #                            aligner="bowtie",
-    #                            aligner_index=bowtie_index,
-    #                            bsgenome=bsgenome_human,
-    #                            crisprNuclease=SpCas9,
-    #                            ignore_pam=FALSE,
-    #                            n_mismatches=3)
-    # expect_true(all(as.character(out$pam) %in% allPams))
     # 
+    # # ignore pams
     # out <- getSpacerAlignments(spacers=spacers,
     #                            aligner="bowtie",
     #                            aligner_index=bowtie_index,
     #                            bsgenome=bsgenome_human,
     #                            crisprNuclease=SpCas9,
-    #                            ignore_pam=TRUE,
+    #                            canonical=NA,
     #                            n_mismatches=3)
-    # expect_false(all(as.character(out$pam) %in% allPams))
+    # expect_false(all(as.character(out$pam) %in% canonicalPams))
+    # expect_false(all(as.character(out$pam) %in% noncanonicalPams))
 })
 
 
@@ -645,20 +615,43 @@ test_that("anchor arg is appropriately applied", {
 })
 
 
-test_that("tss_window arg must be an integer vector of length 2", {
+test_that("annotationType arg must be 'symbol' or 'id'", {
     bad_input <- list(NA,
                       0,
-                      c("1", "10"),
-                      list(1, 10),
-                      c(0.5, 10.5))
+                      character(0),
+                      "ID")
     lapply(bad_input, function(x){
         expect_error(addSpacerAlignments(gs,
                                          aligner="bowtie",
                                          aligner_index=bowtie_index,
                                          bsgenome=bsgenome_human,
+                                         txObject=grListExample,
                                          tssObject=tssObjectExample,
-                                         tss_window=x))
+                                         annotationType=x))
     })
+})
+
+
+test_that("annotationType arg is appropriately applied", {
+    # check alignmemnt colname output
+})
+
+
+test_that("tss_window arg must be an integer vector of length 2", {
+    ## skipped due to long runtime
+    # bad_input <- list(NA,
+    #                   0,
+    #                   c("1", "10"),
+    #                   list(1, 10),
+    #                   c(0.5, 10.5))
+    # lapply(bad_input, function(x){
+    #     expect_error(addSpacerAlignments(gs,
+    #                                      aligner="bowtie",
+    #                                      aligner_index=bowtie_index,
+    #                                      bsgenome=bsgenome_human,
+    #                                      tssObject=tssObjectExample,
+    #                                      tss_window=x))
+    # })
 })
 
 
@@ -684,9 +677,8 @@ test_that("tss_window arg is appropriately applied", {
 })
 
 
-test_that("iteration limits must be non-negative integers", {
-    bad_input <- list(NULL,
-                      NA,
+test_that("alignmentThresholds must contain non-negative integers", {
+    bad_input <- list(NA,
                       -1,
                       "1",
                       0.5,
@@ -697,46 +689,37 @@ test_that("iteration limits must be non-negative integers", {
                                                   aligner="bowtie",
                                                   aligner_index=bowtie_index,
                                                   bsgenome=bsgenome_human,
-                                                  n0_max=x))
-        expect_error(addSpacerAlignmentsIterative(gs,
-                                                  aligner="bowtie",
-                                                  aligner_index=bowtie_index,
-                                                  bsgenome=bsgenome_human,
-                                                  n1_max=x))
-        expect_error(addSpacerAlignmentsIterative(gs,
-                                                  aligner="bowtie",
-                                                  aligner_index=bowtie_index,
-                                                  bsgenome=bsgenome_human,
-                                                  n2_max=x))
-        expect_error(addSpacerAlignmentsIterative(gs,
-                                                  aligner="bowtie",
-                                                  aligner_index=bowtie_index,
-                                                  bsgenome=bsgenome_human,
-                                                  n3_max=x))
-        expect_error(addSpacerAlignmentsIterative(gs,
-                                                  aligner="bowtie",
-                                                  aligner_index=bowtie_index,
-                                                  bsgenome=bsgenome_human,
-                                                  n4_max=x))
+                                                  alignmentThresholds=c(n0=x)))
     })
 })
 
 
-test_that("iteration limits are appropriately applied", {
+test_that("alignmentThresholds must not have duplicate names", {
+    expect_error(addSpacerAlignmentsIterative(gs,
+                                              aligner="bowtie",
+                                              aligner_index=bowtie_index,
+                                              bsgenome=bsgenome_human,
+                                              alignmentThresholds=c(n0=1,
+                                                                    n1=2,
+                                                                    n1=3)))
+})
+
+
+test_that("alignmentThresholds are appropriately applied", {
     ## skipped due to long runtime
     # out <- addSpacerAlignmentsIterative(gs,
     #                                     aligner="bowtie",
     #                                     aligner_index=bowtie_index,
     #                                     bsgenome=bsgenome_human,
     #                                     n_mismatches=3,
-    #                                     n0_max=0)
-    # expect_true(!"n1" %in% colnames(mcols(out)))
+    #                                     alignmentThresholds=c(n0=0))
+    # expect_true(all(is.na(mcols(out)[["n1"]])))
     # out <- addSpacerAlignmentsIterative(gs,
     #                                     aligner="bowtie",
     #                                     aligner_index=bowtie_index,
     #                                     bsgenome=bsgenome_human,
     #                                     n_mismatches=3,
-    #                                     n0_max=1)
+    #                                     alignmentThresholds=c(n0=1))
     # good <- out$n0 <= 1
     # expect_true(all(!is.na(mcols(out)$n1[good])))
     # expect_true(all(is.na(mcols(out)$n1[!good])))
