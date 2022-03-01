@@ -390,6 +390,18 @@ S4Vectors::mcols
 
 
 
+.checkString <- function(argument,
+                         value
+){
+    isCharacterVector <- is.vector(value, mode="character")
+    hasLengthOne <- length(value) == 1
+    if (!isCharacterVector || !hasLengthOne){
+        stop(sprintf("%s argument must be a character string", argument))
+    }
+}
+
+
+
 
 #' @importFrom Biostrings DNA_BASES DNA_ALPHABET
 .validateDNACharacterVariable <- function(seq,
@@ -398,8 +410,18 @@ S4Vectors::mcols
                                           nullOk=TRUE,
                                           exactBases=TRUE
 ){
+    if (!nullOk && is.null(seq)){
+        stop(argument, " cannot be NULL")
+    }
     if (nullOk && is.null(seq)){
         return("")
+    }
+    if (is(seq, "DNAString") && (is.null(len) || len == 1)){
+        seq <- as.character(seq)
+        return(seq)
+    }
+    if (is(seq, "DNAStringSet") && (is.null(len) || length(seq) == len)){
+        seq <- as.character(seq)
     }
     seq <- toupper(seq)
     seq <- chartr("U", "T", seq)
@@ -409,8 +431,8 @@ S4Vectors::mcols
         pattern <- grep('[A-Z]', Biostrings::DNA_ALPHABET, value=TRUE)
     }
     pattern <- paste0("^[", paste(pattern, collapse=""), "]+$")
-    hasBadSymbols <- !all(grepl(pattern, seq)) && all(nchar(seq) > 0)
     isNotCharacterVector <- !is.vector(seq, mode="character")
+    hasBadSymbols <- !all(grepl(pattern, seq)) && all(nchar(seq) > 0)
     hasBadLength <- !is.null(len) && length(seq) != len
     if(anyNA(seq) || hasBadSymbols || isNotCharacterVector || hasBadLength){
         object <- ifelse(is.null(len), "vector", "string")

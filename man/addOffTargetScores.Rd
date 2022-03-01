@@ -37,6 +37,7 @@ See \pkg{crisprScore} package for a description of the off-target
 
 # Creating a bowtie index:
 library(Rbowtie)
+library(BSgenome.Hsapiens.UCSC.hg38)
 fasta <- system.file(package="crisprDesign", "fasta/chr12.fa")
 outdir <- tempdir()
 Rbowtie::bowtie_build(fasta,
@@ -50,8 +51,10 @@ data(guideSetExample, package="crisprDesign")
 data(grListExample, package="crisprDesign")
 guideSetExample <- guideSetExample[1:3]
 guideSet <- addSpacerAlignments(guideSetExample,
-                                bowtie_index=bowtieIndex,
+                                aligner="bowtie",
+                                aligner_index=bowtieIndex,
                                 n_mismatches=1,
+                                bsgenome=BSgenome.Hsapiens.UCSC.hg38,
                                 txObject=grListExample)
 
 # Adding off-target scores:

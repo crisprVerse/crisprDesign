@@ -10,48 +10,42 @@
 addSpacerAlignmentsIterative(
   guideSet,
   aligner = c("bowtie", "bwa", "biostrings"),
-  columnName = "alignments",
+  colname = "alignments",
   addSummary = TRUE,
   txObject = NULL,
   tssObject = NULL,
   custom_seq = NULL,
-  bowtie_index = NULL,
-  bwa_index = NULL,
-  seqlevelsStyle = c("UCSC", "NCBI"),
+  aligner_index = NULL,
   bsgenome = NULL,
   n_mismatches = 0,
   all_alignments = FALSE,
   canonical = TRUE,
-  ignore_pam = FALSE,
   standard_chr_only = TRUE,
   both_strands = TRUE,
+  anchor = c("cut_site", "pam_site"),
+  annotationType = c("symbol", "id"),
   tss_window = NULL,
-  n0_max = 5,
-  n1_max = 100,
-  n2_max = 100,
-  n3_max = 1000,
-  n4_max = 1000
+  alignmentThresholds = c(n0 = 5, n1 = 100, n2 = 100, n3 = 1000, n4 = 1000)
 )
 
 addSpacerAlignments(
   guideSet,
   aligner = c("bowtie", "bwa", "biostrings"),
-  columnName = "alignments",
+  colname = "alignments",
   addSummary = TRUE,
   txObject = NULL,
   tssObject = NULL,
   custom_seq = NULL,
-  bowtie_index = NULL,
-  bwa_index = NULL,
-  seqlevelsStyle = c("UCSC", "NCBI"),
+  aligner_index = NULL,
   bsgenome = NULL,
   n_mismatches = 0,
   n_max_alignments = 1000,
   all_alignments = TRUE,
   canonical = TRUE,
-  ignore_pam = FALSE,
   standard_chr_only = TRUE,
   both_strands = TRUE,
+  anchor = c("cut_site", "pam_site"),
+  annotationType = c("symbol", "id"),
   tss_window = NULL
 )
 
@@ -59,16 +53,13 @@ getSpacerAlignments(
   spacers,
   aligner = c("bowtie", "bwa", "biostrings"),
   custom_seq = NULL,
-  bowtie_index = NULL,
-  bwa_index = NULL,
-  seqlevelsStyle = c("UCSC", "NCBI"),
+  aligner_index = NULL,
   bsgenome = NULL,
   n_mismatches = 0,
   n_max_alignments = 1000,
   all_alignments = TRUE,
   crisprNuclease = NULL,
   canonical = TRUE,
-  ignore_pam = FALSE,
   standard_chr_only = TRUE,
   both_strands = TRUE
 )
@@ -81,7 +72,7 @@ getSpacerAlignments(
 "bowtie" by default. Note that "bwa" is not availble for 
  Windows machines.}
 
-\item{columnName}{String specifying the columm name storing the alignments
+\item{colname}{String specifying the columm name storing the alignments
 in \code{mcols(guideSet)}. "alignments" by default.}
 
 \item{addSummary}{Should summary columns be added to \code{guideSet}?
@@ -97,15 +88,9 @@ on-target and off-target alignments using gene annotation.}
 the search space. This will limit the off-target
 search to the specified custom sequence.}
 
-\item{bowtie_index}{String specifying bowtie index.
-Must be provided when \code{aligner=="bowtie"}.}
-
-\item{bwa_index}{String specifying BWA index.
-Must be provided when \code{aligner=="bwa"}.}
-
-\item{seqlevelsStyle}{String specifying which type of seqnames
-should be used. Default is "UCSC" (e.g. "chr7"; "NCBI"
-style would be "7").}
+\item{aligner_index}{String specifying bowtie or BWA index.
+Must be provided when \code{aligner} is either \code{"bowtie"} or
+\code{"bwa"}.}
 
 \item{bsgenome}{A \linkS4class{BSgenome} object from which to extract
 sequences if a \linkS4class{GRanges} object is provided as input.}
@@ -116,11 +101,10 @@ and genomic DNA.}
 \item{all_alignments}{Should all all possible alignments be returned?
 FALSE by defaule.}
 
-\item{canonical}{Should only alignments corresponding to canonical
-PAM sequences be returned? TRUE by default.}
-
-\item{ignore_pam}{If TRUE, will return all matches regardless of
-PAM sequence. FALSE by default.}
+\item{canonical}{\code{TRUE} returns only those alignments having canonical
+PAM sequences; \code{FALSE} returns alignments having canonical or
+noncanonical PAM sequences; \code{NA} returns all alignments regardless
+of their PAM sequence.}
 
 \item{standard_chr_only}{Should only standard chromosomes be considered?
 TRUE by default.}
@@ -128,25 +112,23 @@ TRUE by default.}
 \item{both_strands}{When \code{custom_seq} is specified,
 should both strands be considered? TRUE by default.}
 
+\item{anchor}{The position within the protospacer as determined by
+\linkS4class{CrisprNuclease} to use when annotating with overlapping
+gene regions.}
+
+\item{annotationType}{Gene identifier to return when annotating alignments
+with gene and/or promoter overlaps. Corresponding \code{txObject} or
+\code{tssObject} argument must have a \code{"gene_symbol"} mcol for
+\code{"symbol"} or \code{"gene_id"} mcol for \code{"id"}.}
+
 \item{tss_window}{Window size of promoters upstream of gene TSS to search
 for overlap with spacer sequence. Must be a numeric vector of length 2:
 upstream limit and downstream limit. Default is \code{c(-500, 500)},
 which includes 500bp upstream and downstream of the TSS.}
 
-\item{n0_max}{Number of maximum on-target alignments tolerated for
-\code{\link{addSpacerAlignmentsIterative}}.}
-
-\item{n1_max}{Number of maximum 1mm off-target alignments tolerated
-for \code{\link{addSpacerAlignmentsIterative}}.}
-
-\item{n2_max}{Number of maximum 2mm off-target alignments tolerated
-for \code{\link{addSpacerAlignmentsIterative}}.}
-
-\item{n3_max}{Number of maximum 3mm off-target alignments tolerated
-for \code{\link{addSpacerAlignmentsIterative}}.}
-
-\item{n4_max}{Number of maximum 4mm off-target alignments tolerated
-for \code{\link{addSpacerAlignmentsIterative}}.}
+\item{alignmentThresholds}{Named numeric vector of the maximum on-target
+alignments tolerated for \code{\link{addSpacerAlignmentsIterative}}.
+Thresholds not provided will take default values.}
 
 \item{n_max_alignments}{Maximum number of alignments to report by bowtie 
 for each spacer. Effectively set to \code{Inf} when \code{allPossible}
@@ -166,7 +148,7 @@ All sequences must be equal in length.}
 \code{\link{addSpacerAlignments}} is similar to 
     \code{\link{getSpacerAlignments}}, with the addition of adding the 
     alignment data to a list-column in \code{mcols(guideSet)} specified
-    by \code{columnName}.
+    by \code{colname}.
 
 \code{\link{addSpacerAlignmentsIterative}} is similar to
     \code{\link{addSpacerAlignments}}, except that it avoids finding 
@@ -183,38 +165,53 @@ Functions for finding and characterizing on- and off-targets of
     spacer sequences.
 }
 \details{
-The columns stored in
-\code{mcols(guideSet)[["geneAnnotation"]]} are:
+The columns stored in \code{mcols(guideSet)[["alignments"]]} are:
 
 \itemize{
 \item \code{spacer} Spacer sequence of the query gRNA.
 \item \code{protospacer} Protospacer sequence in the target DNA.
 \item \code{pam} PAM sequence.
 \item \code{pam_site} PAM site of the found protospacer.
-\item \code{cute_site} Cut site of the found protospacer.
 \item \code{n_mismatches} Integer value specifying the number
     of nucleotide mismatches between the gRNA spacer sequence 
     and the protospacer sequence found in the genome or custom sequence.
-\item \code{canonical} Is the PAM sequence of the found protospacer sequence
-    canonical?
+\item \code{canonical} Whether the PAM sequence of the found protospacer
+    sequence is canonical.
+\item \code{cute_site} Cut site of the found protospacer.
+}
+
+The following columns are also stored when a \code{txObject} is provided:
+
+\itemize{
 \item \code{cds} Character vector specifying gene names of CDS overlapping
     the found protospacer sequence.
-\item \code{fiveUTRs} Character vector specifying gene names of 5'UTRs overlapping
+\item \code{fiveUTRs} Character vector specifying gene names of 5'UTRs
+    overlapping the found protospacer sequence.
+\item \code{threeUTRs} Character vector specifying gene names of 3'UTRs
+    overlapping the found protospacer sequence.
+\item \code{exons} Character vector specifying gene names of exons
+    overlapping the found protospacer sequence.
+\item \code{introns} Character vector specifying gene names of introns
+    overlapping the found protospacer sequence.
+\item \code{intergenic} Character vector specifying the nearest gene when
+    the found protospacer sequence is not located in a gene.
+\item \code{intergenic_distance} Distance in base pairs from the nearest
+    gene when the found protospacer sequence is not located in a gene.
+}
+
+The following columns are also stored when a \code{tssObject} is provided:
+
+\itemize{
+\item \code{promoters} Character vector specifying gene names of promoters,
+    as defined by \code{tss_window} relative to the gene TSS, overlapping
     the found protospacer sequence.
-\item \code{threeUTRs} Character vector specifying gene names of 3'UTRs overlapping
-    the found protospacer sequence.
-\item \code{exons} Character vector specifying gene names of exons overlapping
-    the found protospacer sequence.
-\item \code{introns} Character vector specifying gene names of introns overlapping
-    the found protospacer sequence.
-\item \code{intergenic} Character vector specifying neighborhood genes when the found
-    protospacer sequence is not located in a gene.
 }
 }
 \examples{
 
 # Creating a bowtie index:
 library(Rbowtie)
+library(BSgenome.Hsapiens.UCSC.hg38)
 fasta <- system.file(package="crisprDesign", "fasta/chr12.fa")
 outdir <- tempdir()
 Rbowtie::bowtie_build(fasta,
@@ -228,12 +225,13 @@ data(guideSetExample, package="crisprDesign")
 data(grListExample, package="crisprDesign")
 guideSet <- addSpacerAlignments(guideSetExample,
                                 aligner="bowtie",
-                                bowtie_index=bowtieIndex,
+                                aligner_index=bowtieIndex,
+                                bsgenome=BSgenome.Hsapiens.UCSC.hg38,
                                 n_mismatches=2,
                                 txObject=grListExample)
 
 
 }
 \author{
-Jean-Philippe Fortin
+Jean-Philippe Fortin, Luke Hoberecht
 }

@@ -351,6 +351,7 @@ findSpacers <- function(x,
 #=
 
 #' @importFrom GenomeInfoDb seqlevels seqlevels<- seqinfo seqinfo<- genome
+#' @importClassesFrom GenomeInfoDb Seqinfo
 #' @importFrom S4Vectors metadata<-
 #' @importFrom BiocGenerics width
 .cleanSeqInfo <- function(gs,
@@ -364,10 +365,10 @@ findSpacers <- function(x,
     } else {
         dna_names <- unique(names(dna))
         dna_lengths <- BiocGenerics::width(dna[dna_names])
-        customSeqInfo <- Seqinfo(seqnames=dna_names,
-                                 seqlengths=dna_lengths,
-                                 isCircular=NA,
-                                 genome="custom")
+        customSeqInfo <- GenomeInfoDb::Seqinfo(seqnames=dna_names,
+                                               seqlengths=dna_lengths,
+                                               isCircular=NA,
+                                               genome="custom")
         GenomeInfoDb::seqinfo(gs) <- customSeqInfo
     }
     return(gs)
