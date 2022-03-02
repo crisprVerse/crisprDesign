@@ -96,6 +96,9 @@ findSpacers <- function(x,
     for (i in (c("canonical", "both_strands", "remove_ambiguities"))){
         .checkBoolean(i, get(i))
     }
+    if (isRnase(crisprNuclease)){
+        both_strands=FALSE
+    }
     dna <- .asDNAStringSet(x,
                            bsgenome=bsgenome,
                            crisprNuclease=crisprNuclease,
@@ -122,6 +125,7 @@ findSpacers <- function(x,
 }
 
 
+
 #' @importFrom crisprBase spacerLength<-
 .setupCrisprNucleaseForFindSpacers <- function(crisprNuclease,
                                                spacer_len
@@ -144,14 +148,14 @@ findSpacers <- function(x,
         stop("CRISPR nucleases with spacer gaps are not ",
              "supported at the moment.")
     }
-    if (crisprBase::isRnase(crisprNuclease)){
-        stop("RNA-targeting CRISPR nucleases are not ",
-             "supported at the moment.")
-    }
-    if (!crisprBase::isCutting(crisprNuclease)){
-        stop("CRISPR nucleases that are not cutting are not ",
-             "supported at the moment.")
-    }
+    #if (crisprBase::isRnase(crisprNuclease)){
+        #stop("RNA-targeting CRISPR nucleases are not ",
+    #         "supported at the moment.")
+    #}
+    #if (!crisprBase::isCutting(crisprNuclease)){
+    #    stop("CRISPR nucleases that are not cutting are not ",
+    #         "supported at the moment.")
+    #}
     invisible(NULL)
 }
 
@@ -348,8 +352,6 @@ findSpacers <- function(x,
 
 
 
-#=
-
 #' @importFrom GenomeInfoDb seqlevels seqlevels<- seqinfo seqinfo<- genome
 #' @importClassesFrom GenomeInfoDb Seqinfo
 #' @importFrom S4Vectors metadata<-
@@ -463,14 +465,16 @@ findSpacers <- function(x,
                                remove_ambiguities
 ){
     if (remove_ambiguities){
-        if (crisprBase::isDnase(crisprNuclease)){
-            bases <- Biostrings::DNA_BASES
-        } else if (crisprBase::isRnase(crisprNuclease)){
-            bases <- Biostrings::RNA_BASES
-        }
+        #if (crisprBase::isDnase(crisprNuclease)){
+        #    bases <- Biostrings::DNA_BASES
+        #} else if (crisprBase::isRnase(crisprNuclease)){
+        #    bases <- Biostrings::RNA_BASES
+        #}
+        bases <- Biostrings::DNA_BASES
         bases <- paste0(bases, collapse="")
         pattern <- paste0("^[", bases, "]+$")
         guideSet <- guideSet[grepl(pattern, spacers(guideSet))]
     }
     return(guideSet)
 }
+
