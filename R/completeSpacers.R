@@ -119,7 +119,7 @@ getCutSiteFromPamSite <- function(pam_site,
                                   crisprNuclease=NULL
 ){
     crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
-    pam_site <- .validatePamSite(pam_site)
+    # pam_site <- .validatePamSite(pam_site)
     strand <- .validateStrand(strand)
     stopifnot(length(pam_site)==length(strand))
     cut_offset <- .getDefaultCutOffset(crisprNuclease)

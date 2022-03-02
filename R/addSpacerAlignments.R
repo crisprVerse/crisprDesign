@@ -595,7 +595,7 @@ getSpacerAlignments <- function(spacers,
         pam=Biostrings::DNAStringSet(results$pam),
         pam_site=results$pam_site)
     resultsPams <- as.character(S4Vectors::mcols(results)$pam)
-    if (is.na(canonical)){
+    if (!is.na(canonical)){
         pamMotifs <- crisprBase::motifs(crisprNuclease,
                                         primary=canonical,
                                         expand=TRUE,
