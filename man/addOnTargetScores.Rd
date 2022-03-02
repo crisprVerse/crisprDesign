@@ -9,7 +9,7 @@ addOnTargetScores(
   enzyme = c("WT", "ESP", "HF"),
   promoter = c("U6", "T7"),
   methods = c("azimuth", "deephf", "ruleset1", "lindel", "deepcpf1", "enpamgb",
-    "crisprscan")
+    "crisprscan", "casrxrf")
 )
 }
 \arguments{

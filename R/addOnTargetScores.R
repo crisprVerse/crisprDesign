@@ -38,7 +38,8 @@ addOnTargetScores <- function(guideSet,
                                         "lindel",
                                         "deepcpf1",
                                         "enpamgb",
-                                        "crisprscan")
+                                        "crisprscan",
+                                        "casrxrf")
 ){
     if (!requireNamespace("crisprScore")){
         message("Please install crisprScore to use 'addOnTargetScores'.")
@@ -90,6 +91,7 @@ addOnTargetScores <- function(guideSet,
     data(SpCas9, package="crisprBase", envir=environment())
     data(AsCas12a, package="crisprBase", envir=environment())
     data(enAsCas12a, package="crisprBase", envir=environment())
+    data(CasRx, package="crisprBase", envir=environment())
     if (.identicalNucleases(crisprNuclease, SpCas9)){
         choices <- c("azimuth",
                      "deephf",
@@ -100,10 +102,13 @@ addOnTargetScores <- function(guideSet,
         choices <- c("deepcpf1")
     } else if (.identicalNucleases(crisprNuclease, enAsCas12a)){
         choices <- c("deepcpf1", "enpamgb")
+    } else if (.identicalNucleases(crisprNuclease, CasRx)){
+        choices <- c("casrxrf")
     } else {
         stop("No scoring method found for crisprNuclease \n")
     }
     badMethods <- setdiff(methods, scoringMethodsInfo$method)
+    badMethods <- setdiff(badMethods, "casrxrf")
     if (length(badMethods) > 0){
         stop("Scoring methods not recognized: ",
              paste(badMethods, collapse=", "))
@@ -145,36 +150,76 @@ addOnTargetScores <- function(guideSet,
                                enzyme,
                                promoter
 ){
-    utils::data("scoringMethodsInfo",
-                package="crisprScore",
-                envir=environment())
-    roster <- scoringMethodsInfo
-    roster <- roster[roster$method == method, , drop=FALSE]
-    left  <- roster$left
-    right <- roster$right
-    extendedSequences <- .getExtendedSequences(guideSet,
-                                               start=left,
-                                               end=right)
-    good <- !is.na(extendedSequences)
-    scores <- rep(NA, length(extendedSequences))
-    if (any(good)){
-        seqs <- extendedSequences[good]
-        if (method == "deephf"){
-            results <- crisprScore::getDeepHFScores(seqs,
-                                                    enzyme=enzyme,
-                                                    promoter=promoter)
-        } else {
-            scoreFun <- switch(method,
-                               "azimuth"=crisprScore::getAzimuthScores,
-                               "ruleset1"=crisprScore::getRuleSet1Scores,
-                               "deepcpf1"=crisprScore::getDeepCpf1Scores,
-                               "lindel"=crisprScore::getLindelScores,
-                               "enpamgb"=crisprScore::getEnPAMGBScores,
-                               "crisprscan"=crisprScore::getCRISPRscanScores)
-            results <- scoreFun(seqs)
+    if (method!="casrxrf"){
+        utils::data("scoringMethodsInfo",
+                    package="crisprScore",
+                    envir=environment())
+        roster <- scoringMethodsInfo
+        roster <- roster[roster$method == method, , drop=FALSE]
+        left  <- roster$left
+        right <- roster$right
+        extendedSequences <- .getExtendedSequences(guideSet,
+                                                   start=left,
+                                                   end=right)
+        good <- !is.na(extendedSequences)
+        scores <- rep(NA, length(extendedSequences))
+        if (any(good)){
+            seqs <- extendedSequences[good]
+            if (method == "deephf"){
+                results <- crisprScore::getDeepHFScores(seqs,
+                                                        enzyme=enzyme,
+                                                        promoter=promoter)
+            } else {
+                scoreFun <- switch(method,
+                                   "azimuth"=crisprScore::getAzimuthScores,
+                                   "ruleset1"=crisprScore::getRuleSet1Scores,
+                                   "deepcpf1"=crisprScore::getDeepCpf1Scores,
+                                   "lindel"=crisprScore::getLindelScores,
+                                   "enpamgb"=crisprScore::getEnPAMGBScores,
+                                   "crisprscan"=crisprScore::getCRISPRscanScores)
+                results <- scoreFun(seqs)
+            }
+            scores[good] <- results$score
         }
-        scores[good] <- results$score
+    } else {
+        scores <- .getCasRxRfScores(guideSet)
     }
     return(scores)
 }
+
+
+#' @importFrom Cas13design addCasRxScores
+.getCasRxRfScores <- function(guideSet){
+    spacerLen <- spacerLength(guideSet)
+    if (spacerLen !=23){
+        stop("Spacer length must be 23 to use CasRxRF")
+    }
+    inputs <- .getCasRxRFInputs(guideSet)
+    scores <- addCasRxScores(inputs[["spacers"]],
+                         mrnaSequence=inputs[["mrnaSequence"]])
+    scores <- scores[match(names(guides), scores$ID),,drop=FALSE]
+    out <- scores[["standardizedScore"]]
+    return(out)
+}
+
+
+
+.getCasRxRFInputs <- function(guideSet){
+    mrnaSequence <- metadata(guideSet)$customSequences
+    input <- data.frame(spacer=spacers(guideSet,
+                                        as.character=TRUE))
+    input$pfs_site <- pamSites(guideSet)
+    input$pos <- input$pfs_site-1
+    input$protospacer <- protospacers(guideSet,
+                                      as.character=TRUE)
+    input$PFS <- pams(guideSet, as.character=TRUE)
+    rownames(input) <- names(guideSet)
+    out <- list(spacers=input,
+                mrnaSequence=mrnaSequence)
+    return(out)
+}
+
+
+
+
 
