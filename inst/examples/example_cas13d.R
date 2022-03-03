@@ -15,6 +15,11 @@ out <- getMrnaSequences(txids,
 guides <- findSpacers(out[1], crisprNuclease=CasRx)
 guides <- guides[1:10]
 
+spacers <- spacers(guides,as.character=TRUE)
+protospacers <- protospacers(guides,as.character=TRUE)
+
+
+
 
 guides <- addSequenceFeatures(guides)
 guides <- addPamScores(guides)
