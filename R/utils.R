@@ -5,7 +5,8 @@ utils::globalVariables(c("restrictionEnzymes",
                          "scoringMethodsInfo"))
 utils::globalVariables(c("SpCas9",
                          "AsCas12a",
-                         "enAsCas12a"))
+                         "enAsCas12a",
+                         "CasRx"))
 
 
 STOP_CODONS <- c("TAG","TAA","TGA")

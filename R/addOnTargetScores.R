@@ -197,7 +197,7 @@ addOnTargetScores <- function(guideSet,
     inputs <- .getCasRxRFInputs(guideSet)
     scores <- addCasRxScores(inputs[["spacers"]],
                          mrnaSequence=inputs[["mrnaSequence"]])
-    scores <- scores[match(names(guides), scores$ID),,drop=FALSE]
+    scores <- scores[match(names(guideSet), scores$ID),,drop=FALSE]
     out <- scores[["standardizedScore"]]
     return(out)
 }

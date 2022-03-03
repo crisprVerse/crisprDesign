@@ -445,12 +445,22 @@ getSpacerAlignments <- function(spacers,
     if (length(spacerLength) > 1){
         stop("All spacer sequences must have the same length.")
     }
-    .isBSGenome(bsgenome)
+    if (!isRnase(crisprNuclease)){
+        .isBSGenome(bsgenome)
+    }
     
+    
+    if (isRnase(crisprNuclease)){
+        bowtie_mode <- "protospacer"
+    } else {
+        bowtie_mode <- "spacer"
+    }
+
     results <- switch(
         aligner,
         "bowtie"=crisprBowtie::runCrisprBowtie(spacers=spacers,
                                                bowtie_index=aligner_index,
+                                               mode=bowtie_mode,
                                                bsgenome=bsgenome,
                                                n_mismatches=n_mismatches,
                                                n_max_alignments=n_max_alignments,
@@ -470,9 +480,11 @@ getSpacerAlignments <- function(spacers,
     )
     results <- .alignmentOutput2GRanges(alignments=results,
                                         crisprNuclease=crisprNuclease)
-    results <- .setAlignmentSeqInfo(alignments=results,
-                                    bsgenome=bsgenome,
-                                    standard_chr_only=standard_chr_only)
+    if (!isRnase(crisprNuclease)){
+        results <- .setAlignmentSeqInfo(alignments=results,
+                                        bsgenome=bsgenome,
+                                        standard_chr_only=standard_chr_only)
+    }
     alignmentParams <- list(n_mismatches=n_mismatches,
                             canonical=canonical,
                             spacer_len=spacerLength)
