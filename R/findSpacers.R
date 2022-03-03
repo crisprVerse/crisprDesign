@@ -169,6 +169,9 @@ findSpacers <- function(x,
     if (!is.null(names(x)) && any(duplicated(names(x)))){
         stop("Provided names for 'x' must be unique")
     }
+    if (any(is.na(names(x)))){
+        stop("Names for 'x' cannot be NA")
+    }
     if (.isGRanges(x)){
         x <- .GRanges2DNAStringSet(x,
                                    bsgenome=bsgenome,

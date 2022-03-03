@@ -191,13 +191,13 @@ addOnTargetScores <- function(guideSet,
 #' @importFrom Cas13design addCasRxScores
 .getCasRxRfScores <- function(guideSet){
     spacerLen <- spacerLength(guideSet)
-    if (spacerLen !=23){
+    if (spacerLen != 23){
         stop("Spacer length must be 23 to use CasRxRF")
     }
     inputs <- .getCasRxRFInputs(guideSet)
     scores <- addCasRxScores(inputs[["spacers"]],
                          mrnaSequence=inputs[["mrnaSequence"]])
-    scores <- scores[match(names(guides), scores$ID),,drop=FALSE]
+    scores <- scores[match(names(guideSet), scores$ID),,drop=FALSE]
     out <- scores[["standardizedScore"]]
     return(out)
 }
