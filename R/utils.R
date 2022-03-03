@@ -1,6 +1,7 @@
 #' @importFrom methods is
 NULL
 
+#' @importFrom utils globalVariables
 utils::globalVariables(c("restrictionEnzymes",
                          "scoringMethodsInfo"))
 utils::globalVariables(c("SpCas9",
@@ -12,270 +13,34 @@ utils::globalVariables(c("SpCas9",
 STOP_CODONS <- c("TAG","TAA","TGA")
 
 
-#' @export
 #' @importFrom GenomeInfoDb seqnames
+#' @export
 GenomeInfoDb::seqnames
 
-#' @export
+
 #' @importFrom S4Vectors mcols
+#' @export
 S4Vectors::mcols
 
 
 .default_tss_window <- c(-500, 500)
 
-.isGRanges <- function(dat){
-    return(is(dat, "GRanges"))
-}
 
-.isGRangesList <- function(x){
-    is(x, "GRangesList")
-}
-
-.isTxDb <- function(x){
-    is(x, "TxDb")
-}
-
-
-
-.isDNAStringSet <- function(x){
-    is(x, "DNAStringSet")
-}
-
-
-
-#' @importFrom methods is
-.validateCrisprNuclease <- function(crisprNuclease){
-    if (is.null(crisprNuclease)){
-        crisprNuclease <- .getDefaultCrisprNuclease()
-    } else {
-        if (!is(crisprNuclease, "CrisprNuclease")){
-            stop("Provided nuclease must be a 'CrisprNuclease' object. ")
-        }
-    }
-    return(crisprNuclease)
-}
-
-
-
-
-
-#' @importFrom utils data
-.getDefaultCrisprNuclease <- function(type=c("Cas9", "Cas12a")){
-    type <- match.arg(type)
-    if (type=="Cas9"){
-        data("SpCas9",
-             package="crisprBase",
-             envir=environment())
-        nuc <- SpCas9
-    } else {
-        data("AsCas12a",
-             package="crisprBase",
-             envir=environment())
-        nuc <- AsCas12a
-    }
-    return(nuc)
-}
-
-
-.isBSGenome <- function(bsgenome){
-    if (!is(bsgenome, "BSgenome")){
-        stop("Provided genome must be a 'BSgenome' object. ")
-    }
-}
-
-
-# #' @importFrom methods is
-# .validateBSgenome <- function(bsgenome){
-#     if (is.null(bsgenome)){
-#         bsgenome <- .getDefaultBSgenome()
-#     } else {
-#         .isBSGenome(bsgenome)
-#     }
-#     return(bsgenome)
-# }
-
-# .getDefaultBSgenome <- function(){
-#     if (requireNamespace("BSgenome.Hsapiens.UCSC.hg38")){
-#         out <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38 
-#     } else {
-#         out <- NULL
-#     }
-#     return(out)
-# }
-
-# .getBSGenome <- function(genome){
-#     choices <- c("hg38", "mm10")
-#     if (!genome %in% choices){
-#         stop("Could not automatically find a corresponding BSgenome object ",
-#              "for genome ", genome, ". Please specify BSgenome object using ",
-#              "the 'bsgenome' argument.")
-#     } else if (genome=='hg38'){
-#         if (requireNamespace("BSgenome.Hsapiens.UCSC.hg38")){
-#             out <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
-#         } else {
-#             stop("BSgenome.Hsapiens.UCSC.hg38 must be installed.")
-#         }
-#     } else if (genome=="mm10"){
-#         if (requireNamespace("BSgenome.Mmusculus.UCSC.mm10")){
-#             out <- BSgenome.Mmusculus.UCSC.mm10::BSgenome.Mmusculus.UCSC.mm10
-#         } else {
-#             stop("BSgenome.Mmusculus.UCSC.mm10 must be installed.")
-#         }
-#     } 
-#     return(out)
-# }
-
-
-
-#' @importFrom GenomeInfoDb genome
-.getGenome <- function(guideSet){
-    genome <- unique(GenomeInfoDb::genome(guideSet))
-    stopifnot("Multiple genomes found for GuideSet object" = {
-        length(genome) == 1
-    })
-    return(genome)
-}
-
-
-
-.as_df <- function(dat){
-  # check input
-    if (!is.data.frame(dat) && !.isGRanges(dat)){
-        return(dat)
-    }
-    df <- as.data.frame(dat,
-                        stringsAsFactors=FALSE)
-    df$chr <- df$seqnames
-    df$seqnames <- NULL
-    df$width <- NULL
-    return(df)
-}
-
-
-#' @importFrom S4Vectors DataFrame
-#' @importFrom BiocGenerics rownames
-.asDataFrame <- function(data){
-    spacerIds <- names(data)
-    # intermediate data.frame preserves GPos/GRanges formatting
-    data <- as.data.frame(data)
-    colnames(data)[colnames(data) == "seqnames"] <- "chr"
-    colnames(data)[colnames(data) == "pos"] <- "anchor_site"
-    data <- S4Vectors::DataFrame(data)
-    BiocGenerics::rownames(data) <- spacerIds
-    return(data)
-}
-
-
-#' @importFrom GenomicRanges makeGRangesFromDataFrame
-.as_gr <- function(dat){
-    # check input
-    if (!is.data.frame(dat) && !.isGRanges(dat)){
-        stop('Invalid input; dat must be either",
-             "GRanges or data.frame.')
-    }
-    if (.isGRanges(dat)){
-        return(dat)
-    }
-    if (!"start" %in% colnames(dat) &&
-        !"pam_site" %in% colnames(dat)){
-        stop("start or pam_site must be a column name.")
-    } 
-    if (!"start" %in% colnames(dat)){
-        dat$start <- dat$end <- dat$pam_site
-    }
-    gr <- makeGRangesFromDataFrame(dat,
-                                   keep.extra.columns=TRUE)
-    return(gr)
-}
-
-
-
-.isGuideSet <- function(object){
-    is(object, "GuideSet")
-}
-
-
-.validateGuideSet <- function(object){
-    if (!.isGuideSet(object)){
-        stop("Object must be a GuideSet")
-    }
-    return(object)
-}
-
-
-
-.validateGuideSetSequences <- function(argument,
-                                       value){
-    if (any(is.na(value) | value == "")){
-        stop("'", argument, "' cannot contain NAs, or empty strings")
-    }
-    return(value)
-}
-
-
-
-#' @importFrom S4Vectors mcols
-#' @importFrom BiocGenerics unlist
-.isAlignmentsColumn <- function(guideSet,
-                                columnName
-){
-    column <- S4Vectors::mcols(guideSet)[[columnName]]
-    columnNameExists <- !is.null(column)
-    columnIsGRangesList <- is(column, "GRangesList")
-    if (!columnNameExists || !columnIsGRangesList){
-        return(FALSE)
-    }
-    column <- BiocGenerics::unlist(column)
-    alignmentColumnNames <- c("spacer", "protospacer", "pam", "pam_site",
-                              "n_mismatches", "canonical",
-                              "cut_site")
-    isAlignmentsColumns <- all(alignmentColumnNames %in%
-                                   colnames(S4Vectors::mcols(column)))
-    return(isAlignmentsColumns)
-}
-
-
-
-.validateMetCutoff <- function(met_cutoff){
-    stopifnot(is.numeric(met_cutoff) && length(met_cutoff)==1)
-    if (met_cutoff != Inf){
-        if (met_cutoff < 0 || met_cutoff %% 1 != 0){
-            stop('met_cutoff must be a positive integer.')
-        }
-    }
-    return(met_cutoff)
-}
-
-.validateAnchor <- function(anchor, gr){
-    if (!anchor %in% colnames(mcols(gr))){
-        stop(sprintf("anchor '%s' is not found in mcols(gr).", anchor))
-    } 
-    return(anchor)
-}
-
-
-
-.validateTssWindow <- function(tss_window=NULL){
-    if (is.null(tss_window)){
-        tss_window <- .default_tss_window
-    } else {
-        validLength <- length(tss_window) == 2
-        validType <- is.vector(tss_window, mode="numeric")
-        validIntegers <- all(unlist(tss_window) %% 1 == 0)
-        validOrder <- tss_window[[1]] <= tss_window[[2]]
-        stopifnot("Invalid values for tss_window. See documentation." = {
-            all(c(validLength, validType, validIntegers, validOrder))
-        })
-    }
-    return(tss_window)
+.isGRanges <- function(x){
+    methods::is(x, "GRanges")
 }
 
 
 .validateGRanges <- function(obj){
-    if (!is(obj, "GRanges")){
-        stop("Object must be a GRanges. ")
+    if (!.isGRanges(obj)){
+        stop("Object must be a GRanges.")
     } 
     return(obj)
+}
+
+
+.isGRangesList <- function(x){
+    methods::is(x, "GRangesList")
 }
 
 
@@ -283,7 +48,7 @@ S4Vectors::mcols
     if (.isTxDb(obj)){
         return(TxDb2GRangesList(obj))
     }
-    stopifnot("Object must be a TxDb or GRangesList" = {
+    stopifnot("Object must be a TxDb or GRangesList." = {
         .isGRangesList(obj)
     })
     fields <- c("transcripts",
@@ -301,6 +66,140 @@ S4Vectors::mcols
 }
 
 
+.isTxDb <- function(x){
+    methods::is(x, "TxDb")
+}
+
+
+.isDNAStringSet <- function(x){
+    methods::is(x, "DNAStringSet")
+}
+
+
+.isGuideSet <- function(object){
+    methods::is(object, "GuideSet")
+}
+
+
+.validateGuideSet <- function(object){
+    if (!.isGuideSet(object)){
+        stop("Object must be a GuideSet")
+    }
+    return(object)
+}
+
+
+.validateGuideSetSequences <- function(argument,
+                                       value){
+    if (any(value == "")){
+        stop(sprintf("'%s' cannot contain empty strings", argument))
+    }
+    return(value)
+}
+
+
+#' @importFrom methods is
+.validateCrisprNuclease <- function(crisprNuclease){
+    if (is.null(crisprNuclease)){
+        crisprNuclease <- .getDefaultCrisprNuclease()
+    }
+    if (!methods::is(crisprNuclease, "CrisprNuclease")){
+        stop("Provided nuclease must be a 'CrisprNuclease' object.")
+    }
+    return(crisprNuclease)
+}
+
+
+#' @importFrom utils data
+.getDefaultCrisprNuclease <- function(type=c("Cas9", "Cas12a")){
+    type <- match.arg(type)
+    nuc <- switch(type,
+                  "Cas9"="SpCas9",
+                  "Cas12a"="AsCas12a")
+    utils::data(list=nuc,
+                package="crisprBase",
+                envir=environment())
+    nuc <- get(nuc)
+    return(nuc)
+}
+
+
+.isBSGenome <- function(bsgenome){
+    if (!methods::is(bsgenome, "BSgenome")){
+        stop("Provided genome must be a 'BSgenome' object. ")
+    }
+}
+
+
+#' @importFrom GenomeInfoDb genome
+.getGenome <- function(guideSet){
+    genome <- unique(GenomeInfoDb::genome(guideSet))
+    stopifnot("Multiple genomes found for GuideSet object" = {
+        length(genome) == 1
+    })
+    return(genome)
+}
+
+
+#' @importFrom S4Vectors DataFrame
+#' @importFrom BiocGenerics rownames
+.asDataFrame <- function(gr){
+    spacerIds <- names(gr)
+    # intermediate data.frame flattens gr
+    df <- as.data.frame(gr)
+    colnames(df)[colnames(df) == "seqnames"] <- "chr"
+    colnames(df)[colnames(df) == "pos"] <- "anchor_site"
+    df <- S4Vectors::DataFrame(df)
+    BiocGenerics::rownames(df) <- spacerIds
+    return(df)
+}
+
+
+#' @importFrom S4Vectors mcols
+#' @importFrom BiocGenerics unlist
+.isAlignmentsColumn <- function(guideSet,
+                                columnName
+){
+    column <- S4Vectors::mcols(guideSet)[[columnName]]
+    columnNameNotFound <- is.null(column)
+    columnIsNotGRangesList <- !.isGRangesList(column)
+    if (columnNameNotFound || columnIsNotGRangesList){
+        return(FALSE)
+    }
+    column <- BiocGenerics::unlist(column)
+    alignmentColumnNames <- c("spacer", "protospacer", "pam", "pam_site",
+                              "n_mismatches", "canonical", "cut_site")
+    hasAlignmentsColumns <- all(alignmentColumnNames %in%
+                                    colnames(S4Vectors::mcols(column)))
+    return(hasAlignmentsColumns)
+}
+
+
+#' @importFrom S4Vectors mcols
+.validateAnchor <- function(anchor, gr){
+    anchorColumnExists <- anchor %in% colnames(S4Vectors::mcols(gr))
+    if (!anchorColumnExists){
+        stop(sprintf("anchor '%s' is not found in mcols(gr)", anchor))
+    } 
+    return(anchor)
+}
+
+
+.validateTssWindow <- function(tss_window=NULL){
+    if (is.null(tss_window)){
+        tss_window <- .default_tss_window
+    } else {
+        hasValidLength <- length(tss_window) == 2
+        isNumericVector <- is.vector(tss_window, mode="numeric")
+        isAllIntegers <- all(tss_window == round(tss_window))
+        isOrdered <- tss_window[[1]] <= tss_window[[2]]
+        stopifnot("Invalid values for tss_window. See documentation." = {
+            all(c(hasValidLength, isNumericVector, isAllIntegers, isOrdered))
+        })
+    }
+    return(tss_window)
+}
+
 
 #' @importFrom BiocGenerics width colnames
 #' @importFrom S4Vectors mcols
@@ -308,7 +207,7 @@ S4Vectors::mcols
 ){
     if (!is.null(tssObject)){
         stopifnot("tssObject must be a GRanges object" = {
-            is(tssObject, "GRanges")
+            .isGRanges(tssObject)
         })
         widths <- BiocGenerics::width(tssObject)
         stopifnot("All ranges in tssObject must have a width of 1" = {
@@ -321,37 +220,6 @@ S4Vectors::mcols
     }   
     return(tssObject)
 }
-
-
-
-
-
-.validateGRangesNames <- function(gr){
-    grNames <- names(gr)
-    suggestedNames <- paste0("region_",
-                             seq_along(gr))
-    if (is.null(grNames) | all(is.na(grNames)) | all(grNames=="")){
-        names(gr) <- suggestedNames
-    } else if (sum(duplicated(grNames))>0){
-        stop("The GRanges object has duplicated names.")
-    }
-    return(gr)
-}
-
-
-
-
-.validateCustomSeqNames <- function(x){
-    temp <- names(x)
-    if (is.null(temp)){
-        names(x) <- paste0("region_", seq_along(x))
-    } else if (sum(duplicated(temp))>0){
-        stop("The character vector has duplicated names.")
-    }
-    return(x)
-}
-
-
 
 
 #' @importFrom S4Vectors isTRUEorFALSE
@@ -373,14 +241,14 @@ S4Vectors::mcols
     isNull <- is.null(value) && null_ok
     isSingleIntValue <- is.vector(value, mode="numeric") &&
         length(value) == 1 &&
-        value %% 1 == 0
-    hasGoodSign <- switch(sign,
-                          "positive" = value > 0,
-                          "non-negative" = value >= 0,
-                          "negative" = value < 0,
-                          "non-positive" = value <= 0,
-                          TRUE)
-    if (!isNull && (!isSingleIntValue || !hasGoodSign)){
+        value == round(value)
+    hasValidSign <- switch(sign,
+                           "positive" = value > 0,
+                           "non-negative" = value >= 0,
+                           "negative" = value < 0,
+                           "non-positive" = value <= 0,
+                           TRUE)
+    if (!isNull && (!isSingleIntValue || !hasValidSign)){
         errorMessage <- paste("%s argument must be a single",
                               ifelse(sign == "any", "", sign),
                               "integer value or NULL")
@@ -388,7 +256,6 @@ S4Vectors::mcols
     }
     invisible(NULL)
 }
-
 
 
 .checkString <- function(argument,
@@ -402,8 +269,7 @@ S4Vectors::mcols
 }
 
 
-
-
+#' @importFrom methods is
 #' @importFrom Biostrings DNA_BASES DNA_ALPHABET
 .validateDNACharacterVariable <- function(seq,
                                           argument,
@@ -411,13 +277,14 @@ S4Vectors::mcols
                                           nullOk=TRUE,
                                           exactBases=TRUE
 ){
-    if (!nullOk && is.null(seq)){
-        stop(argument, " cannot be NULL")
+    if (is.null(seq)){
+        if (!nullOk){
+            stop(sprintf("%s cannot be NULL", argument))
+        } else {
+            return("")
+        }
     }
-    if (nullOk && is.null(seq)){
-        return("")
-    }
-    if (is(seq, "DNAString") && (is.null(len) || len == 1)){
+    if (methods::is(seq, "DNAString") && (is.null(len) || len == 1)){
         seq <- as.character(seq)
         return(seq)
     }
@@ -437,44 +304,16 @@ S4Vectors::mcols
     hasBadLength <- !is.null(len) && length(seq) != len
     if(anyNA(seq) || hasBadSymbols || isNotCharacterVector || hasBadLength){
         object <- ifelse(is.null(len), "vector", "string")
-        stop(argument, " is not a valid DNA character ", object)
+        stop(sprintf("%s is not a valid DNA character %s", argument, object))
     }
     return(seq)
 }
-
-
-
-
-#' @importFrom crisprBase pams
-.isValidPAM <- function(chr,
-                        pam_site,
-                        strand,
-                        bsgenome=NULL,
-                        crisprNuclease=NULL,
-                        canonical=TRUE
-){
-    crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
-    pams <- getPAMSequence(chr=chr,
-                           pam_site=pam_site,
-                           strand=strand,
-                           bsgenome=bsgenome,
-                           crisprNuclease=crisprNuclease)
-    choices <- pams(crisprNuclease, primary=canonical)
-    wh <- pams %in% choices
-    return(wh)
-}
-
-
 
 
 # Remove NULLs from a list
 compact <- function(x) {
     x[!vapply(x, is.null, logical(1))]
 }
-
-
-
-
 
 
 # convert values in scientific notation to integers
@@ -489,7 +328,8 @@ compact <- function(x) {
     unlist(x)
 }
 
-# functions to get reverse complement of DNA sequence
+
+## not needed anymore
 .complement <- function(x){
     chartr("ATGC","TACG",x)
 }
@@ -504,7 +344,19 @@ compact <- function(x) {
     x <- .complement(x)
     return(x)
 }
+#####################
 
+
+#' @importFrom Biostrings DNAStringSet reverseComplement
+.revCompBs <- function(x){
+    x <- Biostrings::DNAStringSet(x)
+    x <- Biostrings::reverseComplement(x)
+    x <- as.character(x)
+    return(x)
+}
+
+
+## not currently used
 # adds/drops "chr" prefix in seqlevels, as required format differs by package
 #' @importFrom GenomeInfoDb seqlevels renameSeqlevels
 .toggleSeqlevels <- function(gr, dropChr=TRUE){
@@ -520,25 +372,31 @@ compact <- function(x) {
 }
 
 
-
+#' @importFrom crisprBase pamSide cutSites spacerLength pams weights motifs
 .identicalNucleases <- function(nuc1, nuc2){
-    cond0 <- identical(pamSide(nuc1),
-                       pamSide(nuc2))
-    cond1 <- identical(cutSites(nuc1),
-                       cutSites(nuc2))
-    cond2 <- identical(spacerLength(nuc1),
-                       spacerLength(nuc2))
-    cond3 <- identical(pams(nuc1, as.character=TRUE),
-                       pams(nuc2, as.character=TRUE))
-    cond4 <- identical(weights(nuc1),
-                       weights(nuc2))
-    cond5 <- identical(motifs(nuc1, as.character=TRUE),
-                       motifs(nuc2, as.character=TRUE))
-    cond0 & cond1 & cond2 & cond3 & cond4 & cond5 
+    identicalPamSide <- identical(crisprBase::pamSide(nuc1),
+                                  crisprBase::pamSide(nuc2))
+    identicalCutSites <- identical(crisprBase::cutSites(nuc1),
+                                   crisprBase::cutSites(nuc2))
+    identicalSpacerLength <- identical(crisprBase::spacerLength(nuc1),
+                                       crisprBase::spacerLength(nuc2))
+    identicalPams <- identical(crisprBase::pams(nuc1, as.character=TRUE),
+                               crisprBase::pams(nuc2, as.character=TRUE))
+    identicalWeights <- identical(crisprBase::weights(nuc1),
+                                  crisprBase::weights(nuc2))
+    identicalMotifs <- identical(crisprBase::motifs(nuc1, as.character=TRUE),
+                                 crisprBase::motifs(nuc2, as.character=TRUE))
+    identicalNucleases <- identicalPamSide &&
+        identicalCutSites &&
+        identicalSpacerLength &&
+        identicalPams &&
+        identicalWeights &&
+        identicalMotifs
+    return(identicalNucleases)
 }  
 
 
-
+## not currently used
 .annotateMismatches <- function(df,
                                 n_mismatches
 ){
@@ -565,7 +423,3 @@ compact <- function(x) {
     df[, paste0("mm", seq_len(n_mismatches))] <- mm
     return(df)
 }
-
-
-
-

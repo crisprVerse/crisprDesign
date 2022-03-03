@@ -14,7 +14,7 @@ bowtie_index_mouse <- "~/crisprIndices/bowtie/mm10/mm10"
 custom_seq1 <- getSeq(bsgenome_human, names="chr12", start=66000, end=70000)
 custom_seq2 <- "ACTG"
 custom_seq3 <- paste0(protospacers(gs), pams(gs), collapse="")
-custom_seq4 <- .revComp(custom_seq3)
+custom_seq4 <- .revCompBs(custom_seq3)
 custom_seq5 <- DNAStringSet(list(custom_seq1, bsgenome_human[["chrM"]]))
 
 

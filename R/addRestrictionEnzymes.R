@@ -198,14 +198,12 @@ getRestrictionEnzymes <- function(guideSet,
 }
 
 
-#' @importFrom Biostrings DNAString reverseComplement
+
 .enzymeMotif2RegexPattern <- function(motif
 ){
-    revComp <- Biostrings::DNAString(motif)
-    revComp <- Biostrings::reverseComplement(revComp)
-    revComp <- as.character(revComp)
+    revMotif <- .revCompBs(motif)
     pattern <- c(.iupacCode2RegexPattern(motif),
-                 .iupacCode2RegexPattern(revComp))
+                 .iupacCode2RegexPattern(revMotif))
     pattern <- unique(pattern)
     pattern <- paste0(pattern, collapse="|")
     return(pattern)

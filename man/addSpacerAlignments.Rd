@@ -209,6 +209,7 @@ The following columns are also stored when a \code{tssObject} is provided:
 }
 \examples{
 
+\dontrun{
 # Creating a bowtie index:
 library(Rbowtie)
 library(BSgenome.Hsapiens.UCSC.hg38)
@@ -229,6 +230,7 @@ guideSet <- addSpacerAlignments(guideSetExample,
                                 bsgenome=BSgenome.Hsapiens.UCSC.hg38,
                                 n_mismatches=2,
                                 txObject=grListExample)
+}
 
 
 }

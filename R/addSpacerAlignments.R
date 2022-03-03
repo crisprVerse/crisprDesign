@@ -124,6 +124,7 @@
 #' 
 #' @examples 
 #' 
+#' \dontrun{
 #' # Creating a bowtie index:
 #' library(Rbowtie)
 #' library(BSgenome.Hsapiens.UCSC.hg38)
@@ -144,6 +145,7 @@
 #'                                 bsgenome=BSgenome.Hsapiens.UCSC.hg38,
 #'                                 n_mismatches=2,
 #'                                 txObject=grListExample)
+#' }
 #' 
 #' 
 #' @author Jean-Philippe Fortin, Luke Hoberecht
@@ -683,7 +685,7 @@ getSpacerAlignments <- function(spacers,
                                      n_mismatches=n_mismatches,
                                      strand="+")
     if (both_strands){
-        hits_rev <- .getCustomSeqPatternHits(spacer=.revComp(spacer),
+        hits_rev <- .getCustomSeqPatternHits(spacer=.revCompBs(spacer),
                                              custom_seq=custom_seq,
                                              n_mismatches=n_mismatches,
                                              strand="-")
@@ -726,8 +728,8 @@ getSpacerAlignments <- function(spacers,
     hits$strand <- rep(strand, nrow(hits))
     hits$spacer <- rep(spacer, nrow(hits))
     if (strand == "-" && nrow(hits) > 0){
-        hits$seq <- .revComp(hits$seq)
-        hits$spacer <- .revComp(spacer)
+        hits$seq <- .revCompBs(hits$seq)
+        hits$spacer <- .revCompBs(spacer)
     }
     return(hits)
 }
@@ -774,7 +776,7 @@ getSpacerAlignments <- function(spacers,
             substr(seq, start, end)
         } else {
             end <- start - pamLength + 1
-            .revComp(substr(seq, end, start))
+            .revCompBs(substr(seq, end, start))
         }
     }, FUN.VALUE=character(1))
     hits$pam <- pams

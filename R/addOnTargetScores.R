@@ -191,7 +191,7 @@ addOnTargetScores <- function(guideSet,
 #' @importFrom Cas13design addCasRxScores
 .getCasRxRfScores <- function(guideSet){
     spacerLen <- spacerLength(guideSet)
-    if (spacerLen !=23){
+    if (spacerLen != 23){
         stop("Spacer length must be 23 to use CasRxRF")
     }
     inputs <- .getCasRxRFInputs(guideSet)
