@@ -66,6 +66,16 @@ S4Vectors::mcols
 }
 
 
+.getTx2GeneTable <- function(txObject){
+    cols <- c("gene_id", "tx_id", "gene_symbol")
+    tx2Gene <- mcols(txObject[["exons"]])[, cols,drop=FALSE]
+    tx2Gene <- as.data.frame(tx2Gene)
+    tx2Gene <- tx2Gene[!duplicated(tx2Gene),]
+    rownames(tx2Gene) <- NULL
+    return(tx2Gene)
+}
+
+
 .isTxDb <- function(x){
     methods::is(x, "TxDb")
 }

@@ -318,17 +318,25 @@ addSpacerAlignments <- function(guideSet,
                                canonical=canonical,
                                standard_chr_only=standard_chr_only,
                                both_strands=both_strands)
-    if (aligner != "biostrings"){
-    aln <- .addGeneAnnotationColumns(aln,
-                                     txObject=txObject,
-                                     anchor=anchor,
-                                     annotationType=annotationType)
-    aln <- .addPromoterAnnotationColumns(aln,
-                                         tssObject=tssObject,
-                                         tss_window=tss_window,
+    crisprNuclease <- crisprNuclease(guideSet)
+    if (aligner != "biostrings" & isDnase(crisprNuclease)){
+        
+        aln <- .addGeneAnnotationColumns(aln,
+                                         txObject=txObject,
                                          anchor=anchor,
                                          annotationType=annotationType)
+        aln <- .addPromoterAnnotationColumns(aln,
+                                             tssObject=tssObject,
+                                             tss_window=tss_window,
+                                             anchor=anchor,
+                                             annotationType=annotationType)
     }
+    if (isRnase(crisprNuclease)){
+        aln <- .addTranscriptAnnotationColumns(aln,
+                                               txObject=txObject)
+    }
+    
+         
     guideSet <- .addAlignmentsSummary(guideSet=guideSet,
                                       aln=aln,
                                       addSummary=addSummary,
@@ -785,6 +793,30 @@ getSpacerAlignments <- function(spacers,
 
 
 
+# Function to add transcript annotation
+# for RNases
+.addTranscriptAnnotationColumns <- function(aln,
+                                            txObject=txObject
+){  
+    if (is.null(txObject)){
+        return(aln)
+    }
+    tx2GeneTable <- .getTx2GeneTable(txObject)
+    txids <- as.character(seqnames(aln))
+    if (!any(txids %in% tx2GeneTable$tx_id)){
+        warning("None of the transcripts in the alignment",
+                " table is found in the txObject.")
+    }
+    wh <- match(txids, tx2GeneTable$tx_id)
+    aln$gene_id <- tx2GeneTable[wh, "gene_id"]
+    aln$gene_symbol <- tx2GeneTable[wh, "gene_symbol"]
+    return(aln)
+}
+
+
+
+
+
 #' @importFrom GenomeInfoDb checkCompatibleSeqinfo
 #' @importFrom S4Vectors mcols<-
 .addGeneAnnotationColumns <- function(aln,
@@ -940,16 +972,23 @@ getSpacerAlignments <- function(spacers,
                                   n_mismatches
 ){
     if (addSummary){
-        hasAlnSummaryCols <- any(grepl("^n[0-9](_[cp])?$",
+        hasAlnSummaryCols <- any(grepl("^n[0-9](_[cptxgen])?$",
                                        colnames(S4Vectors::mcols(guideSet))))
         if (hasAlnSummaryCols){
             warning("Overwriting existing alignments summary. ",
                     "To avoid overwriting, set addSummary=FALSE.")
         }
         
-        alignmentSummary <- .getAlignmentsSummary(aln=aln,
-                                                  spacers=spacers,
-                                                  n_mismatches=n_mismatches)
+        if (isDnase(crisprNuclease(guideSet))){
+            alignmentSummary <- .getAlignmentsSummary_dnase(aln=aln,
+                                                            spacers=spacers,
+                                                            n_mismatches=n_mismatches)
+        } else {
+            alignmentSummary <- .getAlignmentsSummary_rnase(aln=aln,
+                                                            spacers=spacers,
+                                                            n_mismatches=n_mismatches)
+        }
+       
         for (i in colnames(alignmentSummary)){
             S4Vectors::mcols(guideSet)[[i]] <- alignmentSummary[[i]]
         }
@@ -963,9 +1002,9 @@ getSpacerAlignments <- function(spacers,
 
 
 #' @importFrom S4Vectors mcols
-.getAlignmentsSummary <- function(aln,
-                                  spacers,
-                                  n_mismatches
+.getAlignmentsSummary_dnase <- function(aln,
+                                        spacers,
+                                        n_mismatches
 ){
     seq_mismatches <- c(0, seq_len(n_mismatches))
     alignmentsSummary <- .tallyAlignments(aln=aln,
@@ -999,18 +1038,46 @@ getSpacerAlignments <- function(spacers,
 }
 
 
+.getAlignmentsSummary_rnase <- function(aln,
+                                        spacers,
+                                        n_mismatches
+){
+    seq_mismatches <- c(0, seq_len(n_mismatches))
+    alignmentsSummary <- .tallyAlignments(aln=aln,
+                                          seq_mismatches=seq_mismatches,
+                                          spacers=spacers,
+                                          suffix="_tx")
+    hasGeneAnnotation <- "gene_id" %in% colnames(S4Vectors::mcols(aln))
+    if (hasGeneAnnotation){
+        geneAlignments <- .tallyAlignments(aln=aln,
+                                           seq_mismatches=seq_mismatches,
+                                           spacers=spacers,
+                                           groupBy="gene_id",
+                                           suffix="_gene")
+        alignmentsSummary <- cbind(alignmentsSummary, geneAlignments)
+    }
+    return(alignmentsSummary)
+}
+
 
 #' @importFrom S4Vectors mcols
 .tallyAlignments <- function(aln,
                              seq_mismatches,
                              spacers,
+                             groupBy=NULL,
                              suffix
 ){
     tally <- lapply(seq_mismatches, function(i){
         tallyByMismatchType <- vapply(spacers, function(ii){
             mismatchHits <- S4Vectors::mcols(aln)[["n_mismatches"]] == i
             spacerHits <- S4Vectors::mcols(aln)[["spacer"]] == ii
-            sum(mismatchHits & spacerHits)
+            if (is.null(groupBy)){
+                out <- sum(mismatchHits & spacerHits)
+            } else {
+                genes <- S4Vectors::mcols(aln)[["gene_id"]]
+                out <- length(unique(genes[mismatchHits & spacerHits]))
+            }
+            return(out)
         }, FUN.VALUE=numeric(1))
         data.frame(tallyByMismatchType)
     })

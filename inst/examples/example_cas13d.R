@@ -13,17 +13,54 @@ out <- getMrnaSequences(txids,
                         bsgenome=bsgenome,
                         txObject=txObject)
 guides <- findSpacers(out[1], crisprNuclease=CasRx)
-guides <- guides[1:10]
-
-spacers <- spacers(guides,as.character=TRUE)
-protospacers <- protospacers(guides,as.character=TRUE)
-
-
-
-
+#guides <- guides[1:10]
 guides <- addSequenceFeatures(guides)
 guides <- addPamScores(guides)
 guides <- addRestrictionEnzymes(guides)
+
+
+### Bowtie alignment:
+bowtie_index="/Users/fortinj2/crisprIndices/bowtie/ensembl_human_104/ensembl_human_104"
+guides <- addSpacerAlignments(guides,
+                              txObject=txObject,
+                              n_mismatches=3,
+                              aligner="bowtie",
+                              both_strand=TRUE,
+                              aligner_index=bowtie_index)
+
+
+
+
+aln <- alignments(guides)
+n_mismatches=2
+spacers <- spacers(guides, as.character=TRUE)
+
+
+aln <- alignments(guides)
+
+
+
+
+
+
+
+#guideSet <- guides
+addTranscriptAnnotation <- function(guideSet,
+                                    txObject=NULL
+){
+    nuclease <- crisprNuclease(guideSet)
+    if (!isRnase(nuclease)){
+        stop("addTranscriptAnnotation can only be used with ",
+             "a RNA-targeting nuclease such as CasRx.")
+    }
+    txObject <- .validateGRangesList(txObject)
+    tx2GeneTable <- .getTx2GeneTable(txObject)
+  
+
+
+}
+
+
 
 ### Biostrings alignment:
 load("../../../crisprDesignData/data/mrnasHuman.rda")
@@ -34,19 +71,8 @@ guides <- addSpacerAlignments(guides,
                               custom_seq=mrnasHuman[1:10])
 
 
-### Bowtie alignment:
-library(crisprBowtie)
-bowtie_index="/Users/fortinj2/crisprIndices/bowtie/ensembl_human_104/ensembl_human_104"
-aln <- runCrisprBowtie(spacers(guides,as.characte=TRUE),
-                       n_mismatches=0,
-                       crisprNuclease=CasRx,
-                       bowtie_index=bowtie_index)
 
-guides <- addSpacerAlignments(guides,
-                              n_mismatches=2,
-                              aligner="bowtie",
-                              both_strand=TRUE,
-                              aligner_index=bowtie_index)
+
 
 
 
