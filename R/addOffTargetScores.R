@@ -229,8 +229,8 @@ addOffTargetScores <- function(guideSet,
         S4Vectors::mcols(guideSet)[["score_cfd"]] <- cfd[cfdIndices]
     } 
     if (isCas9){
-        mitIndices <- match(spacers, names(mit))
         mit <- .getAggregateScore("score_mit")
+        mitIndices <- match(spacers, names(mit))
         S4Vectors::mcols(guideSet)[["score_mit"]] <- mit[mitIndices]
     }
     

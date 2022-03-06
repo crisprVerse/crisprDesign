@@ -17,8 +17,8 @@ include in calculating the aggregated score.}
 included? TRUE by default.}
 
 \item{offset}{Numeric value specifying an offset to add to the denominator
-when calcuting the aggregated score (inverse summation formula). 0 by
-default.}
+when calcuting the aggregated score (inverse summation formula).
+0 by default.}
 }
 \value{
 \code{guideSet} with off-target score columns appended in
