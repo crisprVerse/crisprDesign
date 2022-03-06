@@ -219,9 +219,10 @@ test_that("spacers alignments are annotated with correct score values", {
     out <- addOffTargetScores(guideSetExampleFullAnnotation)
     aln <- alignments(out)
     spacers <- as.character(aln$spacer)
-    protospacers <- paste0(aln$protospacer, aln$pam)
-    cfd_scores <- crisprScore::getCFDScores(spacers, protospacers)
-    mit_scores <- crisprScore::getMITScores(spacers, protospacers)
+    protospacers <- as.character(aln$protospacer)
+    pams <- as.character(aln$pam)
+    cfd_scores <- crisprScore::getCFDScores(spacers, protospacers, pams)
+    mit_scores <- crisprScore::getMITScores(spacers, protospacers, pams)
     
     expect_identical(alignments(out)$score_cfd, cfd_scores$score)
     expect_identical(alignments(out)$score_mit, mit_scores$score)

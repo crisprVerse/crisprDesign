@@ -383,7 +383,11 @@ compact <- function(x) {
 
 
 #' @importFrom crisprBase pamSide cutSites spacerLength pams weights motifs
-.identicalNucleases <- function(nuc1, nuc2){
+.identicalNucleases <- function(nuc1,
+                                nuc2,
+                                checkSpacerLength=TRUE,
+                                checkWeights=TRUE
+){
     identicalPamSide <- identical(crisprBase::pamSide(nuc1),
                                   crisprBase::pamSide(nuc2))
     identicalCutSites <- identical(crisprBase::cutSites(nuc1),
@@ -398,10 +402,14 @@ compact <- function(x) {
                                  crisprBase::motifs(nuc2, as.character=TRUE))
     identicalNucleases <- identicalPamSide &&
         identicalCutSites &&
-        identicalSpacerLength &&
         identicalPams &&
-        identicalWeights &&
-        identicalMotifs
+        identicalMotifs 
+    if (checkSpacerLength){
+        identicalNucleases <- identicalNucleases && identicalSpacerLength
+    }
+    if (checkWeights){
+        identicalNucleases <- identicalNucleases && identicalWeights
+    }                
     return(identicalNucleases)
 }  
 
