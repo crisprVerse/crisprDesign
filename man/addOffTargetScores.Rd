@@ -7,7 +7,8 @@
 addOffTargetScores(guideSet, max_mm = 2, includeDistance = TRUE, offset = 0)
 }
 \arguments{
-\item{guideSet}{A \linkS4class{GuideSet} object.}
+\item{guideSet}{A \linkS4class{GuideSet} object.
+\code{crisprNuclease(GuideSet)} must be either using SpCas9 or CasRx.}
 
 \item{max_mm}{The maximimum number of mismatches between a spacer and
 an off-target. Used to select which off-target scores to
@@ -22,12 +23,15 @@ when calcuting the aggregated score (inverse summation formula).
 }
 \value{
 \code{guideSet} with off-target score columns appended in
-    \code{mcols(alignments(guideSet))} and aggregated off-target score
-    columns appended in \code{mcols(guideSet)}.
+    \code{mcols(alignments(guideSet))}. For SpCas9, it
+    also adds aggregated off-target score columns to 
+    \code{mcols(guideSet)}.
 }
 \description{
 Add CFD and MIT off-target scores to a \linkS4class{GuideSet}
     object. Package \pkg{crisprScore} must be installed.
+    Both CFD and MIT methods are available to SpCas9.
+    CFD method is available for CasRx.
 }
 \details{
 See \pkg{crisprScore} package for a description of the off-target

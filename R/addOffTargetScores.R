@@ -1,8 +1,11 @@
 #' @title Add CFD and MIT scores to a \linkS4class{GuideSet} object. 
 #' @description Add CFD and MIT off-target scores to a \linkS4class{GuideSet}
 #'     object. Package \pkg{crisprScore} must be installed.
+#'     Both CFD and MIT methods are available to SpCas9.
+#'     CFD method is available for CasRx.  
 #' 
 #' @param guideSet A \linkS4class{GuideSet} object.
+#'     \code{crisprNuclease(GuideSet)} must be either using SpCas9 or CasRx.
 #' @param max_mm The maximimum number of mismatches between a spacer and
 #'     an off-target. Used to select which off-target scores to
 #'     include in calculating the aggregated score.
@@ -13,8 +16,9 @@
 #'     0 by default.
 #' 
 #' @return \code{guideSet} with off-target score columns appended in
-#'     \code{mcols(alignments(guideSet))} and aggregated off-target score
-#'     columns appended in \code{mcols(guideSet)}.
+#'     \code{mcols(alignments(guideSet))}. For SpCas9, it
+#'     also adds aggregated off-target score columns to 
+#'     \code{mcols(guideSet)}.
 #' 
 #' @details See \pkg{crisprScore} package for a description of the off-target
 #'     scoring methods.
