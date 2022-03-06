@@ -117,8 +117,12 @@ addOffTargetScores <- function(guideSet,
     utils::data(CasRx,
                 package="crisprBase",
                 envir=environment())
-    isCas9  <- .identicalNucleases(crisprNuclease, SpCas9)
-    isCasRx <- .identicalNucleases(crisprNuclease, CasRx)
+    isCas9  <- .identicalNucleases(crisprNuclease,
+                                   SpCas9,
+                                   checkSpacerLength=FALSE)
+    isCasRx <- .identicalNucleases(crisprNuclease,
+                                   CasRx,
+                                   checkSpacerLength=FALSE)
     if (!isCas9 & !isCasRx){
         stop("Nuclease must be either SpCas9 or CasRx ",
              "for off-target scoring")
@@ -215,8 +219,12 @@ addOffTargetScores <- function(guideSet,
     utils::data(SpCas9,
                 package="crisprBase",
                 envir=environment())
-    isCas9  <- .identicalNucleases(crisprNuclease, SpCas9)
-    isCasRx <- .identicalNucleases(crisprNuclease, CasRx)
+    isCas9  <- .identicalNucleases(crisprNuclease,
+                                   SpCas9,
+                                   checkSpacerLength=FALSE)
+    isCasRx <- .identicalNucleases(crisprNuclease,
+                                   CasRx,
+                                   checkSpacerLength=FALSE)
 
 
     #if (isCas9|isCasRx){
