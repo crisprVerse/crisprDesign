@@ -23,7 +23,7 @@ guides <- addRestrictionEnzymes(guides)
 bowtie_index="/Users/fortinj2/crisprIndices/bowtie/ensembl_human_104/ensembl_human_104"
 guides <- addSpacerAlignments(guides,
                               txObject=txObject,
-                              n_mismatches=3,
+                              n_mismatches=1,
                               aligner="bowtie",
                               both_strand=TRUE,
                               aligner_index=bowtie_index)

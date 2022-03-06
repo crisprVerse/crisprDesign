@@ -9,8 +9,8 @@
 #' @param includeDistance Should a distance penalty for the MIT score be
 #'     included? TRUE by default. 
 #' @param offset Numeric value specifying an offset to add to the denominator
-#'     when calcuting the aggregated score (inverse summation formula). 0 by
-#'     default. 
+#'     when calcuting the aggregated score (inverse summation formula).
+#'     0 by default.
 #' 
 #' @return \code{guideSet} with off-target score columns appended in
 #'     \code{mcols(alignments(guideSet))} and aggregated off-target score
@@ -111,35 +111,69 @@ addOffTargetScores <- function(guideSet,
                                             includeDistance=TRUE
 ){
     crisprNuclease <- crisprNuclease(guideSet)
-    utils::data(SpCas9, package="crisprBase", envir=environment())
-    stopifnot("Only SpCas9 nuclease is currently supported" = {
-        .identicalNucleases(crisprNuclease, SpCas9)
-    })
-    spacerLengths <- spacerLength(crisprNuclease)
-    stopifnot("Only spacers of length 19nt or 20nt are currently supported" = {
-        spacerLengths %in% c(19, 20)
-    })
-    
+    utils::data(SpCas9,
+                package="crisprBase",
+                envir=environment())
+    utils::data(CasRx,
+                package="crisprBase",
+                envir=environment())
+    isCas9  <- .identicalNucleases(crisprNuclease, SpCas9)
+    isCasRx <- .identicalNucleases(crisprNuclease, CasRx)
+    if (!isCas9 & !isCasRx){
+        stop("Nuclease must be either SpCas9 or CasRx ",
+             "for off-target scoring")
+    }
+    spacerLen <- spacerLength(crisprNuclease)
+    if (isCasRx & spacerLen>27){
+        stop("For CasRx, spacer length must be at most 27nt ",
+             "for off-target scoring.")
+    }
+    if (isCas9 & spacerLen>20){
+        stop("For SpCas9, spacer length must be at most 20nt ",
+             "for off-target scoring.")
+    }
+   
     aln <- alignments(guideSet)
-    spacers  <- as.character(aln$spacer)
-    protospacers <- paste0(as.character(aln$protospacer),
-                           as.character(aln$pam))
-    if (spacerLengths == 19){
-        spacers  <- paste0("G", spacers, recycle0=TRUE)
+    spacers      <- as.character(aln$spacer)
+    protospacers <- as.character(aln$protospacer)
+    pams         <- as.character(aln$pam)
+    if (isCasRx){
+        protospacers <- DNAStringSet(protospacers)
+        protospacers <- reverseComplement(protospacers)
+        protospacers <- as.character(protospacers)
+    }
+
+    if (isCas9 & spacerLen == 19){
+        spacers      <- paste0("G", spacers, recycle0=TRUE)
         protospacers <- paste0("G", protospacers, recycle0=TRUE)
     }
-    score_cfd <- crisprScore::getCFDScores(spacers=spacers,
-                                           protospacers=protospacers)
-    aln$score_cfd <- score_cfd$score
-    score_mit <- crisprScore::getMITScores(spacers=spacers,
-                                           protospacers=protospacers,
-                                           includeDistance=includeDistance)
-    aln$score_mit <- score_mit$score
+    if (isCas9){
+        nuclease <- "SpCas9"
+    } else if (isCasRx){
+        nuclease <- "CasRx"
+    }
+
+    if (isCas9 | isCasRx){
+        score_cfd <- crisprScore::getCFDScores(spacers=spacers,
+                                               protospacers=protospacers,
+                                               pams=pams,
+                                               nuclease=nuclease)
+        aln$score_cfd <- score_cfd$score
+    }
+    if (isCas9){
+        score_mit <- crisprScore::getMITScores(spacers=spacers,
+                                               protospacers=protospacers,
+                                               pams=pams,
+                                               includeDistance=includeDistance)
+        aln$score_mit <- score_mit$score
+    }
+
+    
     
     guideSetSpacers <- spacers(guideSet, as.character=TRUE)
     aln <- S4Vectors::split(aln,
-                                   f=factor(aln$spacer,
-                                            levels=unique(guideSetSpacers)))
+                            f=factor(aln$spacer,
+                                     levels=unique(guideSetSpacers)))
     aln <- aln[guideSetSpacers]
     names(aln) <- names(guideSet)
     S4Vectors::mcols(guideSet)[["alignments"]] <- aln
@@ -159,6 +193,7 @@ addOffTargetScores <- function(guideSet,
     validMismatchCount <- aln$n_mismatches <= max_mm
     aln <- aln[validMismatchCount, , drop=FALSE]
     aln <- split(aln, f=aln$spacer)
+
     .getAggregateScore <- function(score){
         vapply(aln, function(x){
             nmm <- x[["n_mismatches"]]
@@ -172,14 +207,32 @@ addOffTargetScores <- function(guideSet,
         }, FUN.VALUE=numeric(1))
     }
     
-    cfd <- .getAggregateScore("score_cfd")
-    mit <- .getAggregateScore("score_mit")
-    
     spacers <- spacers(guideSet, as.character=TRUE)
-    cfdIndices <- match(spacers, names(cfd))
-    mitIndices <- match(spacers, names(mit))
-    S4Vectors::mcols(guideSet)[["score_cfd"]] <- cfd[cfdIndices]
-    S4Vectors::mcols(guideSet)[["score_mit"]] <- mit[mitIndices]
+    crisprNuclease <- crisprNuclease(guideSet)
+    utils::data(SpCas9,
+                package="crisprBase",
+                envir=environment())
+    utils::data(SpCas9,
+                package="crisprBase",
+                envir=environment())
+    isCas9  <- .identicalNucleases(crisprNuclease, SpCas9)
+    isCasRx <- .identicalNucleases(crisprNuclease, CasRx)
+
+
+    #if (isCas9|isCasRx){
+    # Not ready to aggregate for CasRx
+    # has multiple isoforms create repeat number
+    # of on-targets
+    if (isCas9){
+        cfd <- .getAggregateScore("score_cfd")
+        cfdIndices <- match(spacers, names(cfd))
+        S4Vectors::mcols(guideSet)[["score_cfd"]] <- cfd[cfdIndices]
+    } 
+    if (isCas9){
+        mitIndices <- match(spacers, names(mit))
+        mit <- .getAggregateScore("score_mit")
+        S4Vectors::mcols(guideSet)[["score_mit"]] <- mit[mitIndices]
+    }
     
     return(guideSet)
 }
