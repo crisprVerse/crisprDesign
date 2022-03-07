@@ -49,22 +49,22 @@ test_that("CFD and MIT scores require guideSet using SpCas9 CrisprNuclease", {
 })
 
 
-test_that("CFD and MIT scores require spacers having lengths 19nt or 20nt", {
-    guides <- guideSetExampleFullAnnotation
-    guides$protospacer <- Biostrings::substr(guides$protospacer, 1, 18)
-    out <- addOffTargetScores(guides)
-    expect_true(all(is.na(out$score_cfd)))
-    expect_true(all(is.na(out$score_mit)))
+# test_that("CFD and MIT scores require spacers having lengths 19nt or 20nt", {
+#     guides <- guideSetExampleFullAnnotation
+#     guides$protospacer <- Biostrings::substr(guides$protospacer, 1, 18)
+#     out <- addOffTargetScores(guides)
+#     expect_true(all(is.na(out$score_cfd)))
+#     expect_true(all(is.na(out$score_mit)))
     
-    guides <- guideSetExampleFullAnnotation
-    nuclease <- crisprNuclease(guides)
-    spacerLength(nuclease) <- 18
-    metadata(guides)$CrisprNuclease <- nuclease
-    expect_error(addOffTargetScores(guides))
-    spacerLength(nuclease) <- 21
-    metadata(guides)$CrisprNuclease <- nuclease
-    expect_error(addOffTargetScores(guides))
-})
+#     guides <- guideSetExampleFullAnnotation
+#     nuclease <- crisprNuclease(guides)
+#     spacerLength(nuclease) <- 18
+#     metadata(guides)$CrisprNuclease <- nuclease
+#     expect_error(addOffTargetScores(guides))
+#     spacerLength(nuclease) <- 21
+#     metadata(guides)$CrisprNuclease <- nuclease
+#     expect_error(addOffTargetScores(guides))
+# })
 
 
 test_that("max_mm argument is required to be an integer value", {

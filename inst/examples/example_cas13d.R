@@ -9,6 +9,8 @@ txids <- c("ENST00000457313")
 txids <- c("ENST00000367064") #CD55
 
 
+
+
 out <- getMrnaSequences(txids,
                         bsgenome=bsgenome,
                         txObject=txObject)
@@ -42,23 +44,6 @@ aln <- alignments(guides)
 
 
 
-
-
-#guideSet <- guides
-addTranscriptAnnotation <- function(guideSet,
-                                    txObject=NULL
-){
-    nuclease <- crisprNuclease(guideSet)
-    if (!isRnase(nuclease)){
-        stop("addTranscriptAnnotation can only be used with ",
-             "a RNA-targeting nuclease such as CasRx.")
-    }
-    txObject <- .validateGRangesList(txObject)
-    tx2GeneTable <- .getTx2GeneTable(txObject)
-  
-
-
-}
 
 
 
