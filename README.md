@@ -27,6 +27,10 @@ This is depending on the following R packages:
 
 - Cas13design (optional): https://github.com/Jfortin1/Cas13design
 
+### Example data
+
+- crisprDesignData: https://github.com/Jfortin1/crisprDesignData
+
 ### Creating bowtie and BWA indexes
 
 Downloading fasta for human genome (GRCh38):
