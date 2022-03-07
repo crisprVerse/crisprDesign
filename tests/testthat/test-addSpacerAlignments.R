@@ -615,11 +615,11 @@ test_that("anchor arg is appropriately applied", {
 })
 
 
-test_that("annotationType arg must be 'symbol' or 'id'", {
+test_that("annotationType arg must be 'gene_symbol' or 'gene_id'", {
     bad_input <- list(NA,
                       0,
                       character(0),
-                      "ID")
+                      "GENE_ID")
     lapply(bad_input, function(x){
         expect_error(addSpacerAlignments(gs,
                                          aligner="bowtie",

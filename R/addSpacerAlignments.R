@@ -52,8 +52,7 @@
 #'     gene regions.
 #' @param annotationType Gene identifier to return when annotating alignments
 #'     with gene and/or promoter overlaps. Corresponding \code{txObject} or
-#'     \code{tssObject} argument must have a \code{"gene_symbol"} mcol for
-#'     \code{"symbol"} or \code{"gene_id"} mcol for \code{"id"}.
+#'     \code{tssObject} argument must have mcol column name for selected type.
 #' @param alignmentThresholds Named numeric vector of the maximum on-target
 #'     alignments tolerated for \code{\link{addSpacerAlignmentsIterative}}.
 #'     Thresholds not provided will take default values.
@@ -173,7 +172,7 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                          standard_chr_only=TRUE,
                                          both_strands=TRUE,
                                          anchor=c("cut_site", "pam_site"),
-                                         annotationType=c("symbol", "id"),
+                                         annotationType=c("gene_symbol", "gene_id"),
                                          tss_window=NULL,
                                          alignmentThresholds=c(n0=5,
                                                                n1=100,
@@ -294,7 +293,7 @@ addSpacerAlignments <- function(guideSet,
                                 standard_chr_only=TRUE,
                                 both_strands=TRUE,
                                 anchor=c("cut_site", "pam_site"),
-                                annotationType=c("symbol", "id"),
+                                annotationType=c("gene_symbol", "gene_id"),
                                 tss_window=NULL
 ){
     guideSet  <- .validateGuideSet(guideSet)
@@ -302,7 +301,6 @@ addSpacerAlignments <- function(guideSet,
     .checkString("colname", colname)
     n_mismatches <- .validateNumberOfMismatches(n_mismatches, aligner)
     anchor <- match.arg(anchor)
-    annotationType <- match.arg(annotationType)
     spacers <- spacers(guideSet, as.character=TRUE)
     uniqueSpacers <- unique(spacers)
     
@@ -320,7 +318,7 @@ addSpacerAlignments <- function(guideSet,
                                both_strands=both_strands)
     crisprNuclease <- crisprNuclease(guideSet)
     if (aligner != "biostrings" & isDnase(crisprNuclease)){
-        
+        annotationType <- match.arg(annotationType)
         aln <- .addGeneAnnotationColumns(aln,
                                          txObject=txObject,
                                          anchor=anchor,
@@ -693,7 +691,7 @@ getSpacerAlignments <- function(spacers,
                                      n_mismatches=n_mismatches,
                                      strand="+")
     if (both_strands){
-        hits_rev <- .getCustomSeqPatternHits(spacer=.revCompBs(spacer),
+        hits_rev <- .getCustomSeqPatternHits(spacer=.revComp(spacer),
                                              custom_seq=custom_seq,
                                              n_mismatches=n_mismatches,
                                              strand="-")
@@ -728,6 +726,7 @@ getSpacerAlignments <- function(spacers,
         perSeqHits
     })
     hits <- Reduce(rbind, hits)
+    # seq is protospacer in custom_seq
     hits$seq <- vapply(seq_len(nrow(hits)), function(x){
         sourceSeq <- hits$seqnames[x]
         sourceSeq <- custom_seq[[sourceSeq]]
@@ -736,8 +735,8 @@ getSpacerAlignments <- function(spacers,
     hits$strand <- rep(strand, nrow(hits))
     hits$spacer <- rep(spacer, nrow(hits))
     if (strand == "-" && nrow(hits) > 0){
-        hits$seq <- .revCompBs(hits$seq)
-        hits$spacer <- .revCompBs(spacer)
+        hits$seq <- .revComp(hits$seq)
+        hits$spacer <- .revComp(spacer)
     }
     return(hits)
 }
@@ -784,7 +783,7 @@ getSpacerAlignments <- function(spacers,
             substr(seq, start, end)
         } else {
             end <- start - pamLength + 1
-            .revCompBs(substr(seq, end, start))
+            .revComp(substr(seq, end, start))
         }
     }, FUN.VALUE=character(1))
     hits$pam <- pams
@@ -838,17 +837,10 @@ getSpacerAlignments <- function(spacers,
                                                     annotationType=annotationType)
         S4Vectors::mcols(aln)[[i]] <- regionAnnotation
     }
-    intergenicAnnotation <- lapply(seq_along(aln), function(x){
-        .addIntergenicAnnotation(aln=aln[x],
-                                 regions=regions,
-                                 txObject=txObject,
-                                 anchor=anchor,
-                                 annotationType=annotationType)
-    })
-    intergenicAnnotation <- Reduce(rbind, intergenicAnnotation)
-    S4Vectors::mcols(aln)[["intergenic"]] <- intergenicAnnotation$gene
-    S4Vectors::mcols(aln)[["intergenic_distance"]] <- intergenicAnnotation$dist
-    
+    aln <- .addIntergenicAnnotation(aln=aln,
+                                    txModel=txObject[["transcripts"]],
+                                    anchor=anchor,
+                                    annotationType=annotationType)
     return(aln)
 }
 
@@ -865,11 +857,8 @@ getSpacerAlignments <- function(spacers,
     anchor <- .validateAnchor(anchor, aln)
     IRanges::ranges(aln) <- IRanges::IRanges(start=S4Vectors::mcols(aln)[[anchor]],
                                              width=1)
-    colname <- switch(annotationType,
-                      "symbol"="gene_symbol",
-                      "id"="gene_id")
-    if (!colname %in% colnames(S4Vectors::mcols(geneRegionModel))){
-        stop("'", colname, "' not found in gene model")
+    if (!annotationType %in% colnames(S4Vectors::mcols(geneRegionModel))){
+        stop(sprintf("'%s' not found in gene model", annotationType))
     }
     overlaps <- suppressWarnings(
         GenomicRanges::findOverlaps(aln,
@@ -884,7 +873,7 @@ getSpacerAlignments <- function(spacers,
         indicesOfHits <- S4Vectors::queryHits(overlaps) == x
         regionHits <- S4Vectors::subjectHits(overlaps)[indicesOfHits]
         geneRegionModelSubset <- S4Vectors::mcols(geneRegionModel)[regionHits,]
-        geneHits <- geneRegionModelSubset[[colname]]
+        geneHits <- geneRegionModelSubset[[annotationType]]
         geneHits <- geneHits[geneHits != ""]
         geneHits <- unique(geneHits)
         paste0(geneHits, collapse=";")
@@ -895,41 +884,52 @@ getSpacerAlignments <- function(spacers,
 
 
 
-#' @importFrom S4Vectors mcols subjectHits
+#' @importFrom S4Vectors mcols mcols<- subjectHits queryHits
 #' @importFrom IRanges IRanges
 #' @importFrom GenomicRanges distanceToNearest
 .addIntergenicAnnotation <- function(aln,
-                                     regions,
-                                     txObject,
+                                     txModel,
                                      anchor,
                                      annotationType
 ){
-    geneRegionAnnotation <- S4Vectors::mcols(aln)[regions]
     anchor <- .validateAnchor(anchor, aln)
     anchorSite <- S4Vectors::mcols(aln)[[anchor]]
-    IRanges::ranges(aln) <- IRanges::IRanges(start=anchorSite, width=1)
-    geneRegionModel <- txObject[["transcripts"]]
-    hit <- GenomicRanges::distanceToNearest(aln,
-                                            geneRegionModel,
-                                            ignore.strand=TRUE)
-    if (any(!is.na(geneRegionAnnotation)) || length(hit) == 0){
-        results <- data.frame(gene=NA_character_,
-                              dist=NA_integer_)
-        return(results)
+    alnSetToAnchor <- aln
+    IRanges::ranges(alnSetToAnchor) <- IRanges::IRanges(start=anchorSite,
+                                                        width=1)
+    nearestGene <- GenomicRanges::distanceToNearest(alnSetToAnchor,
+                                                    txModel,
+                                                    ignore.strand=TRUE)
+    nearestGene <- filterOutAlnWithGeneRegionAnnotation(aln, nearestGene)
+    
+    intergenic <- S4Vectors::mcols(txModel)[[annotationType]]
+    intergenic <- intergenic[S4Vectors::subjectHits(nearestGene)]
+    intergenic_distance <- S4Vectors::mcols(nearestGene)[["distance"]]
+    nearestGene <- data.frame(aln_index=S4Vectors::queryHits(nearestGene),
+                              intergenic=intergenic,
+                              intergenic_distance=intergenic_distance)
+
+    S4Vectors::mcols(aln)[["intergenic"]] <- NA_character_
+    S4Vectors::mcols(aln)[["intergenic_distance"]] <- NA_integer_
+    for (i in c("intergenic", "intergenic_distance")){
+        S4Vectors::mcols(aln)[[i]][nearestGene$aln_index] <- nearestGene[[i]]
     }
-    nearestGene <- geneRegionModel[S4Vectors::subjectHits(hit)]
-    colname <- switch(annotationType,
-                      "symbol"="gene_symbol",
-                      "id"="gene_id")
-    if (!colname %in% colnames(S4Vectors::mcols(geneRegionModel))){
-        stop("'", colname, "' not found in gene model")
-    }
-    nearestGene <- S4Vectors::mcols(nearestGene)[[colname]]
-    nearestGene <- paste0(nearestGene, collapse=";")
-    nearestDistance <- S4Vectors::mcols(hit)[["distance"]]
-    results <- data.frame(gene=nearestGene,
-                          dist=nearestDistance)
-    return(results)
+    
+    return(aln)
+}
+
+
+#' @importFrom S4Vectors mcols
+filterOutAlnWithGeneRegionAnnotation <- function(aln,
+                                                 nearestGene
+){
+    geneRegions <- c("cds", "fiveUTRs", "threeUTRs", "exons", "introns")
+    geneCoverage <- S4Vectors::mcols(aln)[geneRegions]
+    hasGeneAnnotation <- apply(geneCoverage, 1, function(x){
+        all(is.na(x))
+    })
+    nearestGene <- nearestGene[hasGeneAnnotation]
+    return(nearestGene)
 }
 
 
