@@ -339,7 +339,7 @@ compact <- function(x) {
 }
 
 
-## not needed anymore
+# should have same versatility as Biostrings...(full alphabet, multiple strings)
 .complement <- function(x){
     chartr("ATGC","TACG",x)
 }
@@ -354,7 +354,6 @@ compact <- function(x) {
     x <- .complement(x)
     return(x)
 }
-#####################
 
 
 #' @importFrom Biostrings DNAStringSet reverseComplement

@@ -23,7 +23,7 @@ addSpacerAlignmentsIterative(
   standard_chr_only = TRUE,
   both_strands = TRUE,
   anchor = c("cut_site", "pam_site"),
-  annotationType = c("symbol", "id"),
+  annotationType = c("gene_symbol", "gene_id"),
   tss_window = NULL,
   alignmentThresholds = c(n0 = 5, n1 = 100, n2 = 100, n3 = 1000, n4 = 1000)
 )
@@ -45,7 +45,7 @@ addSpacerAlignments(
   standard_chr_only = TRUE,
   both_strands = TRUE,
   anchor = c("cut_site", "pam_site"),
-  annotationType = c("symbol", "id"),
+  annotationType = c("gene_symbol", "gene_id"),
   tss_window = NULL
 )
 
@@ -118,8 +118,7 @@ gene regions.}
 
 \item{annotationType}{Gene identifier to return when annotating alignments
 with gene and/or promoter overlaps. Corresponding \code{txObject} or
-\code{tssObject} argument must have a \code{"gene_symbol"} mcol for
-\code{"symbol"} or \code{"gene_id"} mcol for \code{"id"}.}
+\code{tssObject} argument must have mcol column name for selected type.}
 
 \item{tss_window}{Window size of promoters upstream of gene TSS to search
 for overlap with spacer sequence. Must be a numeric vector of length 2:
