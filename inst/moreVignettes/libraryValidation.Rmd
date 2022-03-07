@@ -1,0 +1,182 @@
+---
+title: "Validation of external libraries"
+author: 
+- name: Jean-Philippe Fortin
+  affiliation: Department of Data Science and Statistical Computing, gRED, Genentech
+  email: fortinj2@gene.com
+date: "`r Sys.Date()`"
+output: 
+  BiocStyle::html_document:
+    toc_float: true
+    #theme: paper
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{Validation of external libraries}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+
+
+# Introduction
+
+In this vignette, we characterize a small CRISPRko library designed to
+target tumor suppressors. 
+The library was obtained from Addgene, and is stored in `.\extdata`.
+
+# Loading necessary packages
+
+```{r}
+library(crisprDesign)
+library(crisprBowtie)
+library(crisprBase)
+library(readxl)
+library(BSgenome.Mmusculus.UCSC.mm10)
+bsgenome <- BSgenome.Mmusculus.UCSC.mm10
+```
+
+
+# Reading in data
+
+```{r}
+data <- read_excel("extdata/mtsg-grnas-readcounts.xlsx")
+data <- as.data.frame(data)[,1:2]
+colnames(data) <- c("ID", "spacer_20mer")
+
+# Getting genes names:
+data$gene_symbol <- sapply(strsplit(data$ID, split="_"), function(x)x[[1]])
+```
+
+
+# Building a `GuideSet` object
+
+
+We first define the nuclease:
+
+```{r}
+data(SpCas9, package="crisprBase")
+crisprNuclease <- SpCas9
+```
+
+
+We next need to define a bowtie index:
+
+```{r}
+bowtie_index <- "/Users/fortinj2/crisprIndices/bowtie/mm10/mm10"
+```
+
+Ready to search for on-target alignments:
+
+```{r}
+spacers <- unique(data$spacer_20mer)
+aln <- runCrisprBowtie(spacers,
+                       crisprNuclease=crisprNuclease,
+                       bowtie_index=bowtie_index,
+                       n_mismatches=0)
+```
+
+`n_mismatches=0` specifies that we require a perfect match between
+spacer and protospacer sequences (on-targets).
+
+Non-targeting controls should not have any alignments to the genome,
+and some guides might have multiple alignments if they were not
+designed carefully. For such guides, that's OK, we can pick up pick one 
+genomic coordinate for now, and the multiple alignments annotation
+will be handled later on. 
+
+Only keeping standard chromosomes:
+
+```{r}
+chrs <- paste0("chr",c(1:22, "X", "Y"))
+aln <- aln[aln$chr %in% chrs,,drop=FALSE]
+```
+
+
+
+Let's add the genomic coordinates:
+
+```{r}
+wh <- match(data$spacer_20mer, aln$spacer)
+data$chr <- aln$chr[wh]
+data$pam_site <- aln$pam_site[wh]
+data$pam <- aln$pam[wh]
+data$strand <- aln$strand[wh]
+```
+
+
+We can now build a proper `GuideSet` object in `crisprDesign` that will 
+allow us to do (more) sophisticated analyses.
+
+
+We need to filter out first guides that don't have a genome match:
+
+```{r}
+data <- data[!is.na(data$pam_site),]
+```
+
+Ready to build the object with the constructor function:
+
+```{r}
+gs <- GuideSet(protospacers=data$spacer_20mer,
+               pams=data$pam,
+               pam_site=data$pam_site,
+               seqnames=data$chr,
+               strand=data$strand,
+               CrisprNuclease=crisprNuclease,
+               bsgenome=bsgenome)
+gs$gene_symbol <- data$gene_symbol
+gs
+```
+
+
+# Off-target characterization
+
+Now it becomes a piece of cake to characterize the off-targets.
+Let's use the bowtie aligner, and let's find all off-targets
+with up to 3 mismatches.
+
+
+We can also pass a `txObject` that will allow us to put
+the off-target in their genomic context
+
+```{r}
+library(crisprDesignData)
+txObject <- txdb_mouse
+```
+
+
+```{r}
+gs <- addSpacerAlignments(gs,
+                          txObject=txObject,
+                          aligner="bowtie",
+                          aligner_index=bowtie_index,
+                          bsgenome=bsgenome,
+                          n_mismatches=3)
+```
+
+
+We can also add cutting likelihood scores to the off-targets:
+
+```{r}
+gs <- addOffTargetScores(gs)
+```
+
+
+One can look at the on- and off-targets for the first gRNA using the following code:
+
+```{}
+aln <- gs$alignments[[1]]
+aln
+```
+
+
+
+See ?getSpacerAlignments for more details about what the different columns are. 
+
+
+
+# Session Info
+
+```{r}
+sessionInfo()
+```
