@@ -25,7 +25,7 @@ This is depending on the following R packages:
 
 - Rbwa: https://github.com/Jfortin1/Rbwa
 
-- Cas13design: https://github.com/Jfortin1/Cas13design
+- Cas13design (optional): https://github.com/Jfortin1/Cas13design
 
 ### Creating bowtie and BWA indexes
 
