@@ -829,6 +829,9 @@ getSpacerAlignments <- function(spacers,
                                        txObject=NULL,
                                        ignore.strand=TRUE
  ){
+     if (is.null(txObject)){
+        return(aln)
+     }
      genome <- metadata(aln)$genome
      anchor <- match.arg(anchor)
      anchor <- .validateAnchor(anchor, aln)
@@ -933,6 +936,9 @@ getSpacerAlignments <- function(spacers,
                                            tss_window=NULL,
                                            ignore.strand=TRUE
  ){
+     if (is.null(tssObject)){
+        return(aln)
+     }
      tssObject <- .validateTssObject(tssObject)
      # genome <- metadata(aln)$genome
      anchor <- match.arg(anchor)

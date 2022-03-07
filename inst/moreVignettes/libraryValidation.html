@@ -421,7 +421,7 @@ gs &lt;- addSpacerAlignments(gs,
 <p>As an example, we can access the on- and off-target alignments of the first gRNA using the following:</p>
 <pre class="r"><code>aln &lt;- gs$alignments[[1]]
 aln</code></pre>
-<pre><code>## GRanges object with 20 ranges and 14 metadata columns:
+<pre><code>## GRanges object with 20 ranges and 13 metadata columns:
 ##            seqnames    ranges strand |               spacer
 ##               &lt;Rle&gt; &lt;IRanges&gt;  &lt;Rle&gt; |       &lt;DNAStringSet&gt;
 ##   aln_3543     chr8  45023166      - | GGGCAGTGTTTCAAAATCCA
@@ -461,19 +461,19 @@ aln</code></pre>
 ##   aln_3560  72321244        &lt;NA&gt;        &lt;NA&gt;        &lt;NA&gt;        &lt;NA&gt;
 ##   aln_3561  82926312        &lt;NA&gt;        &lt;NA&gt;        &lt;NA&gt;        &lt;NA&gt;
 ##   aln_3562 102277541        &lt;NA&gt;        &lt;NA&gt;        &lt;NA&gt;        &lt;NA&gt;
-##                  introns  intergenic intergenic_distance
-##              &lt;character&gt; &lt;character&gt;           &lt;integer&gt;
-##   aln_3543          &lt;NA&gt;        &lt;NA&gt;                &lt;NA&gt;
-##   aln_3544       Slc39a9        &lt;NA&gt;                &lt;NA&gt;
-##   aln_3545          &lt;NA&gt;        Klf7               28604
-##   aln_3546          &lt;NA&gt;     Slc7a11                6470
-##   aln_3547          &lt;NA&gt;     Gm49059               40791
-##        ...           ...         ...                 ...
-##   aln_3558          &lt;NA&gt;     Gm47543               44675
-##   aln_3559          &lt;NA&gt;     Epb41l3               49813
-##   aln_3560          Rtn1        &lt;NA&gt;                &lt;NA&gt;
-##   aln_3561        Zfp516        &lt;NA&gt;                &lt;NA&gt;
-##   aln_3562 A230001M10Rik        &lt;NA&gt;                &lt;NA&gt;
+##                  introns          intergenic
+##              &lt;character&gt;         &lt;character&gt;
+##   aln_3543          &lt;NA&gt;                &lt;NA&gt;
+##   aln_3544       Slc39a9                &lt;NA&gt;
+##   aln_3545          &lt;NA&gt;    Gm13751 &lt;-&gt; Klf7
+##   aln_3546          &lt;NA&gt;  Slc7a11 &lt;-&gt; Gm6209
+##   aln_3547          &lt;NA&gt;  Gm7004 &lt;-&gt; Gm49061
+##        ...           ...                 ...
+##   aln_3558          &lt;NA&gt;  Gm4042 &lt;-&gt; Gm47543
+##   aln_3559          &lt;NA&gt; Epb41l3 &lt;-&gt; Gm49949
+##   aln_3560          Rtn1                &lt;NA&gt;
+##   aln_3561        Zfp516                &lt;NA&gt;
+##   aln_3562 A230001M10Rik                &lt;NA&gt;
 ##   -------
 ##   seqinfo: 22 sequences (1 circular) from mm10 genome</code></pre>
 <p>We can also add CFD and MIT scores to the off-targets to characterize the likelihood of SpCas9 to cut at the off-targets:</p>
@@ -507,7 +507,7 @@ aln</code></pre>
 ##  [7] GenomicRanges_1.46.1               GenomeInfoDb_1.30.1               
 ##  [9] IRanges_2.28.0                     S4Vectors_0.32.3                  
 ## [11] BiocGenerics_0.40.0                readxl_1.3.1                      
-## [13] crisprBowtie_0.99.2                crisprDesign_0.99.37              
+## [13] crisprBowtie_0.99.2                crisprDesign_0.99.39              
 ## [15] crisprBase_0.99.10                 BiocStyle_2.22.0                  
 ## 
 ## loaded via a namespace (and not attached):
