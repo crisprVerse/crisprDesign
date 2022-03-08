@@ -322,13 +322,13 @@ addSpacerAlignments <- function(guideSet,
         #cat("Adding gene annotation")
         aln <- .addGeneAnnotationColumns(aln,
                                          txObject=txObject,
-                                         anchor=anchor)
-                                         #annotationType=annotationType)
+                                         anchor=anchor,
+                                         annotationType=annotationType)
         aln <- .addPromoterAnnotationColumns(aln,
                                              tssObject=tssObject,
                                              tss_window=tss_window,
-                                             anchor=anchor)
-                                             #annotationType=annotationType)
+                                             anchor=anchor,
+                                             annotationType=annotationType)
     }
     if (isRnase(crisprNuclease)){
         aln <- .addTranscriptAnnotationColumns(aln,
@@ -770,6 +770,7 @@ getSpacerAlignments <- function(spacers,
 
 
 
+## maybe change to pamFromCustomSeq, and adapt for export (and move to completeSpacers)
 #' @importFrom crisprBase pamLength
 .addPamFromCustomSeq <- function(hits,
                                  custom_seq,
@@ -816,311 +817,146 @@ getSpacerAlignments <- function(spacers,
 
 
 
-## This function adds gene annotation columns to the alignments 
- ## obtained from getSpacerAlignments.
- ##
- #' @importFrom S4Vectors metadata mcols mcols<- subjectHits queryHits
- #' @importFrom S4Vectors subjectHits queryHits
- #' @importFrom IRanges IRanges ranges ranges<- findOverlaps
- #' @importFrom IRanges precede follow 
- #' @importFrom GenomeInfoDb seqlevelsStyle seqlevelsStyle<-
- .addGeneAnnotationColumns <- function(aln,
-                                       anchor=c("cut_site", "pam_site"),
-                                       txObject=NULL,
-                                       ignore.strand=TRUE
- ){
-     if (is.null(txObject)){
+#' @importFrom GenomeInfoDb checkCompatibleSeqinfo
+#' @importFrom S4Vectors mcols<-
+.addGeneAnnotationColumns <- function(aln,
+                                      txObject,
+                                      anchor,
+                                      annotationType
+){
+    if (is.null(txObject)){
         return(aln)
-     }
-     genome <- metadata(aln)$genome
-     anchor <- match.arg(anchor)
-     anchor <- .validateAnchor(anchor, aln)
-
-     #To change...
-     if (length(aln) == 0) {
-         aln$cds         <- character(0)
-         aln$fiveUTRs    <- character(0)
-         aln$threeUTRs   <- character(0)
-         aln$exons       <- character(0)
-         aln$introns     <- character(0)
-         aln$intergenics <- character(0)
-         return(aln)
-     }
-
-     aln_gr <- aln
-     ranges(aln_gr) <- IRanges(start=mcols(aln_gr)[[anchor]], width=1)
-     ref <- .validateGRangesList(txObject)
-     GenomeInfoDb::seqlevelsStyle(ref) <- GenomeInfoDb::seqlevelsStyle(aln)
-
-     # Adding gene info columns:
-     regions <- c("cds",
-                  "fiveUTRs",
-                  "threeUTRs",
-                  "exons",
-                  "introns")
-     for (region in regions) {
-         overlaps <- suppressWarnings(findOverlaps(aln_gr,
-                                                   ref[[region]],
-                                                   ignore.strand=ignore.strand))
-         aln <- .addOverlapGenes(dat=aln,
-                                 ref=ref,
-                                 overlaps=overlaps,
-                                 region=region)
-     }
-
-     # Adding intergenic info when everything is empty:
-     mcols(aln)$intergenic <- NA
-     geneAnn <- mcols(aln[, regions, drop=FALSE])
-     wh <- which(rowSums(is.na(geneAnn)) == ncol(geneAnn))
-     if (length(wh) > 0) {
-         upstream   <- precede(aln_gr[wh], ref$transcripts)
-         downstream <- follow(aln_gr[wh], ref$transcripts)
-         genes_up   <- ref$transcripts$gene_symbol[upstream]
-         genes_up[is.na(genes_up)] <- ref$transcripts$tx_id[upstream][is.na(genes_up)]
-         genes_down <- ref$transcripts$gene_symbol[downstream]
-         genes_down[is.na(genes_down)] <- ref$transcripts$tx_id[downstream][is.na(genes_down)]
-         flanking_genes <- paste(genes_up, "<->", genes_down)
-         flanking_genes[flanking_genes == "NA <-> NA"] <- NA
-         mcols(aln)$intergenic[wh] <- flanking_genes
-     }
-     return(aln)
- }
-
-
-
- .addOverlapGenes <- function(dat,
-                              ref,
-                              overlaps,
-                              region
- ){
-     mcols(dat)[[region]] <- NA
-     if (length(overlaps) == 0) {
-         return(dat)
-     }
-     if (.isGRangesList(ref)) {
-         tx <- mcols(ref$transcripts)
-         gr_gene <- mcols(ref[[region]])
-     } else {
-         tx <- NULL
-         gr_gene <- mcols(ref)
-     }
-     if ("gene_symbol" %in% names(gr_gene)){
-         gene_col <- "gene_symbol"
-     } else if ("gene_id" %in% names(gr_gene)){
-         gene_col <- "gene_id"
-     } else {
-         gene_col <- "tx_id"
-     }
-     mcols(overlaps)$gene <- gr_gene[[gene_col]][subjectHits(overlaps)]
-     if (!is.null(tx)) {
-         mcols(overlaps)$gene <- tx$gene_symbol[match(mcols(overlaps)$gene, 
-                                                      tx[[gene_col]])]
-     }
-     genes <- split(mcols(overlaps)$gene,
-                    f=queryHits(overlaps))
-     genes <- vapply(genes, function(x) {
-         paste0(unique(x), collapse = ";")
-     }, FUN.VALUE="a")
-     mcols(dat)[[region]][match(names(genes), seq_along(dat))] <- genes
-     return(dat)
- }
-
-
-
-
-
-
- .addPromoterAnnotationColumns <- function(aln,
-                                           anchor=c("cut_site","pam_site"),
-                                           tssObject=NULL,
-                                           tss_window=NULL,
-                                           ignore.strand=TRUE
- ){
-     if (is.null(tssObject)){
-        return(aln)
-     }
-     tssObject <- .validateTssObject(tssObject)
-     # genome <- metadata(aln)$genome
-     anchor <- match.arg(anchor)
-     anchor <- .validateAnchor(anchor, aln)
-     tss_window <- .validateTssWindow(tss_window)
-
-     #To change...
-     if (length(aln) == 0) {
-         aln$promoters <- character(0)
-         return(aln)
-     }
-
-     aln_gr <- aln
-     ranges(aln_gr) <- IRanges(start=mcols(aln_gr)[[anchor]], width=1)
-     if (!is.null(tssObject)){
-         ref_tss <- promoters(tssObject,
-                              upstream = (-1 * tss_window[1]), 
-                              downstream = tss_window[2])
-     } else {
-         ref_tss <- NULL
-     }
-
-     # Adding TSS info columns:
-     if (!is.null(ref_tss)) {
-         overlaps <- suppressWarnings(findOverlaps(aln_gr,
-                                                   ref_tss,
-                                                   ignore.strand=ignore.strand))
-
-         aln <- .addOverlapGenes(dat=aln,
-                                 ref=ref_tss,
-                                 overlaps=overlaps,
-                                 region="promoters")
-     }
-     return(aln)
+    }
+    txObject <- .validateGRangesList(txObject)
+    GenomeInfoDb::checkCompatibleSeqinfo(aln, txObject)
+    regions <- c("cds", "fiveUTRs", "threeUTRs", "exons", "introns")
+    for (i in regions) {
+        regionAnnotation <- .addGeneOverlapByRegion(aln=aln,
+                                                    geneRegionModel=txObject[[i]],
+                                                    anchor=anchor,
+                                                    annotationType=annotationType)
+        S4Vectors::mcols(aln)[[i]] <- regionAnnotation
+    }
+    aln <- .addIntergenicAnnotation(aln=aln,
+                                    txModel=txObject[["transcripts"]],
+                                    anchor=anchor,
+                                    annotationType=annotationType)
+    return(aln)
 }
 
 
 
-# #' @importFrom GenomeInfoDb checkCompatibleSeqinfo
-# #' @importFrom S4Vectors mcols<-
-# .addGeneAnnotationColumns <- function(aln,
-#                                       txObject,
-#                                       anchor,
-#                                       annotationType
-# ){
-#     if (is.null(txObject)){
-#         return(aln)
-#     }
-#     txObject <- .validateGRangesList(txObject)
-#     GenomeInfoDb::checkCompatibleSeqinfo(aln, txObject)
-    
-#     regions <- c("cds", "fiveUTRs", "threeUTRs", "exons", "introns")
-#     for (i in regions) {
-#         regionAnnotation <- .addGeneOverlapByRegion(aln=aln,
-#                                                     geneRegionModel=txObject[[i]],
-#                                                     anchor=anchor,
-#                                                     annotationType=annotationType)
-#         S4Vectors::mcols(aln)[[i]] <- regionAnnotation
-#     }
-#     aln <- .addIntergenicAnnotation(aln=aln,
-#                                     txModel=txObject[["transcripts"]],
-#                                     anchor=anchor,
-#                                     annotationType=annotationType)
-#     return(aln)
-# }
+#' @importFrom IRanges IRanges ranges<-
+#' @importFrom GenomicRanges findOverlaps
+#' @importFrom S4Vectors queryHits subjectHits mcols
+.addGeneOverlapByRegion <- function(aln,
+                                    geneRegionModel,
+                                    anchor,
+                                    annotationType
+){
+    anchor <- .validateAnchor(anchor, aln)
+    IRanges::ranges(aln) <- IRanges::IRanges(start=S4Vectors::mcols(aln)[[anchor]],
+                                             width=1)
+    if (!annotationType %in% colnames(S4Vectors::mcols(geneRegionModel))){
+        stop(sprintf("'%s' not found in gene model", annotationType))
+    }
+    geneRegionModelGenes <- S4Vectors::mcols(geneRegionModel)[[annotationType]]
+    overlaps <- suppressWarnings(
+        GenomicRanges::findOverlaps(aln,
+                                    geneRegionModel,
+                                    ignore.strand=TRUE)
+        )
+    geneHits <- S4Vectors::DataFrame(index=S4Vectors::queryHits(overlaps),
+                                     gene=geneRegionModelGenes[S4Vectors::subjectHits(overlaps)])
+    geneHits <- unique(geneHits)
+    # resolve duplicates
+    multipleHits <- duplicated(geneHits$index)
+    multipleHits <- unique(geneHits$index[multipleHits])
+    for (i in multipleHits){
+        targetHits <- geneHits$gene[geneHits$index == i]
+        targetHits <- paste0(targetHits, collapse=";")
+        geneHits$gene[geneHits$index == i] <- targetHits
+    }
+    geneHits <- unique(geneHits)
+    regionAnnotation <- rep(NA_character_, length(aln))
+    regionAnnotation[geneHits$index] <- geneHits$gene
+    return(regionAnnotation)
+}
 
 
 
-# #' @importFrom IRanges IRanges ranges<-
-# #' @importFrom GenomicRanges findOverlaps
-# #' @importFrom S4Vectors queryHits subjectHits mcols
-# .addGeneOverlapByRegion <- function(aln,
-#                                     geneRegionModel,
-#                                     anchor,
-#                                     annotationType
-# ){
-#     anchor <- .validateAnchor(anchor, aln)
-#     IRanges::ranges(aln) <- IRanges::IRanges(start=S4Vectors::mcols(aln)[[anchor]],
-#                                              width=1)
-#     if (!annotationType %in% colnames(S4Vectors::mcols(geneRegionModel))){
-#         stop(sprintf("'%s' not found in gene model", annotationType))
-#     }
-#     overlaps <- suppressWarnings(
-#         GenomicRanges::findOverlaps(aln,
-#                                     geneRegionModel,
-#                                     ignore.strand=TRUE)
-#         )
-    
-#     regionAnnotation <- vapply(seq_along(aln), function(x){
-#         if (!x %in% S4Vectors::queryHits(overlaps)){
-#             return(NA_character_)
-#         }
-#         indicesOfHits <- S4Vectors::queryHits(overlaps) == x
-#         regionHits <- S4Vectors::subjectHits(overlaps)[indicesOfHits]
-#         geneRegionModelSubset <- S4Vectors::mcols(geneRegionModel)[regionHits,]
-#         geneHits <- geneRegionModelSubset[[annotationType]]
-#         geneHits <- geneHits[geneHits != ""]
-#         geneHits <- unique(geneHits)
-#         paste0(geneHits, collapse=";")
-#     }, FUN.VALUE=character(1))
-    
-#     return(regionAnnotation)
-# }
+#' @importFrom S4Vectors mcols mcols<- subjectHits queryHits
+#' @importFrom IRanges IRanges
+#' @importFrom GenomicRanges distanceToNearest
+.addIntergenicAnnotation <- function(aln,
+                                     txModel,
+                                     anchor,
+                                     annotationType
+){
+    anchor <- .validateAnchor(anchor, aln)
+    anchorSite <- S4Vectors::mcols(aln)[[anchor]]
+    alnSetToAnchor <- aln
+    IRanges::ranges(alnSetToAnchor) <- IRanges::IRanges(start=anchorSite,
+                                                        width=1)
+    nearestGene <- GenomicRanges::distanceToNearest(alnSetToAnchor,
+                                                    txModel,
+                                                    ignore.strand=TRUE)
+    nearestGene <- filterOutAlnWithGeneRegionAnnotation(aln, nearestGene)
+    intergenic <- S4Vectors::mcols(txModel)[[annotationType]]
+    intergenic <- intergenic[S4Vectors::subjectHits(nearestGene)]
+    intergenic_distance <- S4Vectors::mcols(nearestGene)[["distance"]]
+    nearestGene <- data.frame(aln_index=S4Vectors::queryHits(nearestGene),
+                              intergenic=intergenic,
+                              intergenic_distance=intergenic_distance)
+    S4Vectors::mcols(aln)[["intergenic"]] <- NA_character_
+    S4Vectors::mcols(aln)[["intergenic_distance"]] <- NA_integer_
+    for (i in c("intergenic", "intergenic_distance")){
+        S4Vectors::mcols(aln)[[i]][nearestGene$aln_index] <- nearestGene[[i]]
+    }
+    return(aln)
+}
+
+
+#' @importFrom S4Vectors mcols
+filterOutAlnWithGeneRegionAnnotation <- function(aln,
+                                                 nearestGene
+){
+    geneRegions <- c("cds", "fiveUTRs", "threeUTRs", "exons", "introns")
+    geneCoverage <- S4Vectors::mcols(aln)[geneRegions]
+    hasGeneAnnotation <- apply(geneCoverage, 1, function(x){
+        all(is.na(x))
+    })
+    nearestGene <- nearestGene[hasGeneAnnotation]
+    return(nearestGene)
+}
 
 
 
-# #' @importFrom S4Vectors mcols mcols<- subjectHits queryHits
-# #' @importFrom IRanges IRanges
-# #' @importFrom GenomicRanges distanceToNearest
-# .addIntergenicAnnotation <- function(aln,
-#                                      txModel,
-#                                      anchor,
-#                                      annotationType
-# ){
-#     anchor <- .validateAnchor(anchor, aln)
-#     anchorSite <- S4Vectors::mcols(aln)[[anchor]]
-#     alnSetToAnchor <- aln
-#     IRanges::ranges(alnSetToAnchor) <- IRanges::IRanges(start=anchorSite,
-#                                                         width=1)
-#     nearestGene <- GenomicRanges::distanceToNearest(alnSetToAnchor,
-#                                                     txModel,
-#                                                     ignore.strand=TRUE)
-#     nearestGene <- filterOutAlnWithGeneRegionAnnotation(aln, nearestGene)
-    
-#     intergenic <- S4Vectors::mcols(txModel)[[annotationType]]
-#     intergenic <- intergenic[S4Vectors::subjectHits(nearestGene)]
-#     intergenic_distance <- S4Vectors::mcols(nearestGene)[["distance"]]
-#     nearestGene <- data.frame(aln_index=S4Vectors::queryHits(nearestGene),
-#                               intergenic=intergenic,
-#                               intergenic_distance=intergenic_distance)
-
-#     S4Vectors::mcols(aln)[["intergenic"]] <- NA_character_
-#     S4Vectors::mcols(aln)[["intergenic_distance"]] <- NA_integer_
-#     for (i in c("intergenic", "intergenic_distance")){
-#         S4Vectors::mcols(aln)[[i]][nearestGene$aln_index] <- nearestGene[[i]]
-#     }
-    
-#     return(aln)
-# }
-
-
-# #' @importFrom S4Vectors mcols
-# filterOutAlnWithGeneRegionAnnotation <- function(aln,
-#                                                  nearestGene
-# ){
-#     geneRegions <- c("cds", "fiveUTRs", "threeUTRs", "exons", "introns")
-#     geneCoverage <- S4Vectors::mcols(aln)[geneRegions]
-#     hasGeneAnnotation <- apply(geneCoverage, 1, function(x){
-#         all(is.na(x))
-#     })
-#     nearestGene <- nearestGene[hasGeneAnnotation]
-#     return(nearestGene)
-# }
-
-
-
-# #' @importFrom GenomeInfoDb checkCompatibleSeqinfo
-# #' @importFrom GenomicRanges promoters
-# #' @importFrom S4Vectors mcols<-
-# .addPromoterAnnotationColumns <- function(aln,
-#                                           tssObject,
-#                                           tss_window,
-#                                           anchor,
-#                                           annotationType
-# ){
-#     if (is.null(tssObject)){
-#         return(aln)
-#     }
-#     tssObject <- .validateTssObject(tssObject)
-#     GenomeInfoDb::checkCompatibleSeqinfo(aln, tssObject)
-#     tss_window <- .validateTssWindow(tss_window)
-    
-#     tssObject <- GenomicRanges::promoters(tssObject,
-#                                           upstream=(-1*tss_window[1]),
-#                                           downstream=tss_window[2])
-#     promoterAnnotation <- .addGeneOverlapByRegion(aln,
-#                                                   geneRegionModel=tssObject,
-#                                                   anchor=anchor,
-#                                                   annotationType=annotationType)
-#     S4Vectors::mcols(aln)[["promoters"]] <- promoterAnnotation
-#     return(aln)
-# }
+#' @importFrom GenomeInfoDb checkCompatibleSeqinfo
+#' @importFrom GenomicRanges promoters
+#' @importFrom S4Vectors mcols<-
+.addPromoterAnnotationColumns <- function(aln,
+                                          tssObject,
+                                          tss_window,
+                                          anchor,
+                                          annotationType
+){
+    if (is.null(tssObject)){
+        return(aln)
+    }
+    tssObject <- .validateTssObject(tssObject)
+    GenomeInfoDb::checkCompatibleSeqinfo(aln, tssObject)
+    tss_window <- .validateTssWindow(tss_window)
+    tssObject <- GenomicRanges::promoters(tssObject,
+                                          upstream=(-1*tss_window[1]),
+                                          downstream=tss_window[2])
+    promoterAnnotation <- .addGeneOverlapByRegion(aln,
+                                                  geneRegionModel=tssObject,
+                                                  anchor=anchor,
+                                                  annotationType=annotationType)
+    S4Vectors::mcols(aln)[["promoters"]] <- promoterAnnotation
+    return(aln)
+}
 
 
 
@@ -1133,7 +969,7 @@ getSpacerAlignments <- function(spacers,
                                   n_mismatches
 ){
     if (addSummary){
-        hasAlnSummaryCols <- any(grepl("^n[0-9](_[cptxgen])?$",
+        hasAlnSummaryCols <- any(grepl("^n[0-9](_([cp]|tx|gene))?$",
                                        colnames(S4Vectors::mcols(guideSet))))
         if (hasAlnSummaryCols){
             warning("Overwriting existing alignments summary. ",
@@ -1150,99 +986,125 @@ getSpacerAlignments <- function(spacers,
                                                             n_mismatches=n_mismatches)
         }
        
+        spacerOrder <- as.character(spacers(guideSet))
+        alignmentSummary <- alignmentSummary[spacerOrder, ]
         for (i in colnames(alignmentSummary)){
             S4Vectors::mcols(guideSet)[[i]] <- alignmentSummary[[i]]
         }
-        # S4Vectors::mcols(guideSet) <- BiocGenerics::cbind(
-        #     S4Vectors::mcols(guideSet),
-        #     alignmentSummary)
     }
     return(guideSet)
 }
 
 
-
-#' @importFrom S4Vectors mcols
 .getAlignmentsSummary_dnase <- function(aln,
                                         spacers,
                                         n_mismatches
 ){
-    seq_mismatches <- c(0, seq_len(n_mismatches))
-    alignmentsSummary <- .tallyAlignments(aln=aln,
-                                          seq_mismatches=seq_mismatches,
-                                          spacers=spacers,
-                                          suffix="")
-    
-    hasGeneAnnotation <- "cds" %in% colnames(S4Vectors::mcols(aln))
-    if (hasGeneAnnotation){
-        targetInCds <- !is.na(S4Vectors::mcols(aln)[["cds"]])
-        alnCds <- aln[targetInCds]
-        cdsAlignments <- .tallyAlignments(aln=alnCds,
-                                          seq_mismatches=seq_mismatches,
-                                          spacers=spacers,
-                                          suffix="_c")
-        alignmentsSummary <- cbind(alignmentsSummary, cdsAlignments)
-    }
-    
-    hasPromoterAnnotation <- "promoters" %in% colnames(S4Vectors::mcols(aln))
-    if (hasPromoterAnnotation){
-        targetInPromoter <- !is.na(S4Vectors::mcols(aln)[["promoters"]])
-        alnPromoter <- aln[targetInPromoter]
-        promoterAlignments <- .tallyAlignments(aln=alnPromoter,
-                                               seq_mismatches=seq_mismatches,
+    colCheck <- list("spacer",
+                     "cds",
+                     "promoters")
+    groupBy <- list(NULL,
+                    NULL,
+                    NULL)
+    suffix <- list("",
+                   "_c",
+                   "_p")
+    alignmentsSummary <- .getAlignmentsSummary(aln=aln,
                                                spacers=spacers,
-                                               suffix="_p")
-        alignmentsSummary <- cbind(alignmentsSummary, promoterAlignments)
-    }
-    
-    return(alignmentsSummary)
-}
-
-
-.getAlignmentsSummary_rnase <- function(aln,
-                                        spacers,
-                                        n_mismatches
-){
-    seq_mismatches <- c(0, seq_len(n_mismatches))
-    alignmentsSummary <- .tallyAlignments(aln=aln,
-                                          seq_mismatches=seq_mismatches,
-                                          spacers=spacers,
-                                          suffix="_tx")
-    hasGeneAnnotation <- "gene_id" %in% colnames(S4Vectors::mcols(aln))
-    if (hasGeneAnnotation){
-        geneAlignments <- .tallyAlignments(aln=aln,
-                                           seq_mismatches=seq_mismatches,
-                                           spacers=spacers,
-                                           groupBy="gene_id",
-                                           suffix="_gene")
-        alignmentsSummary <- cbind(alignmentsSummary, geneAlignments)
-    }
+                                               n_mismatches=n_mismatches,
+                                               colCheck=colCheck,
+                                               groupBy=groupBy,
+                                               suffix=suffix)
     return(alignmentsSummary)
 }
 
 
 #' @importFrom S4Vectors mcols
+.getAlignmentsSummary_rnase <- function(aln,
+                                        spacers,
+                                        n_mismatches
+){
+    colCheck <- list("spacer",
+                     "gene_id")
+    groupBy <- list(NULL,
+                    "gene_id")
+    suffix <- list("_tx",
+                   "_gene")
+    alignmentsSummary <- .getAlignmentsSummary(aln=aln,
+                                               spacers=spacers,
+                                               n_mismatches=n_mismatches,
+                                               colCheck=colCheck,
+                                               groupBy=groupBy,
+                                               suffix=suffix)
+    return(alignmentsSummary)
+}
+
+
+#' @importFrom S4Vectors mcols
+.getAlignmentsSummary <- function(aln,
+                                  spacers,
+                                  n_mismatches,
+                                  colCheck,
+                                  groupBy,
+                                  suffix
+){
+    seq_mismatches <- c(0, seq_len(n_mismatches))
+    alignmentsSummary <- lapply(seq_along(colCheck), function(x){
+        alnMcolnames <- colnames(S4Vectors::mcols(aln))
+        hasRequiredAnnotation <- colCheck[[x]] %in% alnMcolnames
+        if (hasRequiredAnnotation){
+            alnSubset <- !is.na(S4Vectors::mcols(aln)[[colCheck[[x]]]])
+            alnSubset <- aln[alnSubset]
+            .tallyAlignments(aln=alnSubset,
+                             seq_mismatches=seq_mismatches,
+                             spacers=spacers,
+                             groupBy=groupBy[[x]],
+                             suffix=suffix[[x]])
+        }
+    })
+    alignmentsSummary <- compact(alignmentsSummary)
+    alignmentsSummary <- Reduce(cbind, alignmentsSummary)
+    return(alignmentsSummary)
+}
+
+
 .tallyAlignments <- function(aln,
                              seq_mismatches,
                              spacers,
-                             groupBy=NULL,
+                             groupBy,
                              suffix
 ){
-    tally <- lapply(seq_mismatches, function(i){
-        tallyByMismatchType <- vapply(spacers, function(ii){
-            mismatchHits <- S4Vectors::mcols(aln)[["n_mismatches"]] == i
-            spacerHits <- S4Vectors::mcols(aln)[["spacer"]] == ii
-            if (is.null(groupBy)){
-                out <- sum(mismatchHits & spacerHits)
-            } else {
-                genes <- S4Vectors::mcols(aln)[["gene_id"]]
-                out <- length(unique(genes[mismatchHits & spacerHits]))
-            }
-            return(out)
-        }, FUN.VALUE=numeric(1))
-        data.frame(tallyByMismatchType)
+    tally <- lapply(seq_mismatches, function(x){
+        .tallyAlignmentsByMismatchCount(n_mismatches=x,
+                                        aln=aln,
+                                        spacers=spacers,
+                                        groupBy=groupBy)
     })
     tally <- Reduce(cbind, tally)
     colnames(tally) <- paste0("n", seq_mismatches, suffix)
+    return(tally)
+}
+
+
+#' @importFrom S4Vectors mcols DataFrame
+.tallyAlignmentsByMismatchCount <- function(n_mismatches,
+                                            aln,
+                                            spacers,
+                                            groupBy
+){
+    spacers <- unique(spacers)
+    indices <- S4Vectors::mcols(aln)[["n_mismatches"]] == n_mismatches
+    aln <- aln[indices]
+    spacerSet <- S4Vectors::mcols(aln)
+    spacerSet <- spacerSet[c("spacer", groupBy)]
+    if (ncol(spacerSet) > 1){
+        spacerSet <- unique(spacerSet)
+    }
+    spacerSet <- as.character(spacerSet[["spacer"]])
+    spacerCounts <- table(spacerSet)
+    spacerCounts <- spacerCounts[spacers]
+    spacerCounts[is.na(spacerCounts)] <- 0
+    tally <- S4Vectors::DataFrame(as.numeric(spacerCounts),
+                                  row.names=spacers)
     return(tally)
 }

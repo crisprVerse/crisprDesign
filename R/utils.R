@@ -339,14 +339,14 @@ compact <- function(x) {
 }
 
 
-# should have same versatility as Biostrings...(full alphabet, multiple strings)
 .complement <- function(x){
-    chartr("ATGC","TACG",x)
+    ## paste(grep("[A-Z]", Biostrings::DNA_ALPHABET, value=TRUE), collapse="")
+    chartr("ACGTMRWSYKVHDBN", "TGCAKYWSRMBDHVN", x)
 }
 .reverse <- function(x){
-    x <- strsplit(x, split="")[[1]]
-    x <- rev(x)
-    x <- paste(x, collapse="")
+    x <- strsplit(x, split="")
+    x <- lapply(x, rev)
+    x <- vapply(x, paste, collapse="", FUN.VALUE=character(1))
     return(x)
 }
 .revComp <- function(x){
