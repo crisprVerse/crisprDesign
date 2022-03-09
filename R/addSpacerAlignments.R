@@ -595,11 +595,22 @@ getSpacerAlignments <- function(spacers,
                                             n_mismatches, 
                                             crisprNuclease,
                                             canonical,
-                                            both_strands
+                                            both_strands,
+                                            rna_strict_directionality=TRUE
 ){
     custom_seq <- .setCustomSeqNames(custom_seq)
     .checkBoolean("both_strands", both_strands)
-    results <- lapply(spacers, function(x){
+
+     if (isRnase(crisprNuclease)){
+        sequences <- reverseComplement(DNAStringSet(spacers))
+        sequences <- as.character(sequences)
+     } else {
+        sequences <- spacers
+     }
+
+
+
+    results <- lapply(sequences, function(x){
         .getCustomSeqAlignments(spacer=x,
                                 custom_seq=custom_seq,
                                 n_mismatches=n_mismatches,
@@ -655,6 +666,15 @@ getSpacerAlignments <- function(spacers,
                                       crisprNuclease=crisprNuclease,
                                       alignmentParams=alignmentParams)
     
+     # RNAse considerations:
+    if (isRnase(crisprNuclease)){
+        spacers <- reverseComplement(DNAStringSet(results$spacer))
+        results$spacer <- as.character(spacers)
+        if (rna_strict_directionality){
+            good <- as.character(strand(results))=="+"
+            results <- results[good,,drop=FALSE]
+        }
+    }
     names(results) <- paste0("aln_", seq_along(results), recycle0=TRUE)
     return(results)
 }
