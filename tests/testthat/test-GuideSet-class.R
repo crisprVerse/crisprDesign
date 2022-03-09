@@ -263,7 +263,6 @@ test_that("object argument is required to have type 'GuideSet'", {
                       cutSites,
                       protospacers,
                       spacerLength,
-                      protospacerLength,
                       prototypeSequence,
                       pamLength,
                       pamSide,
@@ -311,7 +310,6 @@ test_that("pamSites and cutSites return numeric vector of length(GuideSet)", {
 
 test_that("guideSet accessor agrees with crisprNuclease accessor value", {
     accessors <- list(spacerLength,
-                      protospacerLength,
                       prototypeSequence,
                       pamLength,
                       pamSide)
