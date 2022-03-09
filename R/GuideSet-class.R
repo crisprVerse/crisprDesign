@@ -258,13 +258,20 @@ setMethod("crisprNuclease", "GuideSet",
 #' @param as.character Should sequences be returned as a character
 #'     vector? FALSE by default, in which case sequences are returned
 #'     as a \linkS4class{DNAStringSet}.
+#' @param returnAsRna Should the sequences be returned as RNA
+#'     instead of DNA? FALSE by default. 
 #' @export
 #' @importFrom crisprBase isRnase
 #' @importFrom Biostrings reverseComplement
+#' @importFrom Biostrings RNAStringSet
 setMethod("spacers", "GuideSet", 
     function(object,
-             as.character=FALSE){
+             as.character=FALSE,
+             returnAsRna=FALSE){
     out <- mcols(object)[["protospacer"]]
+    if (returnAsRna){
+        out <- RNAStringSet(out)
+    }
     if (isRnase(crisprNuclease(object))){
         out <- reverseComplement(out)
     }
@@ -281,8 +288,12 @@ setMethod("spacers", "GuideSet",
 #' @export
 setMethod("pams", "GuideSet", 
     function(object,
-             as.character=FALSE){
+             as.character=FALSE,
+             returnAsRna=FALSE){
     out <- mcols(object)[["pam"]]
+    if (returnAsRna){
+        out <- RNAStringSet(out)
+    }
     if (as.character){
         out <- as.character(out)
     }
@@ -328,13 +339,17 @@ setMethod("cutSites", "GuideSet",
 setMethod("protospacers", "GuideSet", 
     function(object,
              as.character=FALSE,
-             include.pam=FALSE){
+             include.pam=FALSE,
+             returnAsRna=FALSE){
     out <- mcols(object)[["protospacer"]]
     if (include.pam){
         pams <- pams(object)
         out  <- paste0(out, pams)
     }
     out <- DNAStringSet(out)
+    if (returnAsRna){
+        out <- RNAStringSet(out)
+    }
     if (as.character){
         out <- as.character(out)
     }

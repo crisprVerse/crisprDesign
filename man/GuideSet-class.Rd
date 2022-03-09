@@ -92,15 +92,20 @@ GuideSet(
 
 \S4method{crisprNuclease}{GuideSet}(object)
 
-\S4method{spacers}{GuideSet}(object, as.character = FALSE)
+\S4method{spacers}{GuideSet}(object, as.character = FALSE, returnAsRna = FALSE)
 
-\S4method{pams}{GuideSet}(object, as.character = FALSE)
+\S4method{pams}{GuideSet}(object, as.character = FALSE, returnAsRna = FALSE)
 
 \S4method{pamSites}{GuideSet}(object)
 
 \S4method{cutSites}{GuideSet}(object)
 
-\S4method{protospacers}{GuideSet}(object, as.character = FALSE, include.pam = FALSE)
+\S4method{protospacers}{GuideSet}(
+  object,
+  as.character = FALSE,
+  include.pam = FALSE,
+  returnAsRna = FALSE
+)
 
 \S4method{spacerLength}{GuideSet}(object)
 
@@ -173,6 +178,9 @@ and containing the lengths (or NA) for each level in \code{levels(seqnames)}.}
 \item{as.character}{Should sequences be returned as a character
 vector? FALSE by default, in which case sequences are returned
 as a \linkS4class{DNAStringSet}.}
+
+\item{returnAsRna}{Should the sequences be returned as RNA
+instead of DNA? FALSE by default.}
 
 \item{include.pam}{Should PAM sequences be included?
 FALSE by default.}
