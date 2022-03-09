@@ -5,10 +5,7 @@ library(BSgenome.Hsapiens.UCSC.hg38)
 bsgenome <- BSgenome.Hsapiens.UCSC.hg38
 data(CasRx)
 txObject <- txdb_human
-txids <- c("ENST00000457313")
 txids <- c("ENST00000367064") #CD55
-
-
 
 
 out <- getMrnaSequences(txids,
