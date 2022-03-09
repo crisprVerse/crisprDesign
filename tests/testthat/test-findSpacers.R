@@ -219,7 +219,7 @@ test_that("function uses crisprNuclease argument appropriately", {
 test_that("function uses bsgenome argument appropriately", {
     human <- findSpacers(gr1, bsgenome=bsgenome_human)
     expect_equal(metadata(human)$bsgenome, bsgenome_human)
-    human <- crisprBase::getProtospacerRanges(human, nuclease=SpCas9)
+    human <- crisprBase::getTargetRanges(human, nuclease=SpCas9)
     protospacers <- paste0(protospacers(human, as.character=TRUE),
                            pams(human, as.character=TRUE))
     names(protospacers) <- names(human)
@@ -228,7 +228,7 @@ test_that("function uses bsgenome argument appropriately", {
     
     mouse <- findSpacers(gr1, bsgenome=bsgenome_mouse)
     expect_equal(metadata(mouse)$bsgenome, bsgenome_mouse)
-    mouse <- crisprBase::getProtospacerRanges(mouse, nuclease=SpCas9)
+    mouse <- crisprBase::getTargetRanges(mouse, nuclease=SpCas9)
     protospacers <- paste0(protospacers(mouse, as.character=TRUE),
                            pams(mouse, as.character=TRUE))
     names(protospacers) <- names(mouse)
@@ -330,7 +330,7 @@ test_that("function uses strict_overlap argument appropriately", {
     expect_false(all(unique(start(gr2)) == unique(not_strict$cut_site)))
     expect_true(any(unique(start(gr2)) == unique(not_strict$cut_site)))
     overlaps <- findOverlaps(gr2,
-                             getProtospacerRanges(not_strict, nuclease=SpCas9),
+                             getTargetRanges(not_strict, nuclease=SpCas9),
                              ignore.strand=TRUE)
     expect_equal(seq_along(not_strict), subjectHits(overlaps))
 })

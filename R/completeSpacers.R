@@ -16,8 +16,6 @@
 #' 
 #' @return A numeric or character vector, depending on the function.
 #' 
-#' @return \code{getPAMSiteFromStartAndEnd} returns a numeric vector of the
-#'     coordinate of the first nucleotide of the PAM sequences.
 #' @return \code{getCutSiteFromPamSite} returns a numeric vector of coordinate
 #'     of the cut site.
 #' @return \code{getPAMSequence} returns a character vector of PAM sequences.
@@ -58,54 +56,6 @@ NULL
 
 
 
-
-#' @rdname completeSpacers
-#' @export
-#' @importFrom crisprBase pamLength
-#' @importFrom crisprBase pamSide
-#' @importFrom crisprBase spacerLength
-getPAMSiteFromStartAndEnd <- function(start=NULL,
-                                      end=NULL,
-                                      strand,
-                                      crisprNuclease=NULL,
-                                      spacerLen=NULL
-){
-    crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
-    pamlen   <- pamLength(crisprNuclease)
-    pamside  <- pamSide(crisprNuclease)
-    # check input
-    .checkStartEnd(start,end)
-    strand <- .validateStrand(strand)
-
-    in_lengths <- c(length(start), length(end), length(strand))
-    in_lengths <- unique(in_lengths[in_lengths > 0])
-    if (length(in_lengths) > 1){
-        stop('start and end must be the same length as strand or null.')
-    }
-    if (is.null(spacerLen)){
-        spacerLen <- spacerLength(crisprNuclease)
-    }
-    # initialize PAM site coordinates
-    pam_site <- rep(0, in_lengths)
-    pos <- which(strand=='+')        # positive/forward strand
-    neg <- which(strand=='-')        # negative/reverse strand
-    # get start/end if either is null
-    if (is.null(start)){
-        start <- end - spacerLen + 1
-    }
-    if (is.null(end)){
-        end <- start + spacerLen - 1
-    }
-    # get coordinates by strand
-    if (pamside=="3prime"){
-        pam_site[pos] <- end[pos] + 1
-        pam_site[neg] <- start[neg] - 1
-    } else {
-        pam_site[pos] <- start[pos] - pamlen
-        pam_site[neg] <- end[neg] + pamlen
-    }
-    return(pam_site)
-}
 
 
 
@@ -391,6 +341,58 @@ convertToProtospacerGRanges <- function(guideSet){
 }
 
 
+#' @rdname completeSpacers
+#' @export
+#' @importFrom crisprBase pamLength
+#' @importFrom crisprBase pamSide
+#' @importFrom crisprBase spacerLength
+getPAMSiteFromStartAndEnd <- function(start=NULL,
+                                      end=NULL,
+                                      strand,
+                                      crisprNuclease=NULL,
+                                      spacerLen=NULL
+){
+    crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
+    pamlen   <- pamLength(crisprNuclease)
+    pamside  <- pamSide(crisprNuclease)
+    # check input
+    .checkStartEnd(start,end)
+    strand <- .validateStrand(strand)
+
+    in_lengths <- c(length(start), length(end), length(strand))
+    in_lengths <- unique(in_lengths[in_lengths > 0])
+    if (length(in_lengths) > 1){
+        stop('start and end must be the same length as strand or null.')
+    }
+    if (is.null(spacerLen)){
+        spacerLen <- spacerLength(crisprNuclease)
+    }
+    # initialize PAM site coordinates
+    pam_site <- rep(0, in_lengths)
+    pos <- which(strand=='+')        # positive/forward strand
+    neg <- which(strand=='-')        # negative/reverse strand
+    # get start/end if either is null
+    if (is.null(start)){
+        start <- end - spacerLen + 1
+    }
+    if (is.null(end)){
+        end <- start + spacerLen - 1
+    }
+    # get coordinates by strand
+    if (pamside=="3prime"){
+        pam_site[pos] <- end[pos] + 1
+        pam_site[neg] <- start[neg] - 1
+    } else {
+        pam_site[pos] <- start[pos] - pamlen
+        pam_site[neg] <- end[neg] + pamlen
+    }
+    return(pam_site)
+}
+
+
+
+
+
 .checkStartEnd <- function(start, end){
     if (is.null(start) && is.null(end)){
         stop('start and/or end must be provided.')
@@ -411,81 +413,4 @@ convertToProtospacerGRanges <- function(guideSet){
 
 
 
-
-
-# #' @rdname completeSpacers
-# #' @importFrom IRanges IRanges
-# #' @export
-# getSpacerRanges <- function(pam_site,
-#                             strand,
-#                             nuclease=NULL,
-#                             len=NULL
-# ){
-#     nuclease <- .validateNuclease(nuclease)
-#     pamlen   <- pamLength(nuclease)
-#     pamside  <- pamSide(nuclease)
-#     # check input
-#     strand <- .validateStrand(strand)
-#     pam_site <- .validatePamSite(pam_site)
-#     stopifnot(length(pam_site)==length(strand))
-#     if (is.null(len)){
-#         len <- spacerLength(nuclease)
-#     } 
-#     len <- .validateSpacerLength(len)
-#     # get start and end coordinates
-#     start <- end <- pam_site
-#     if (pamside == "3prime"){
-#         start[strand=='+'] <- pam_site[strand=='+'] - len
-#         start[strand=='-'] <- pam_site[strand=='-'] + 1
-#         end[strand=='+']   <- pam_site[strand=='+'] - 1
-#         end[strand=='-']   <- pam_site[strand=='-'] + len
-#     } else {
-#         start[strand=='+'] <- pam_site[strand=='+'] + pamlen
-#         start[strand=='-'] <- pam_site[strand=='-'] - pamlen - len + 1
-#         end[strand=='+']   <- pam_site[strand=='+'] + pamlen + len - 1
-#         end[strand=='-']   <- pam_site[strand=='-'] - pamlen
-#     }
-#     ir <- IRanges(start=start, end=end)
-#     return(ir)
-# }
-
-
-
-
-
-# #' @rdname completeSpacers
-# #' @importFrom IRanges IRanges
-# #' @export
-# getProtospacerRanges <- function(pam_site,
-#                                  strand,
-#                                  nuclease=NULL,
-#                                  len=NULL
-# ){
-#     nuclease <- .validateNuclease(nuclease)
-#     pamlen   <- pamLength(nuclease)
-#     pamside  <- pamSide(nuclease)
-#     # check input
-#     strand <- .validateStrand(strand)
-#     pam_site <- .validatePamSite(pam_site)
-#     stopifnot(length(pam_site)==length(strand))
-#     if (is.null(len)){
-#         len <- spacerLength(nuclease)
-#     } 
-#     len <- .validateSpacerLength(len)
-#     # get start and end coordinates
-#     start <- end <- pam_site
-#     if (pamside == "3prime"){
-#         start[strand=='+'] <- pam_site[strand=='+'] - len
-#         start[strand=='-'] <- pam_site[strand=='-'] - pamlen + 1
-#         end[strand=='+']   <- pam_site[strand=='+'] + pamlen - 1 
-#         end[strand=='-']   <- pam_site[strand=='-'] + len
-#     } else {
-#         start[strand=='+'] <- pam_site[strand=='+'] 
-#         start[strand=='-'] <- pam_site[strand=='-'] - (pamlen + len) + 1
-#         end[strand=='+']   <- pam_site[strand=='+'] + (pamlen + len) - 1
-#         end[strand=='-']   <- pam_site[strand=='-'] 
-#     }
-#     ir <- IRanges(start=start, end=end)
-#     return(ir)
-# }
 

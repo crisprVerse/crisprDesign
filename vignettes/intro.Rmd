@@ -35,7 +35,7 @@ activation (CRISPRa), CRISPR inhibition (CRISPRi) and CRISPR base editing
 
 This package utilizes the `crisprBase` package to enable gRNA design for any
 CRISPR nuclease via the `CrisprNuclease` class. Nucleases that
-are commonly used in the field are provided (e.g. SpCas9 and AsCas12a).
+are commonly used in the field are provided, including DNA-targeting nucleases (e.g. SpCas9, AsCas12a) and RNA-targeting nuclease (e.g. CasRx (RfxCas13d)).
 
 `crisprDesign` is fully developed to work with the genome of any organism, and
 can also be used to design gRNAs targeting custom DNA sequences.
@@ -59,6 +59,8 @@ following CRISPR-related package dependencies:
 - `crisprBase`: core CRISPR functions and S4 objects
 - `crisprBowtie`: aligns gRNA spacers to genomes using the ungapped 
 aligner `bowtie`
+- `crisprBwa`: aligns gRNA spacers to genomes using the ungapped 
+aligner `BWA`
 - `crisprScore`: implements state-of-the-art on- and off-target scoring 
 algorithms
 - `crisprScoreData`: pre-trained models necessary for `crisprScore`
@@ -68,20 +70,19 @@ You can contribute to the package by submitting pull requests to our [GitHub rep
 
 # Terminology
 
-CRISPR nucleases are examples of RNA-guided DNA endonucleases. They require two
+CRISPR nucleases are examples of RNA-guided endonucleases. They require two
 binding components for cleavage. First, the nuclease needs to recognize a
 constant nucleotide motif in the target DNA called the protospacer adjacent
 motif (PAM) sequence. Second, the gRNA, which guides the nuclease to the target
 sequence, needs to bind to a complementary sequence adjacent to the PAM
-sequence, called the **spacer** sequence. The latter can be thought of as a
+sequence, called the **protospacer** sequence. The latter can be thought of as a
 variable binding motif that can be specified by designing corresponding gRNA
 sequences.
 
-In summary, the **spacer** sequence is used in the gRNA construct to guide
-the CRISPR nuclease to the target **protospacer** sequence in the host genome. 
-The spacer sequence does not contain a PAM sequence 
-(which prevents the nuclease from cutting gRNAs) while the 
-protospacer sequence in the host genome includes the PAM sequence.
+The **spacer** sequence is used in the gRNA construct to guide
+the CRISPR nuclease to the target **protospacer** sequence in the host genome.
+
+For DNA-targeting nucleases, the nucleotide sequence of the spacer and protospacer are identical. For RNA-targeting nucleases, they are the reverse complement of each other. 
 
 While a gRNA spacer sequence may not always uniquely target the host genome
 (i.e. it  may map to multiple protospacers in the host genome),
@@ -225,8 +226,7 @@ head(pamSites(guideSet))
 head(cutSites(guideSet))
 ```
 
-The genomic locations stored in the IRanges represent the PAM site locations in 
-the reference genome. 
+The genomic locations stored in the IRanges represent the PAM site locations in the reference genome. 
 
 
 ## Spacer sequence characterization

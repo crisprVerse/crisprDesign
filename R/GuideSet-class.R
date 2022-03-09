@@ -10,7 +10,6 @@
 #'     \item{\code{spacers}:}{To get spacer sequences.}
 #'     \item{\code{protospacers}:}{To get protospacer sequences.}
 #'     \item{\code{spacerLength}:}{To get spacer length.}
-#'     \item{\code{protospacerLength}:}{To get protospacer length.}
 #'     \item{\code{pams}:}{To get PAM sequences.}
 #'     \item{\code{pamSites}:}{To get PAM site coordinates.}
 #'     \item{\code{pamLength}:}{To get PAM length.}
@@ -373,16 +372,6 @@ setMethod("spacerLength", "GuideSet",
 
 
 
-
-#' @rdname GuideSet-class
-#' @export
-#' @importFrom crisprBase protospacerLength
-setMethod("protospacerLength", "GuideSet", 
-    function(object){
-    nuc <- metadata(object)$CrisprNuclease
-    out <- protospacerLength(nuc)
-    return(out)
-})
 
 #' @rdname GuideSet-class
 #' @export

@@ -320,10 +320,6 @@ S4Vectors::mcols
 }
 
 
-# Remove NULLs from a list
-compact <- function(x) {
-    x[!vapply(x, is.null, logical(1))]
-}
 
 
 # convert values in scientific notation to integers
@@ -332,12 +328,10 @@ compact <- function(x) {
 }
 
 
-.destring <- function(x){
-    x <- strsplit(x, split="_")
-    x <- lapply(x, function(y) y[[1]])
-    unlist(x)
-}
 
+# Those functions are faster than
+# their Biostrings counterpart
+# for short sequences; useful for alignment.
 
 .complement <- function(x){
     ## paste(grep("[A-Z]", Biostrings::DNA_ALPHABET, value=TRUE), collapse="")
@@ -411,6 +405,11 @@ compact <- function(x) {
     }                
     return(identicalNucleases)
 }  
+
+# Remove NULLs from a list
+compact <- function(x) {
+    x[!vapply(x, is.null, logical(1))]
+}
 
 
 

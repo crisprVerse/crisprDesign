@@ -2,20 +2,12 @@
 % Please edit documentation in R/completeSpacers.R
 \name{completeSpacers}
 \alias{completeSpacers}
-\alias{getPAMSiteFromStartAndEnd}
 \alias{getCutSiteFromPamSite}
 \alias{getPAMSequence}
 \alias{getSpacerSequence}
+\alias{getPAMSiteFromStartAndEnd}
 \title{Get complete spacer information}
 \usage{
-getPAMSiteFromStartAndEnd(
-  start = NULL,
-  end = NULL,
-  strand,
-  crisprNuclease = NULL,
-  spacerLen = NULL
-)
-
 getCutSiteFromPamSite(pam_site, strand, crisprNuclease = NULL)
 
 getPAMSequence(chr, pam_site, strand, crisprNuclease = NULL, bsgenome = NULL)
@@ -28,32 +20,37 @@ getSpacerSequence(
   bsgenome = NULL,
   spacerLen = NULL
 )
+
+getPAMSiteFromStartAndEnd(
+  start = NULL,
+  end = NULL,
+  strand,
+  crisprNuclease = NULL,
+  spacerLen = NULL
+)
 }
 \arguments{
-\item{start}{Coordinate of the first nucleotide of the spacer sequences.
-Must be always less than \code{end}.}
-
-\item{end}{Coordinate of the last nucleotide of the spacer sequence.
-Must be always greater than \code{start}.}
+\item{pam_site}{Coordinate of the first nucleotide of the PAM sequence.}
 
 \item{strand}{Either "+" or "-".}
 
 \item{crisprNuclease}{A \linkS4class{CrisprNuclease} object.}
 
-\item{spacerLen}{Spacer sequence length.
-If NULL, the information is obtained from \code{crisprNuclease}.}
-
-\item{pam_site}{Coordinate of the first nucleotide of the PAM sequence.}
-
 \item{chr}{The chromosome in which the protospacer sequence is located.}
 
 \item{bsgenome}{A \linkS4class{BSgenome} object.}
+
+\item{spacerLen}{Spacer sequence length.
+If NULL, the information is obtained from \code{crisprNuclease}.}
+
+\item{start}{Coordinate of the first nucleotide of the spacer sequences.
+Must be always less than \code{end}.}
+
+\item{end}{Coordinate of the last nucleotide of the spacer sequence.
+Must be always greater than \code{start}.}
 }
 \value{
 A numeric or character vector, depending on the function.
-
-\code{getPAMSiteFromStartAndEnd} returns a numeric vector of the
-    coordinate of the first nucleotide of the PAM sequences.
 
 \code{getCutSiteFromPamSite} returns a numeric vector of coordinate
     of the cut site.

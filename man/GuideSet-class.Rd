@@ -28,7 +28,6 @@
 \alias{cutSites,GuideSet-method}
 \alias{protospacers,GuideSet-method}
 \alias{spacerLength,GuideSet-method}
-\alias{protospacerLength,GuideSet-method}
 \alias{prototypeSequence,GuideSet-method}
 \alias{pamLength,GuideSet-method}
 \alias{pamSide,GuideSet-method}
@@ -108,8 +107,6 @@ GuideSet(
 )
 
 \S4method{spacerLength}{GuideSet}(object)
-
-\S4method{protospacerLength}{GuideSet}(object)
 
 \S4method{prototypeSequence}{GuideSet}(object)
 
@@ -255,7 +252,6 @@ Return restriction enzymes annotation table.
     \item{\code{spacers}:}{To get spacer sequences.}
     \item{\code{protospacers}:}{To get protospacer sequences.}
     \item{\code{spacerLength}:}{To get spacer length.}
-    \item{\code{protospacerLength}:}{To get protospacer length.}
     \item{\code{pams}:}{To get PAM sequences.}
     \item{\code{pamSites}:}{To get PAM site coordinates.}
     \item{\code{pamLength}:}{To get PAM length.}
