@@ -423,7 +423,7 @@ setMethod("snps", "GuideSet",
     } else {
         out <- mcols(object)[["snps"]]
         if (unlist){
-            out <- BiocGenerics::unlist(out)
+            out <- BiocGenerics::unlist(out, use.names=FALSE)
         }
     }
     return(out)
