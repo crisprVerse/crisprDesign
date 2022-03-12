@@ -580,8 +580,73 @@ For CRISPRa, we recommend targeting the region 75-150bp upstream of the
 TSS for optimal activation; see [@sanson2018optimized] for more information.
 
 
+# gRNA design for Cas13d 
 
-# CRISPRbe design
+Designing gRNAs for RNA-targeting nucleases, such as CasRx (RfxCas13d), is a bit different as the target space is composed of mRNA sequences instead of a set of DNA sequences (such as a reference genome).
+
+
+We first load the CasRx `CrisprNuclease` object from `crisprBase`:
+
+```{r}
+data(CasRx, package="crisprBase")
+CasRx
+```
+
+The PFS sequence (the equivalent of a PAM sequence for RNA-targeting nucleases) for CasRx is N, meaning that there is no specific PFS sequences prefered by CasRx. 
+
+
+We will now design CasRx gRNAs for the transcript ENST00000538872 of IQSEC3.
+
+Let's first extract all mRNA sequences for IQSEC3:
+
+
+```{r}
+txid <- c("ENST00000538872","ENST00000382841")
+mrnas <- getMrnaSequences(txid=txid,
+                          bsgenome=bsgenome,
+                          txObject=grListExample)
+mrnas
+```
+
+
+Then we can design gRNAs using the usual function `findSpacers`:
+
+```{r}
+gs <- findSpacers(mrnas[["ENST00000538872"]],
+                  crisprNuclease=CasRx)
+gs <- gs[1000:1100]
+head(gs)
+```
+
+Note that all protospacer sequences are located on the original strand of the mRNA sequence. For RNA-targeting nucleases, the spacer and protospacer sequences are the reverse complement of each other:
+
+
+```{r}
+head(spacers(gs))
+head(protospacers(gs))
+```
+
+The `addSpacerAlignments` can be used to perform an off-target search across all mRNA sequences using the argument `custom_seq`. Here, for the sake of time, we only perform an off-target search to the 2 isoforms of IQSEC3 specified by the `mRNAs` object:
+
+```{r}
+gs <- addSpacerAlignments(gs,
+                          aligner="biostrings",
+                          txObject=grListExample,
+                          n_mismatches=1,
+                          custom_seq=mrnas)
+tail(gs)
+```
+
+The columns `n0_gene` and `n0_tx` report the number of on-targets at the gene- and transcript-level, respectively. For instance, `spacer_1095` maps to the two isoforms of IQSEC3 has `n0_tx` is equal to 2:
+
+
+```{r}
+onTargets(gs["spacer_1095"])
+```
+
+
+
+# gRNA design for base editor BE4max
 
 TBD
 
@@ -608,10 +673,10 @@ One can also search for off-targets in a custom sequence as follows:
 ontarget <- "AAGACCCGGGCGCGGGGCGGGGG"
 offtarget <- "TTGACCCGGGCGCGGGGCGGGGG"
 gs <- findSpacers(ontarget)
-# gs <- addSpacerAlignments(gs,
-#                           aligner="biostrings",
-#                           n_mismatches=2,
-#                           custom_seq=offtarget)
+gs <- addSpacerAlignments(gs,
+                          aligner="biostrings",
+                          n_mismatches=2,
+                          custom_seq=offtarget)
 ```
 
 
