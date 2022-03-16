@@ -1007,7 +1007,7 @@ filterOutAlnWithGeneRegionAnnotation <- function(aln,
         }
        
         spacerOrder <- as.character(spacers(guideSet))
-        alignmentSummary <- alignmentSummary[spacerOrder, ]
+        alignmentSummary <- alignmentSummary[spacerOrder, , drop=FALSE]
         for (i in colnames(alignmentSummary)){
             S4Vectors::mcols(guideSet)[[i]] <- alignmentSummary[[i]]
         }
