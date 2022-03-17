@@ -36,13 +36,13 @@
 #' }
 #' 
 #' @examples
-#'
+#' \dontrun{
 #' vcf <- system.file("extdata",
 #'                    file="common_snps_dbsnp151_example.vcf.gz",
 #'                    package="crisprDesign")
 #' data(guideSetExample, package="crisprDesign")
 #' guideSet <- addSNPAnnotation(guideSetExample, vcf=vcf)
-#' 
+#' }
 #' 
 #' 
 #' @export
@@ -53,7 +53,7 @@ addSNPAnnotation <- function(guideSet,
 ){
     guideSet <- .validateGuideSet(guideSet)
     vcf <- .validateVcf(vcf, guideSet)
-    stopifnot("maf must be a numeric value between 0 and 1" = {
+    stopifnot("maf must be a numeric value in the range [0, 1)" = {
         is.vector(maf, mode="numeric") &&
             length(maf) == 1 &&
             maf >= 0 &&
@@ -62,7 +62,8 @@ addSNPAnnotation <- function(guideSet,
     snps <- .getSNPAnnotation(guideSet=guideSet,
                               maf=maf,
                               vcf=vcf)
-    splitFactor <- factor(snps$ID, levels=unique(names(guideSet)))
+    splitFactor <- factor(BiocGenerics::rownames(snps),
+                          levels=unique(names(guideSet)))
     snps <- S4Vectors::split(snps, f=splitFactor)
     S4Vectors::mcols(guideSet)[["hasSNP"]] <- vapply(snps, function(x){
         nrow(x) > 0
@@ -163,6 +164,7 @@ addSNPAnnotation <- function(guideSet,
     snps <- snps[validMaf, , drop=FALSE]
     snps <- unique(snps)
     rownames(snps) <- snps$ID
+    snps$ID <- NULL
     return(snps)
 }
 

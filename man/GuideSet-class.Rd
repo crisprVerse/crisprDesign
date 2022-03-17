@@ -114,17 +114,18 @@ GuideSet(
 
 \S4method{pamSide}{GuideSet}(object)
 
-\S4method{snps}{GuideSet}(object, unlist = TRUE)
+\S4method{snps}{GuideSet}(object, unlist = TRUE, use.names = TRUE)
 
-\S4method{alignments}{GuideSet}(object, columnName = "alignments", unlist = TRUE)
+\S4method{alignments}{GuideSet}(object, columnName = "alignments", unlist = TRUE, use.names = TRUE)
 
-\S4method{onTargets}{GuideSet}(object, columnName = "alignments", unlist = TRUE)
+\S4method{onTargets}{GuideSet}(object, columnName = "alignments", unlist = TRUE, use.names = TRUE)
 
 \S4method{offTargets}{GuideSet}(
   object,
   columnName = "alignments",
   max_mismatches = Inf,
-  unlist = TRUE
+  unlist = TRUE,
+  use.names = TRUE
 )
 
 \S4method{geneAnnotation}{GuideSet}(
@@ -132,12 +133,19 @@ GuideSet(
   unlist = TRUE,
   gene_id = NULL,
   tx_id = NULL,
-  gene_symbol = NULL
+  gene_symbol = NULL,
+  use.names = TRUE
 )
 
-\S4method{tssAnnotation}{GuideSet}(object, unlist = TRUE, gene_id = NULL, gene_symbol = NULL)
+\S4method{tssAnnotation}{GuideSet}(
+  object,
+  unlist = TRUE,
+  gene_id = NULL,
+  gene_symbol = NULL,
+  use.names = TRUE
+)
 
-\S4method{enzymeAnnotation}{GuideSet}(object, unlist = TRUE)
+\S4method{enzymeAnnotation}{GuideSet}(object, unlist = TRUE, use.names = TRUE)
 }
 \arguments{
 \item{object}{\linkS4class{GuideSet} object.}
@@ -184,6 +192,9 @@ FALSE by default.}
 
 \item{unlist}{Should the annotation be returned as
 one table instead of a list? TRUE by default.}
+
+\item{use.names}{Whether to include spacer IDs as (row)names (\code{TRUE}),
+or as a separate column (\code{FALSE}).}
 
 \item{columnName}{Name of the column storing the alignments annotation
 to be retrieved.}

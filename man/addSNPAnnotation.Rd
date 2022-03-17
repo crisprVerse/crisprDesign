@@ -42,13 +42,13 @@ The different columns stored in
 }
 }
 \examples{
-
+\dontrun{
 vcf <- system.file("extdata",
                    file="common_snps_dbsnp151_example.vcf.gz",
                    package="crisprDesign")
 data(guideSetExample, package="crisprDesign")
 guideSet <- addSNPAnnotation(guideSetExample, vcf=vcf)
-
+}
 
 
 }

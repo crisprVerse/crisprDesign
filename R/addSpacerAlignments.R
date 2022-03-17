@@ -277,6 +277,7 @@ addSpacerAlignmentsIterative <- function(guideSet,
 #' @rdname addSpacerAlignments
 #' @export
 #' @importFrom S4Vectors split mcols mcols<-
+#' @importFrom BiocGenerics unlist
 addSpacerAlignments <- function(guideSet,
                                 aligner=c("bowtie", "bwa", "biostrings"),
                                 colname="alignments",
@@ -341,11 +342,14 @@ addSpacerAlignments <- function(guideSet,
                                       addSummary=addSummary,
                                       n_mismatches=n_mismatches,
                                       spacers=spacers)
+    names(aln) <- NULL
     aln <- S4Vectors::split(aln,
                             f=factor(S4Vectors::mcols(aln)$spacer,
                                      levels=uniqueSpacers))
     aln <- aln[spacers]
     names(aln) <- names(guideSet)
+    aln <- BiocGenerics::unlist(aln, use.names=TRUE)
+    aln <- S4Vectors::split(aln, f=names(aln))
     S4Vectors::mcols(guideSet)[[colname]] <- aln
     return(guideSet)
 }

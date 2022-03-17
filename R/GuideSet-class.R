@@ -412,18 +412,29 @@ setMethod("pamSide", "GuideSet",
 
 #' @rdname GuideSet-class
 #' @param unlist Should the annotation be returned as
-#'     one table instead of a list? TRUE by default. 
-#' @importFrom BiocGenerics unlist
+#'     one table instead of a list? TRUE by default.
+#' @param use.names Whether to include spacer IDs as (row)names (\code{TRUE}),
+#'     or as a separate column (\code{FALSE}).
+#' @importFrom S4Vectors mcols split
+#' @importFrom BiocGenerics unlist rownames
 #' @export
 setMethod("snps", "GuideSet", 
     function(object,
-             unlist=TRUE){
-    if (!"snps" %in% colnames(mcols(object))){
+             unlist=TRUE,
+             use.names=TRUE){
+    if (!"snps" %in% colnames(S4Vectors::mcols(object))){
         out <- NULL
     } else {
-        out <- mcols(object)[["snps"]]
-        if (unlist){
-            out <- BiocGenerics::unlist(out, use.names=FALSE)
+        out <- S4Vectors::mcols(object)[["snps"]]
+        out <- BiocGenerics::unlist(out, use.names=FALSE)
+        if (!use.names){
+            out <- .namesAsColumn_df(out)
+            split_factor <- out[["spacer_id"]]
+        } else {
+            split_factor <- BiocGenerics::rownames(out)
+        }
+        if (!unlist){
+            out <- S4Vectors::split(out, f=split_factor)
         }
     }
     return(out)
@@ -433,20 +444,28 @@ setMethod("snps", "GuideSet",
 #' @rdname GuideSet-class
 #' @param columnName Name of the column storing the alignments annotation
 #'     to be retrieved.
+#' @importFrom S4Vectors mcols split
 #' @importFrom BiocGenerics unlist
 #' @export
 setMethod("alignments", "GuideSet", 
     function(object,
              columnName="alignments",
-             unlist=TRUE){
-    if (!columnName %in% colnames(mcols(object)) ||
+             unlist=TRUE,
+             use.names=TRUE){
+    if (!columnName %in% colnames(S4Vectors::mcols(object)) ||
         !.isAlignmentsColumn(object, columnName)){
         out <- NULL
     } else {
-        out <- mcols(object)[[columnName]]
-        if (unlist){
-            out <- BiocGenerics::unlist(out)
-            names(out) <- NULL
+        out <- S4Vectors::mcols(object)[[columnName]]
+        out <- BiocGenerics::unlist(out, use.names=FALSE)
+        if (!use.names){
+            out <- .namesAsColumn_gr(out)
+            split_factor <- S4Vectors::mcols(out)[["spacer_id"]]
+        } else {
+            split_factor <- names(out)
+        }
+        if (!unlist){
+            out <- S4Vectors::split(out, f=split_factor)
         }
     }
     return(out)
@@ -455,27 +474,29 @@ setMethod("alignments", "GuideSet",
 
 
 #' @rdname GuideSet-class
+#' @importFrom S4Vectors mcols split
 #' @importFrom BiocGenerics unlist
 #' @export
 setMethod("onTargets", "GuideSet", 
     function(object,
              columnName="alignments",
-             unlist=TRUE){
-    if (!columnName %in% colnames(mcols(object)) ||
-        !.isAlignmentsColumn(object, columnName)){
-        out <- NULL
-    } else {
-        out <- mcols(object)[[columnName]]
-        out <- BiocGenerics::unlist(out)
+             unlist=TRUE,
+             use.names=TRUE){
+    out <- alignments(object=object,
+                      columnName=columnName,
+                      unlist=unlist,
+                      use.names=use.names)
+    if (!unlist){
+        out <- BiocGenerics::unlist(out, use.names=FALSE)
         out <- out[out$n_mismatches == 0]
-        names(out) <- NULL
-        if (!unlist){
-            spacers <- spacers(object, as.character=TRUE)
-            out <- split(out, f=factor(out$spacer,
-                                       levels=unique(spacers)))
-            out <- out[spacers]
-            names(out) <- names(object)
+        if (use.names){
+            split_factor <- names(out)
+        } else {
+            split_factor <- S4Vectors::mcols(out)[["spacer_id"]]
         }
+        out <- S4Vectors::split(out, f=split_factor)
+    } else {
+        out <- out[out$n_mismatches == 0]
     }
     return(out)
 })
@@ -485,29 +506,36 @@ setMethod("onTargets", "GuideSet",
 #' @param max_mismatches What should be the maximum number of 
 #'     mismatches considered for off-targets? 
 #'     Inf by default.
+#' @importFrom S4Vectors mcols split
 #' @importFrom BiocGenerics unlist
 #' @export
 setMethod("offTargets", "GuideSet", 
     function(object,
              columnName="alignments",
              max_mismatches=Inf,
-             unlist=TRUE){
-    if (!columnName %in% colnames(mcols(object)) ||
-        !.isAlignmentsColumn(object, columnName)){
-        out <- NULL
-    } else {
-        out <- mcols(object)[[columnName]]
-        out <- BiocGenerics::unlist(out)
-        out <- out[out$n_mismatches > 0]
-        out <- out[out$n_mismatches <= max_mismatches]
-        names(out) <- NULL
-        if (!unlist){
-            spacers <- spacers(object, as.character=TRUE)
-            out <- split(out, f=factor(out$spacer,
-                                       levels=unique(spacers)))
-            out <- out[spacers]
-            names(out) <- names(object)
+             unlist=TRUE,
+             use.names=TRUE){
+    out <- alignments(object=object,
+                      columnName=columnName,
+                      unlist=unlist,
+                      use.names=use.names)
+    stopifnot("max_mismatches must be a non-negative integer" = {
+        is.vector(max_mismatches, mode="numeric") &&
+            length(max_mismatches) == 1 &&
+            max_mismatches == round(max_mismatches) &&
+            max_mismatches >= 0
+    })
+    if (!unlist){
+        out <- BiocGenerics::unlist(out, use.names=FALSE)
+        out <- out[out$n_mismatches > 0 & out$n_mismatches <= max_mismatches]
+        if (use.names){
+            split_factor <- names(out)
+        } else {
+            split_factor <- S4Vectors::mcols(out)[["spacer_id"]]
         }
+        out <- S4Vectors::split(out, f=split_factor)
+    } else {
+        out <- out[out$n_mismatches > 0 & out$n_mismatches <= max_mismatches]
     }
     return(out)
 })
@@ -524,16 +552,16 @@ setMethod("offTargets", "GuideSet",
 #'     annotation data by. If NULL (deafult), all transcript are considered.
 #' @param gene_symbol Character vector of gene symbols to subset gene
 #'     annotation data by. If NULL (default), all genes are considered.
-#' @importFrom S4Vectors mcols
-#' @importFrom BiocGenerics unlist
+#' @importFrom S4Vectors mcols split
+#' @importFrom BiocGenerics unlist rownames
 #' @export
 setMethod("geneAnnotation", "GuideSet", 
     function(object,
              unlist=TRUE,
              gene_id=NULL,
              tx_id=NULL,
-             gene_symbol=NULL
-             ){
+             gene_symbol=NULL,
+             use.names=TRUE){
     if (!"geneAnnotation" %in% colnames(S4Vectors::mcols(object))){
         out <- NULL
     } else {
@@ -553,13 +581,16 @@ setMethod("geneAnnotation", "GuideSet",
             out[[col]] %in% get(col)
         })
         wh <- Reduce("&", whs)
-        out <- out[wh,,drop=FALSE]
-
+        out <- out[wh, , drop=FALSE]
+        
+        if (!use.names){
+            out <- .namesAsColumn_df(out)
+            split_factor <- out[["spacer_id"]]
+        } else {
+            split_factor <- BiocGenerics::rownames(out)
+        }
         if (!unlist){
-            out <- split(out, f=factor(rownames(out),
-                                       levels=unique(names(object))))
-            out <- out[names(object)]
-            names(out) <- names(object)
+            out <- S4Vectors::split(out, f=split_factor)
         }
     }
     return(out)
@@ -570,15 +601,15 @@ setMethod("geneAnnotation", "GuideSet",
 
 
 #' @rdname GuideSet-class
-#' @importFrom S4Vectors mcols
-#' @importFrom BiocGenerics unlist
+#' @importFrom S4Vectors mcols split
+#' @importFrom BiocGenerics unlist rownames
 #' @export
 setMethod("tssAnnotation", "GuideSet", 
     function(object,
              unlist=TRUE,
              gene_id=NULL,
-             gene_symbol=NULL
-             ){
+             gene_symbol=NULL,
+             use.names=TRUE){
     if (!"tssAnnotation" %in% colnames(S4Vectors::mcols(object))){
         out <- NULL
     } else {
@@ -587,7 +618,6 @@ setMethod("tssAnnotation", "GuideSet",
         if (is.null(gene_id)){
             gene_id <- unique(out$gene_id)
         }
-
         if (is.null(gene_symbol)){
             gene_symbol <- unique(out$gene_symbol)     
         }
@@ -596,13 +626,16 @@ setMethod("tssAnnotation", "GuideSet",
             out[[col]] %in% get(col)
         })
         wh <- Reduce("&", whs)
-        out <- out[wh,,drop=FALSE]
+        out <- out[wh, , drop=FALSE]
 
+        if (!use.names){
+            out <- .namesAsColumn_df(out)
+            split_factor <- out[["spacer_id"]]
+        } else {
+            split_factor <- BiocGenerics::rownames(out)
+        }
         if (!unlist){
-            out <- split(out, f=factor(rownames(out),
-                                       levels=unique(names(object))))
-            out <- out[names(object)]
-            names(out) <- names(object)
+            out <- S4Vectors::split(out, f=split_factor)
         }
     }
     return(out)
@@ -611,20 +644,54 @@ setMethod("tssAnnotation", "GuideSet",
 
 
 #' @rdname GuideSet-class
+#' @importFrom S4Vectors mcols split
+#' @importFrom BiocGenerics unlist rownames
 #' @export
 setMethod("enzymeAnnotation", "GuideSet", 
     function(object,
-             unlist=TRUE){
-    if (!"enzymeAnnotation" %in% colnames(mcols(object))){
+             unlist=TRUE,
+             use.names=TRUE){
+    if (!"enzymeAnnotation" %in% colnames(S4Vectors::mcols(object))){
         out <- NULL
         message("An enzymeAnnotation is not added yet. See ",
-                "the function addRestrictionEnzymes to add ",
-                "an enzyme annotation")
+                "the function 'addRestrictionEnzymes' to add ",
+                "enzyme annotation")
     } else {
-        out <- mcols(object)[["enzymeAnnotation"]]
-        if (unlist){
-            out <- unlist(out)
+        out <- S4Vectors::mcols(object)[["enzymeAnnotation"]]
+        out <- BiocGenerics::unlist(out, use.names=FALSE)
+        if (!use.names){
+            out <- .namesAsColumn_df(out)
+            split_factor <- out[["spacer_id"]]
+        } else {
+            split_factor <- BiocGenerics::rownames(out)
+        }
+        if (!unlist){
+            out <- S4Vectors::split(out, f=split_factor)
         }
     }
     return(out)
 })
+
+
+
+
+
+#' @importFrom BiocGenerics rownames rownames<- cbind
+.namesAsColumn_df <- function(out
+){
+    spacer_id <- BiocGenerics::rownames(out)
+    out <- BiocGenerics::cbind(spacer_id, out)
+    BiocGenerics::rownames(out) <- NULL
+    return(out)
+}
+
+#' @importFrom S4Vectors DataFrame mcols mcols<-
+.namesAsColumn_gr <- function(out
+){
+    spacer_id <- names(out)
+    new_mcols <- S4Vectors::DataFrame(spacer_id,
+                                      S4Vectors::mcols(out))
+    S4Vectors::mcols(out) <- new_mcols
+    names(out) <- NULL
+    return(out)
+}
