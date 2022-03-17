@@ -8,7 +8,9 @@ library(devtools)
 txObject  <- txdb_human
 tssObject <- tss_human
 gr.repeats <- gr.repeats.hg38
-bowtie_index <- "~/crisprIndices/bowtie/hg38/hg38"
+bsgenome <- BSgenome.Hsapiens.UCSC.hg38
+# bowtie_index <- "~/crisprIndices/bowtie/hg38/hg38"
+bwa_index <- "~/crisprIndices/bwa/hg38/hg38"
 vcf <- "~/crisprIndices/snps/dbsnp151.grch38/00-common_all.vcf.gz"
 mart_dataset <- "hsapiens_gene_ensembl"
 
@@ -22,11 +24,12 @@ gs <- gs[indices]
 gs <- addSequenceFeatures(gs,
                           addHairpin=TRUE)
 gs <- addSpacerAlignmentsIterative(gs,
-                                   aligner='bowtie',
+                                   aligner='bwa',
                                    txObject=txObject,
                                    tssObject=tssObject,
                                    n_mismatches=3,
-                                   bowtie_index=bowtie_index)
+                                   aligner_index=bwa_index,
+                                   bsgenome=bsgenome)
 gs <- addOffTargetScores(gs)
 gs <- addOnTargetScores(gs)
 gs <- addPamScores(gs)

@@ -76,7 +76,7 @@ addRestrictionEnzymes <- function(guideSet,
                                               flanking5=flanking5,
                                               flanking3=flanking3)
     dfs <- S4Vectors::split(enzymeAnnotation,
-                            f=factor(enzymeAnnotation$ID,
+                            f=factor(rownames(enzymeAnnotation),
                                      levels=names(guideSet)))
     S4Vectors::mcols(guideSet)[["enzymeAnnotation"]] <- dfs
     return(guideSet)
@@ -105,7 +105,8 @@ getRestrictionEnzymes <- function(guideSet,
     enzymeAnnotation <- lapply(enzymeMotifs,
                                grepl,
                                x=spacers)
-    enzymeAnnotation <- DataFrame(ID=names(guideSet), enzymeAnnotation)
+    enzymeAnnotation <- DataFrame(enzymeAnnotation,
+                                  row.names=names(guideSet))
     return(enzymeAnnotation)
 }
 

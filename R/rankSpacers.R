@@ -224,7 +224,7 @@ validCriteria <- function(guideSet
     guideSetColumns <- c(names(mcols(guideSet)),
                          names(geneAnnotation(guideSet)),
                          names(tssAnnotation(guideSet)),
-                         names(enzymeAnnotation(guideSet))[-1])
+                         names(enzymeAnnotation(guideSet)))
     rowIndices <- validCriteria$attribute %in% guideSetColumns
     validCriteria <- validCriteria[rowIndices, , drop=FALSE]
     return(validCriteria)
@@ -239,7 +239,7 @@ validCriteria <- function(guideSet
                   'selfHairpin', 'backboneHairpin', 'cut_cds', 'cut_fiveUTRs',
                   'cut_threeUTRs', 'cut_introns', 'isCommonExon',
                   'isCommonCodingExon', 'hasSNP', 'inRepeats',
-                  names(enzymeAnnotation(guideSet))[-1]), # exclude ID column
+                  names(enzymeAnnotation(guideSet))),
         asc=c('aminoAcidIndex', 'downstreamATG', 'percentCDS', 'percentTx',
               grep('^n[0-9](_[cp])?$', names(S4Vectors::mcols(guideSet)),
                    value=TRUE)),

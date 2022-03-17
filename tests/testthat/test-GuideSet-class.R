@@ -375,7 +375,7 @@ test_that("max_mismatches is appropriately applied", {
     mismatch_tally <- cumsum(mismatch_tally)
     mismatch_tally <- c("0"=0, mismatch_tally, "Inf"=max(mismatch_tally))
     lapply(seq_along(mismatch_tally), function(x){
-        max_mismatches <- names(mismatch_tally)[x]
+        max_mismatches <- as.numeric(names(mismatch_tally)[x])
         mismatch_count <- mismatch_tally[[x]]
         expect_equal(length(offTargets(guideSetExampleFullAnnotation,
                                        max_mismatches=max_mismatches)),
