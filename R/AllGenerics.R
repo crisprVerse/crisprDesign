@@ -104,3 +104,13 @@ setGeneric("enzymeAnnotation",
 
 
 
+#' @description Return list of edited alleles
+#' @rdname GuideSet-class
+#' @export
+setGeneric("editedAlleles",
+           function(object, ...) standardGeneric("editedAlleles"))
+
+
+
+
+

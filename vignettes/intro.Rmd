@@ -579,10 +579,104 @@ the 25-75bp region downstream of the TSS for optimal inhibition.
 For CRISPRa, we recommend targeting the region 75-150bp upstream of the
 TSS for optimal activation; see [@sanson2018optimized] for more information.
 
+# CRISPR base editing with BE4max
 
-# gRNA design for Cas13d 
 
-Designing gRNAs for RNA-targeting nucleases, such as CasRx (RfxCas13d), is a bit different as the target space is composed of mRNA sequences instead of a set of DNA sequences (such as a reference genome).
+We illustrate the CRISPR base editing (CRISPRbe) functionalities of `crisprDesign` by designing and characterizing gRNAs targeting IQSEC3 using the cytidine base editor BE4max [@koblan2018improving]. 
+
+We first load the BE4max `BaseEditor` object available in `crisprBase`:
+
+```{r}
+data(BE4max, package="crisprBase")
+BE4max
+```
+
+The editing probabilities of the base editor BE4max are stored in a matrix where rows correspond to the different nucleotide substitutions, and columns correspond to the genomic coordinate relative to the PAM site. The `editingWeights` function from `crisprBase` allows to retrieve those probabilities. One can see that C to T editing is optimal around 15 nucleotides upstream of the PAM site for the BE4max base editor:
+
+```{r}
+crisprBase::editingWeights(BE4max)["C2T",]
+```
+
+We obtain a `GuideSet` object using the first exon of the IQSEC3 gene and retain only the first 2 gRNAs for the sake of time:
+
+```{r}
+gr <- queryTxObject(txObject=grListExample,
+                    featureType="cds",
+                    queryColumn="gene_symbol",
+                    queryValue="IQSEC3")
+gs <- findSpacers(gr[1],
+                  bsgenome=bsgenome,
+                  crisprNuclease=BE4max)
+gs <- gs[1:2]
+```
+
+The function `addEditedAlleles` finds, characterizes, and scores predicted edited alleles for each gRNA, for a choosen transcript. It requires a transcript-specific annotation that can be obtained using the function `getTxInfoDataFrame`. Here, we will perform the analysis using the main isoform of IQSEC3 (transcript id ENST00000538872).
+
+
+We first get the transcript table for ENST00000538872, 
+
+```{r}
+txid <- "ENST00000538872"
+txTable <- getTxInfoDataFrame(tx_id=txid,
+                              txObject=grListExample,
+                              bsgenome=bsgenome)
+head(txTable)
+```
+
+and then add the edited alleles annotation to the `GuideSet`:
+
+```{r}
+editingWindow <- c(-20,-8)
+gs <- addEditedAlleles(gs,
+                       baseEditor=BE4max,
+                       txTable=txTable,
+                       editingWindow=editingWindow)
+```
+
+The `editingWindow` argument specifies the window of editing that we are interested in. When not provided, it uses the default window provided in the `BaseEditor` object. Note that providing large windows can exponentially increase computing time as the number of possible alleles grows exponentially. 
+Let's retrieve the edited alleles for the first gRNA:
+
+```{r}
+alleles <- editedAlleles(gs)[[1]]
+```
+
+It is a `DataFrame` object that contains useful metadata information:
+
+
+```{r}
+metadata(alleles)
+```
+
+The `wildtypeAllele` reports the unedited nucleotide sequence of the region specified by the editing window (with respect to the gRNA PAM site). It is always reported from the 5' to 3' direction on the strand corresponding to the gRNA strand. The `start` and `end` specify the corresponding coordinates on the transcript. 
+
+Let's look at the edited alleles:
+
+```{r}
+head(alleles)
+```
+
+The `DataFrame` is ordered so that the top predicted alleles (based on the `score` column) are shown first. The `score` represents the likelihood of the edited allele to occur relative to all possible edited alleles, and is calculated using the editing weights stored in the `BE4max` object. The `seq` column represents the edited nucleotide sequences. Similar to the `wildtypeAllele` above, they are always reported from the 5' to 3' direction on the strand corresponding to the gRNA strand. The `variant` column indicates the functional consequence of the editing event (silent, nonsense or missense mutation). In case an edited allele leads to multiple editing events, the most detrimenta mutation (nonsense over missense, missense over silent) is reported. The `aa` column reports the result edited amino acid sequence. 
+
+
+
+Note that several gRNA-level aggregate scores have also been added to the `GuideSet` object when calling `addEditedAlleles`:
+
+```{r}
+head(gs)
+```
+
+The `score_missense`, `score_nonsense` and `score_silent` columns represent aggregated scores for each of the mutation type. They were obtained by summing adding up all scores scores for a given mutation type across the set of edited alleles for a given gRNA. The `maxVariant` column indicates the most likely to occur mutation type for a given gRNA, and is based on the maximum aggregated score, which is stored in `maxVariantScore`. For instance, for spacer_1, the higher score is the `score_missense`, and therefore `maxVariant` is set to missense.  
+
+
+
+
+
+# CRISPR knockdown with Cas13d
+
+
+It is also possible to design gRNAs for RNA-targeting nucleases using `crisprDesign`. In contrast to DNA-targeting nucleases, the target spacer is composed of mRNA sequences instead of DNA genomic sequences. 
+
+We illustrate the functionalities of `crisprDesign` for RNA-targeting nucleases by designing gRNAs targeting IQSEC3 using the CasRx (RfxCas13d) nuclease [@cas13d]. 
 
 
 We first load the CasRx `CrisprNuclease` object from `crisprBase`:
@@ -592,7 +686,7 @@ data(CasRx, package="crisprBase")
 CasRx
 ```
 
-The PFS sequence (the equivalent of a PAM sequence for RNA-targeting nucleases) for CasRx is N, meaning that there is no specific PFS sequences prefered by CasRx. 
+The PFS sequence (the equivalent of a PAM sequence for RNA-targeting nucleases) for CasRx is `N`, meaning that there is no specific PFS sequences preferred by CasRx. 
 
 
 We will now design CasRx gRNAs for the transcript ENST00000538872 of IQSEC3.
@@ -609,7 +703,7 @@ mrnas
 ```
 
 
-Then we can design gRNAs using the usual function `findSpacers`:
+We can use the usual function `findSpacers` to design gRNAs, and we only consider a random subset of 100 gRNAs for the sake of time:
 
 ```{r}
 gs <- findSpacers(mrnas[["ENST00000538872"]],
@@ -645,10 +739,9 @@ onTargets(gs["spacer_1095"])
 ```
 
 
+Note that one can also use the `bowtie` aligner to perform an off-target search to a set of mRNA sequences. This requires building a transcriptome bowtie index first instead of building a genome index. See the `crisprBowtie` vignette for more detail. 
 
-# gRNA design for base editor BE4max
 
-TBD
 
 # Misc
 

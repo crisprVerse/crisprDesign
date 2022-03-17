@@ -25,6 +25,7 @@
 #'     \item{\code{geneAnnotation}:}{To get gene annotation.}
 #'     \item{\code{tssAnnotation}:}{To get TSS annotation.}
 #'     \item{\code{enzymeAnnotation}:}{To get restriction enzymes annotation.}
+#'     \item{\code{editedAlleles}:}{To get edited alleles annotation.}
 #' }
 #' 
 #' @export
@@ -596,6 +597,22 @@ setMethod("geneAnnotation", "GuideSet",
     return(out)
 })
 
+
+
+
+#' @rdname GuideSet-class
+#' @importFrom S4Vectors mcols
+#' @export
+setMethod("editedAlleles", "GuideSet", 
+    function(object){
+    if (!"editedAlleles" %in% colnames(S4Vectors::mcols(object))){
+        out <- NULL
+    } else {
+        out <- S4Vectors::mcols(object)[["editedAlleles"]]
+        names(out) <- names(object)
+    }
+    return(out)
+})
 
 
 

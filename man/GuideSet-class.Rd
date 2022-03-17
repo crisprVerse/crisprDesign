@@ -16,6 +16,7 @@
 \alias{geneAnnotation}
 \alias{tssAnnotation}
 \alias{enzymeAnnotation}
+\alias{editedAlleles}
 \alias{GuideSet-class}
 \alias{GuideSet}
 \alias{targetOrigin,GuideSet-method}
@@ -36,6 +37,7 @@
 \alias{onTargets,GuideSet-method}
 \alias{offTargets,GuideSet-method}
 \alias{geneAnnotation,GuideSet-method}
+\alias{editedAlleles,GuideSet-method}
 \alias{tssAnnotation,GuideSet-method}
 \alias{enzymeAnnotation,GuideSet-method}
 \title{An S4 class to store CRISPR gRNA sequences with modular annotations.}
@@ -67,6 +69,8 @@ geneAnnotation(object, ...)
 tssAnnotation(object, ...)
 
 enzymeAnnotation(object, ...)
+
+editedAlleles(object, ...)
 
 GuideSet(
   protospacers = NA_character_,
@@ -136,6 +140,8 @@ GuideSet(
   gene_symbol = NULL,
   use.names = TRUE
 )
+
+\S4method{editedAlleles}{GuideSet}(object)
 
 \S4method{tssAnnotation}{GuideSet}(
   object,
@@ -244,6 +250,8 @@ Return gene annotation table of spacer sequences.
 Return TSS annotation table of spacer sequences.
 
 Return restriction enzymes annotation table.
+
+Return list of edited alleles
 }
 \section{Functions}{
 \itemize{
@@ -278,6 +286,7 @@ Return restriction enzymes annotation table.
     \item{\code{geneAnnotation}:}{To get gene annotation.}
     \item{\code{tssAnnotation}:}{To get TSS annotation.}
     \item{\code{enzymeAnnotation}:}{To get restriction enzymes annotation.}
+    \item{\code{editedAlleles}:}{To get edited alleles annotation.}
 }
 }
 
