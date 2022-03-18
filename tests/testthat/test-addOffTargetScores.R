@@ -30,23 +30,23 @@ test_that("guideSet is required to have spacer alignment annotation", {
 })
 
 
-test_that("CFD and MIT scores require guideSet using SpCas9 CrisprNuclease", {
-    iqsec3 <- queryTxObject(grListExample,
-                            "transcripts",
-                            "gene_symbol",
-                            "IQSEC3")
-    data("AsCas12a", package="crisprBase", envir=environment())
-    guides <- findSpacers(
-        iqsec3,
-        bsgenome=BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38,
-        crisprNuclease=AsCas12a)[1]
-    guides <- addSpacerAlignments(
-        guides,
-        aligner="bowtie",
-        aligner_index="~/crisprIndices/bowtie/hg38/hg38",
-        bsgenome=bsgenome)
-    expect_error(addOffTargetScores(guides))
-})
+# test_that("CFD and MIT scores require guideSet using SpCas9 CrisprNuclease", {
+#     iqsec3 <- queryTxObject(grListExample,
+#                             "transcripts",
+#                             "gene_symbol",
+#                             "IQSEC3")
+#     data("AsCas12a", package="crisprBase", envir=environment())
+#     guides <- findSpacers(
+#         iqsec3,
+#         bsgenome=BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38,
+#         crisprNuclease=AsCas12a)[1]
+#     guides <- addSpacerAlignments(
+#         guides,
+#         aligner="bowtie",
+#         aligner_index="~/crisprIndices/bowtie/hg38/hg38",
+#         bsgenome=bsgenome)
+#     expect_error(addOffTargetScores(guides))
+# })
 
 
 # test_that("CFD and MIT scores require spacers having lengths 19nt or 20nt", {
@@ -140,50 +140,50 @@ test_that("includeDistance argument only affects MIT score", {
 })
 
 
-test_that("CFD and MIT scores are appended to mcols(guideSet)", {
-    iqsec3 <- queryTxObject(grListExample,
-                            "transcripts",
-                            "gene_symbol",
-                            "IQSEC3")
-    genome(iqsec3) <- "hg38"
-    data("SpCas9", package="crisprBase", envir=environment())
-    guides <- findSpacers(
-        iqsec3,
-        bsgenome=BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38,
-        crisprNuclease=SpCas9)[1]
-    guides <- addSpacerAlignments(
-        guides,
-        aligner="bowtie",
-        aligner_index="~/crisprIndices/bowtie/hg38/hg38",
-        bsgenome=bsgenome)
-    out <- addOffTargetScores(guides)
+# test_that("CFD and MIT scores are appended to mcols(guideSet)", {
+#     iqsec3 <- queryTxObject(grListExample,
+#                             "transcripts",
+#                             "gene_symbol",
+#                             "IQSEC3")
+#     genome(iqsec3) <- "hg38"
+#     data("SpCas9", package="crisprBase", envir=environment())
+#     guides <- findSpacers(
+#         iqsec3,
+#         bsgenome=BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38,
+#         crisprNuclease=SpCas9)[1]
+#     guides <- addSpacerAlignments(
+#         guides,
+#         aligner="bowtie",
+#         aligner_index="~/crisprIndices/bowtie/hg38/hg38",
+#         bsgenome=bsgenome)
+#     out <- addOffTargetScores(guides)
     
-    score_cols <- c("score_cfd", "score_mit")
-    expect_true(all(score_cols %in% colnames(mcols(out))))
-})
+#     score_cols <- c("score_cfd", "score_mit")
+#     expect_true(all(score_cols %in% colnames(mcols(out))))
+# })
 
 
-test_that("CFD and MIT scores are appended to alignments(guideSet)", {
-    iqsec3 <- queryTxObject(grListExample,
-                            "transcripts",
-                            "gene_symbol",
-                            "IQSEC3")
-    genome(iqsec3) <- "hg38"
-    data("SpCas9", package="crisprBase", envir=environment())
-    guides <- findSpacers(
-        iqsec3,
-        bsgenome=BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38,
-        crisprNuclease=SpCas9)[1]
-    guides <- addSpacerAlignments(
-        guides,
-        aligner="bowtie",
-        aligner_index="~/crisprIndices/bowtie/hg38/hg38",
-        bsgenome=bsgenome)
-    out <- addOffTargetScores(guides)
+# test_that("CFD and MIT scores are appended to alignments(guideSet)", {
+#     iqsec3 <- queryTxObject(grListExample,
+#                             "transcripts",
+#                             "gene_symbol",
+#                             "IQSEC3")
+#     genome(iqsec3) <- "hg38"
+#     data("SpCas9", package="crisprBase", envir=environment())
+#     guides <- findSpacers(
+#         iqsec3,
+#         bsgenome=BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38,
+#         crisprNuclease=SpCas9)[1]
+#     guides <- addSpacerAlignments(
+#         guides,
+#         aligner="bowtie",
+#         aligner_index="~/crisprIndices/bowtie/hg38/hg38",
+#         bsgenome=bsgenome)
+#     out <- addOffTargetScores(guides)
     
-    score_cols <- c("score_cfd", "score_mit")
-    expect_true(all(score_cols %in% colnames(mcols(alignments(out)))))
-})
+#     score_cols <- c("score_cfd", "score_mit")
+#     expect_true(all(score_cols %in% colnames(mcols(alignments(out)))))
+# })
 
 
 test_that("aggregated scores are correctly calculated", {
