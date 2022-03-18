@@ -140,6 +140,11 @@ S4Vectors::mcols
     }
 }
 
+.bsgenome_pkgname <- function(bsgenome){
+    .isBSGenome(bsgenome)
+    bsgenome@pkgname
+}
+
 
 #' @importFrom GenomeInfoDb genome
 .getGenome <- function(guideSet){

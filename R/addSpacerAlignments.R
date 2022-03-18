@@ -452,7 +452,7 @@ getSpacerAlignments <- function(spacers,
 ){
     if (aligner == "bwa" && .Platform$OS.type=="windows"){
         stop("BWA aligner is not available for Windows machines. ",
-             "Choose bowtie instead.")   
+             "bowtie can be used as an alternative.")
     }
     spacerLength <- unique(nchar(spacers))
     if (length(spacerLength) > 1){

@@ -46,10 +46,11 @@ setClass("GuideSet", contains = "GRanges")
 #' @param CrisprNuclease \linkS4class{CrisprNuclease} object.
 #' @param targetOrigin String specifying the origin of the DNA target.
 #'     Must be either 'bsgenome' or 'customSequences'.
-#' @param bsgenome \linkS4class{BSgenome} object. Must be specified when
-#'     \code{targetOrigin} is equal to "bsgenome".
+#' @param bsgenome \linkS4class{BSgenome} object or string specifying
+#'     BSgenome package name. Must be specified when
+#'     \code{targetOrigin} is set to "bsgenome".
 #' @param customSequences \linkS4class{DNAStringSet} object. Must be specified
-#'     when \code{targetOrigin} is equal to "customSequences".
+#'     when \code{targetOrigin} is set to "customSequences".
 #' @param ... Additional arguments for class-specific methods
 #' @param seqinfo A \linkS4class{Seqinfo} object containing informatioon
 #'     about the set of genomic sequences present in the target genome.
@@ -112,7 +113,7 @@ GuideSet <- function(protospacers = NA_character_,
     metadata(gr)[["targetOrigin"]] <- targetOrigin
     if (targetOrigin=="bsgenome"){
         .isBSGenome(bsgenome)
-        metadata(gr)[["bsgenome"]] <- bsgenome
+        metadata(gr)[["bsgenome"]] <- .bsgenome_pkgname(bsgenome)
     } else if (targetOrigin=="customSequences"){
         if (is.character(customSequences)){
             customSequences <- .string2DNAStringSet(customSequences,
@@ -130,6 +131,13 @@ GuideSet <- function(protospacers = NA_character_,
     mcols(gr)[["pam_site"]] <- pam_site
     new("GuideSet", gr)
 }
+
+
+
+
+
+
+
 
 
 
@@ -187,7 +195,7 @@ setValidity("GuideSet", function(object){
          target, "' must be specified in the metadata field.")
     }    
     if (target=="bsgenome"){
-        .isBSGenome(meta[["bsgenome"]])
+        .isBSGenome(BSgenome::getBSgenome(meta[["bsgenome"]]))
     } else if (target=="customSequences"){
         .isDNAStringSet(meta[["customSequences"]])
     }
@@ -226,12 +234,19 @@ setMethod("customSequences", "GuideSet",
 
 #' @rdname GuideSet-class
 #' @param object \linkS4class{GuideSet} object.
+#' @importFrom BSgenome getBSgenome
 #' @export
-setMethod("bsgenome", "GuideSet", 
+setMethod("bsgenome", "GuideSet",
     function(object){
     out <- metadata(object)[["bsgenome"]]
+    if (!is.character(out)){
+        out <- .bsgenome_pkgname(out)
+    }
+    out <- BSgenome::getBSgenome(out)
     return(out)
 })
+
+
 
 
 

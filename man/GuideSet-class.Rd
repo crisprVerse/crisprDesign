@@ -174,11 +174,12 @@ Only accepted values are "+" and "-".}
 \item{targetOrigin}{String specifying the origin of the DNA target.
 Must be either 'bsgenome' or 'customSequences'.}
 
-\item{bsgenome}{\linkS4class{BSgenome} object. Must be specified when
-\code{targetOrigin} is equal to "bsgenome".}
+\item{bsgenome}{\linkS4class{BSgenome} object or string specifying
+BSgenome package name. Must be specified when
+\code{targetOrigin} is set to "bsgenome".}
 
 \item{customSequences}{\linkS4class{DNAStringSet} object. Must be specified
-when \code{targetOrigin} is equal to "customSequences".}
+when \code{targetOrigin} is set to "customSequences".}
 
 \item{seqinfo}{A \linkS4class{Seqinfo} object containing informatioon
 about the set of genomic sequences present in the target genome.}
