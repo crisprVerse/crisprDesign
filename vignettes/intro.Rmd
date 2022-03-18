@@ -116,7 +116,7 @@ having a length of 20nt.
 library(crisprDesign)
 ```
 
-## Specification of the nuclease
+##  Nuclease specification
 
 The `crisprBase` package provides functionalities to create objects that store
 information about CRISPR nucleases, and functions to interact with those
@@ -145,7 +145,7 @@ prototypeSequence(SpCas9)
 ```
 
 
-## Specification of the input DNA sequences
+## Target DNA specification
 
 As an example, we will design gRNAs that knockout the human gene IQSEC3 by
 finding all protospacer sequences located in the coding region (CDS) 
@@ -184,7 +184,7 @@ gr <- gr[1]
 
 
 
-## Generation of candidate spacer sequences for human gene IQSEC3
+## Designing spacer sequences
 
 `findSpacers` is the main function to obtain a list of all
 possible spacer sequences targeting protospacers located in the target
@@ -229,7 +229,7 @@ head(cutSites(guideSet))
 The genomic locations stored in the IRanges represent the PAM site locations in the reference genome. 
 
 
-## Spacer sequence characterization
+## Sequence features characterization
 
 There are specific spacer sequence features, independent of the genomic
 context of the protospacer sequence, that can reduce or even eliminate gRNA
@@ -252,7 +252,7 @@ head(guideSet)
 ```
 
 
-## Searching for on-targets and off-targets
+## Off-target search
 
 
 In order to select gRNAs that are most specific to our target 
@@ -755,6 +755,7 @@ for more information, and here's an example:
 seqs <- c(seq1="AGGCGGAGGCCCGACCCGGGCGCGGGGCGGCGC",
           seq2="AGGCGGAGGCCCGACCCGGGCGCGGGAAAAAAAGGC")
 gs <- findSpacers(seqs)
+head(gs)
 ```
 
 ## Off-target search in custom sequences
@@ -770,16 +771,18 @@ gs <- addSpacerAlignments(gs,
                           aligner="biostrings",
                           n_mismatches=2,
                           custom_seq=offtarget)
+head(alignments(gs))
 ```
 
 
 ## Design for optical pooled screening (OPS)
 
 
-# References
-
 # Session Info
 
 ```{r}
 sessionInfo()
 ```
+
+# References
+
