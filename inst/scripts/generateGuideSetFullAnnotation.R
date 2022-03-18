@@ -1,9 +1,11 @@
 library(crisprDesign)
 library(crisprDesignData)
+library(crisprDesignGne)
 library(crisprScore)
 library(biomaRt)
 library(devtools)
-
+library(BSgenome.Hsapiens.UCSC.hg38)
+data(tss_human, package="crisprDesignGne")
 
 txObject  <- txdb_human
 tssObject <- tss_human

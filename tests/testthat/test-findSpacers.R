@@ -218,7 +218,7 @@ test_that("function uses crisprNuclease argument appropriately", {
 
 test_that("function uses bsgenome argument appropriately", {
     human <- findSpacers(gr1, bsgenome=bsgenome_human)
-    expect_equal(metadata(human)$bsgenome, bsgenome_human)
+    expect_equal(metadata(human)$bsgenome, bsgenome_human@pkgname)
     human <- crisprBase::getTargetRanges(human, nuclease=SpCas9)
     protospacers <- paste0(protospacers(human, as.character=TRUE),
                            pams(human, as.character=TRUE))
@@ -227,7 +227,7 @@ test_that("function uses bsgenome argument appropriately", {
                  protospacers)
     
     mouse <- findSpacers(gr1, bsgenome=bsgenome_mouse)
-    expect_equal(metadata(mouse)$bsgenome, bsgenome_mouse)
+    expect_equal(metadata(mouse)$bsgenome, bsgenome_mouse@pkgname)
     mouse <- crisprBase::getTargetRanges(mouse, nuclease=SpCas9)
     protospacers <- paste0(protospacers(mouse, as.character=TRUE),
                            pams(mouse, as.character=TRUE))
