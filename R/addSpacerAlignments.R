@@ -349,7 +349,7 @@ addSpacerAlignments <- function(guideSet,
     aln <- aln[spacers]
     names(aln) <- names(guideSet)
     aln <- BiocGenerics::unlist(aln, use.names=TRUE)
-    aln <- S4Vectors::split(aln, f=names(aln))
+    aln <- S4Vectors::split(aln, f=names(guideSet))
     S4Vectors::mcols(guideSet)[[colname]] <- aln
     return(guideSet)
 }
@@ -932,8 +932,8 @@ getSpacerAlignments <- function(spacers,
     nearestGene <- data.frame(aln_index=S4Vectors::queryHits(nearestGene),
                               intergenic=intergenic,
                               intergenic_distance=intergenic_distance)
-    S4Vectors::mcols(aln)[["intergenic"]] <- NA_character_
-    S4Vectors::mcols(aln)[["intergenic_distance"]] <- NA_integer_
+    S4Vectors::mcols(aln)[["intergenic"]] <- rep(NA_character_, NROW(aln))
+    S4Vectors::mcols(aln)[["intergenic_distance"]] <- rep(NA_integer_, NROW(aln))
     for (i in c("intergenic", "intergenic_distance")){
         S4Vectors::mcols(aln)[[i]][nearestGene$aln_index] <- nearestGene[[i]]
     }
