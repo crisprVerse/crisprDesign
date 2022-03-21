@@ -53,7 +53,7 @@ test_that("getSpacerAlignments requires GuideSet or spacer input", {
     #         suppressWarnings(
     #             getSpacerAlignments(spacers=x,
     #                                 aligner="bowtie",
-    #                                 aligner_index=bowtie_index,
+    #                                 aligner_index=index,
     #                                 bsgenome=bsgenome_human,
     #                                 crisprNuclease=SpCas9)
     #             ),
@@ -713,7 +713,7 @@ test_that("alignmentThresholds must contain non-negative integers", {
 test_that("alignmentThresholds must not have duplicate names", {
     expect_error(addSpacerAlignmentsIterative(gs,
                                               aligner="bowtie",
-                                              aligner_index=bowtie_index,
+                                              aligner_index=index,
                                               bsgenome=bsgenome_human,
                                               alignmentThresholds=c(n0=1,
                                                                     n1=2,

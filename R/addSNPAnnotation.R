@@ -75,7 +75,7 @@ addSNPAnnotation <- function(guideSet,
 
 
 
-#' @importFrom S4Vectors metadata metadata<- DataFrame mcols
+#' @importFrom S4Vectors metadata metadata<- DataFrame mcols nchar
 #' @importFrom VariantAnnotation info 
 #' @importFrom MatrixGenerics rowRanges
 #' @importFrom BiocGenerics strand
@@ -137,18 +137,18 @@ addSNPAnnotation <- function(guideSet,
     
     # SNP type and length
     snpType <- rep("snp", nrow(snps))
-    referenceLength <- nchar(snps$allele_ref)
-    minorLength <- nchar(snps$allele_minor)
+    referenceLength <- S4Vectors::nchar(snps$allele_ref)
+    minorLength <- S4Vectors::nchar(snps$allele_minor)
     snpDel <- referenceLength > minorLength
     snpIns <- referenceLength < minorLength
     snpType[snpDel] <- "del"
     snpType[snpIns] <- "ins"
     snps$type <- snpType
     
-    snpLength <- nchar(snps$allele_ref)
+    snpLength <- S4Vectors::nchar(snps$allele_ref)
     snpLength[snpDel] <- referenceLength[snpDel] - minorLength[snpDel]
     snpLength[snpIns] <- minorLength[snpIns] - referenceLength[snpIns]
-    snps$length <- nchar(snps$allele_minor)
+    snps$length <- S4Vectors::nchar(snps$allele_minor)
     
     snps <- snps[, c("ID", "rs", "rs_site", "rs_site_rel", "allele_ref",
                      "allele_minor", "MAF_1000G", "MAF_TOPMED", "type",

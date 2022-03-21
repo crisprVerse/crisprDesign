@@ -98,11 +98,12 @@ addSequenceFeatures <- function(guideSet,
 ){
     # preG is optional (Thyme, 2016)
     seqs <- Biostrings::DNAStringSet(paste0("G", seqs, "GT")) 
+    gap <- paste0(rep("-", spacerLength(guideSet) + 3), collapse="")
     backbone <- .validateDNACharacterVariable(seq=backbone,
                                               argument="backbone",
                                               len=1,
                                               nullOk=FALSE)
-    backbone <- Biostrings::DNAStringSet(backbone)
+    backbone <- Biostrings::DNAString(paste0(gap, backbone))
     
     hairpins <- vapply(seqs, function(x){
         c(selfHairpin = .selfHairpin(x),
@@ -115,44 +116,49 @@ addSequenceFeatures <- function(guideSet,
 }
 
 
-#' @importFrom Biostrings nchar subseq reverseComplement
 .selfHairpin <- function(seq
 ){
-    minStemLength <- 4
-    minLoopLength <- 4
-    spacerWindowCount <- Biostrings::nchar(seq)-2*minStemLength-minLoopLength+1
-    startingHairpinIndices <- seq_len(spacerWindowCount)
-    for (i in startingHairpinIndices){
-        queryStem <- Biostrings::subseq(seq, i, width=minStemLength)
-        stemPercentGC <- .calculatePercentGC(queryStem)
-        if (stemPercentGC >= 50){
-            subjectStem <- Biostrings::subseq(seq,
-                                              i+minStemLength+minLoopLength,
-                                              Biostrings::nchar(seq))
-            subjectStem <- Biostrings::reverseComplement(subjectStem)
-            if (grepl(queryStem, subjectStem)){
-                return(TRUE)
-            }
-        }
-    }
-    return(FALSE)
+    min.armlength <- 4
+    min.looplength <- 4
+    max.looplength <- nchar(seq)
+    hasSelfHairpin <- .findComplementarity(seq=seq,
+                                           min.armlength=min.armlength,
+                                           min.looplength=min.looplength,
+                                           max.looplength=max.looplength)
+    return(hasSelfHairpin)
 }
 
 
-#' @importFrom Biostrings nchar reverseComplement subseq
+#' @importFrom Biostrings DNAString
 .backboneHairpin <- function(seq,
                              backbone
 ){
-    backbone <- Biostrings::reverseComplement(backbone)
-    minStemLength <- 5
-    spacerWindowCount <- Biostrings::nchar(seq) - minStemLength + 1
-    startingHairpinIndices <- seq_len(spacerWindowCount)
-    for (i in startingHairpinIndices){
-        queryStem <- Biostrings::subseq(seq, i, width=minStemLength)
-        stemPercentGC <- .calculatePercentGC(queryStem)
-        if (stemPercentGC >= 50 && grepl(queryStem, backbone)){
-            return(TRUE)
-        }
-    }
-    return(FALSE)
+    min.armlength <- 5
+    min.looplength <- nchar(seq)
+    max.looplength <- nchar(seq) + nchar(backbone)
+    seq <- Biostrings::DNAString(paste0(seq, backbone))
+    hasBackboneHairpin <- .findComplementarity(seq=seq,
+                                               min.armlength=min.armlength,
+                                               min.looplength=min.looplength,
+                                               max.looplength=max.looplength)
+    return(hasBackboneHairpin)
+}
+
+
+#' @importFrom Biostrings findPalindromes palindromeLeftArm
+.findComplementarity <- function(seq,
+                                 min.armlength,
+                                 min.looplength,
+                                 max.looplength
+){
+    palindromes <- Biostrings::findPalindromes(seq,
+                                               min.armlength=min.armlength,
+                                               min.looplength=min.looplength,
+                                               max.looplength=max.looplength,
+                                               max.mismatch=0,
+                                               allow.wobble=FALSE)
+    stem <- Biostrings::palindromeLeftArm(palindromes)
+    stem <- as.character(stem)
+    hasComplementarity <- any(.calculatePercentGC(stem) >= 50)
+    return(hasComplementarity)
 }
