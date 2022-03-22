@@ -17,7 +17,7 @@ should be searched for.}
 in \code{tssObject[[queryColumn]]}.}
 
 \item{tss_window}{Numeric vector of length 2 establishing the genomic
-region to return. The value pair sets the 5′ and 3′ limits,
+region to return. The value pair sets the 5 prime and 3 prime limits,
 respectively, of the genomic region with respect to the TSS. Use
 negative value(s) to set limit(s) upstream of the TSS. Default is
 \code{c(-500, 500)}, which includes 500bp upstream and downstream of
