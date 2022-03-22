@@ -220,7 +220,7 @@ addOffTargetScores <- function(guideSet,
     utils::data(SpCas9,
                 package="crisprBase",
                 envir=environment())
-    utils::data(SpCas9,
+    utils::data(CasRx,
                 package="crisprBase",
                 envir=environment())
     isCas9  <- .identicalNucleases(crisprNuclease,
