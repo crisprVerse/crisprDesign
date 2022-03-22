@@ -25,6 +25,7 @@
 #' 
 #' @examples
 #' 
+#' \dontrun{
 #' # Creating a bowtie index:
 #' library(Rbowtie)
 #' library(BSgenome.Hsapiens.UCSC.hg38)
@@ -49,6 +50,7 @@
 #' 
 #' # Adding off-target scores:
 #' guideSet <- addOffTargetScores(guideSet)
+#' }
 #' 
 #' @author Jean-Philippe Fortin, Luke Hoberecht
 #' 

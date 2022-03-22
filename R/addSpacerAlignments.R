@@ -439,6 +439,7 @@ getSpacerAlignments <- function(spacers,
 
 #' @importFrom crisprBowtie runCrisprBowtie
 #' @importFrom crisprBwa runCrisprBwa
+#' @importFrom S4Vectors nchar
 .getSpacerAlignments_indexed <- function(spacers,
                                          aligner,
                                          aligner_index,
@@ -454,7 +455,7 @@ getSpacerAlignments <- function(spacers,
         stop("BWA aligner is not available for Windows machines. ",
              "bowtie can be used as an alternative.")
     }
-    spacerLength <- unique(nchar(spacers))
+    spacerLength <- unique(S4Vectors::nchar(spacers))
     if (length(spacerLength) > 1){
         stop("All spacer sequences must have the same length.")
     }
@@ -590,7 +591,7 @@ getSpacerAlignments <- function(spacers,
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
 #' @importFrom Biostrings DNAStringSet
-#' @importFrom S4Vectors mcols mcols<-
+#' @importFrom S4Vectors mcols mcols<- nchar
 #' @importFrom crisprBase motifs
 #' @importClassesFrom GenomeInfoDb Seqinfo
 #' @importFrom GenomeInfoDb seqinfo<-
@@ -656,14 +657,14 @@ getSpacerAlignments <- function(spacers,
     GenomeInfoDb::seqlevels(results) <- names(custom_seq)
     GenomeInfoDb::seqinfo(results) <- GenomeInfoDb::Seqinfo(
         seqnames=names(custom_seq),
-        seqlengths=nchar(custom_seq),
+        seqlengths=S4Vectors::nchar(custom_seq),
         isCircular=rep(FALSE, length(custom_seq)),
         genome="custom")
     
     alignmentParams <- list(n_mismatches=n_mismatches,
                             canonical=canonical,
                             both_strands=both_strands,
-                            spacer_len=unique(nchar(results$spacer)),
+                            spacer_len=unique(S4Vectors::nchar(results$spacer)),
                             custom_seq=Biostrings::DNAStringSet(custom_seq))
     results <- .addAlignmentsMetadata(results,
                                       aligner="biostrings",
@@ -733,6 +734,7 @@ getSpacerAlignments <- function(spacers,
 
 
 #' @importFrom Biostrings matchPattern
+#' @importFrom S4Vectors nchar
 #' @importFrom BiocGenerics as.data.frame
 .getCustomSeqPatternHits <- function(spacer,
                                      custom_seq,
@@ -744,7 +746,7 @@ getSpacerAlignments <- function(spacers,
                                        max.mismatch=n_mismatches)
     hits <- lapply(seq_along(hits), function(x){
         inRange5Prime <- BiocGenerics::start(hits[[x]]) > 0
-        inRange3Prime <- BiocGenerics::end(hits[[x]]) <= nchar(custom_seq[x])
+        inRange3Prime <- BiocGenerics::end(hits[[x]]) <= S4Vectors::nchar(custom_seq[x])
         perSeqHits <- hits[[x]][inRange5Prime & inRange3Prime]
         perSeqHits <- BiocGenerics::as.data.frame(perSeqHits)
         perSeqHits$seqnames <- rep(names(custom_seq)[x], nrow(perSeqHits))

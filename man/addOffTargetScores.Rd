@@ -39,6 +39,7 @@ See \pkg{crisprScore} package for a description of the off-target
 }
 \examples{
 
+\dontrun{
 # Creating a bowtie index:
 library(Rbowtie)
 library(BSgenome.Hsapiens.UCSC.hg38)
@@ -63,6 +64,7 @@ guideSet <- addSpacerAlignments(guideSetExample,
 
 # Adding off-target scores:
 guideSet <- addOffTargetScores(guideSet)
+}
 
 }
 \seealso{
