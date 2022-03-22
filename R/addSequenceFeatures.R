@@ -5,11 +5,16 @@
 #'     \linkS4class{GuideSet} object.
 #' 
 #' @param guideSet A \linkS4class{GuideSet} object.
-#' @param addHairpin Should predicted hairpin formation via
-#'     sequence complementarity be calculated? FALSE by default.
+#' @param addHairpin Whether to include predicted hairpin formation via
+#'     sequence complementarity. FALSE by default. See details.
 #' @param backbone Backbone sequence in the guide RNA that is susceptible
-#'     to hairpin formation with a complementary region in the spacer sequence
-#'     (>= 5bp).
+#'     to hairpin formation with a complementary region in the spacer sequence.
+#'     
+#' @details \code{addSequenceFeatures} predicts spacers to form internal
+#'     hairpins when there is a palindromic sequence within the spacer having
+#'     arms of >=4nt and >=50\% GC content, and are separated by a loop of
+#'     >=4nt. Backbone hairpin formation is predicted when the spacer and
+#'     backbone share a complementary sequence of >=5nt and >=50\% GC content. 
 #' 
 #' @return \code{guideSet} with the following columns appended to
 #'    \code{mcols(guideSet)}: 
@@ -18,9 +23,9 @@
 #'        \item \code{polyA}, \code{polyC}, \code{polyG}, \code{polyT} —
 #'        presence of homopolymers of 4nt or longer
 #'        \item \code{selfHairpin} — prediction of hairpin formation within the
-#'        spacer sequence via self-complementarity (>= 4bp)
+#'        spacer sequence via self-complementarity
 #'        \item \code{backboneHairpin} — prediction of hairpin formation with
-#'        the backbone sequence via complementarity (>= 5bp)
+#'        the backbone sequence via complementarity
 #'    }
 #'
 #' @examples
@@ -92,26 +97,29 @@ addSequenceFeatures <- function(guideSet,
 
 
 #' @importFrom Biostrings DNAStringSet
+#' @importFrom S4Vectors mcols<-
 .addHairpins <- function(guideSet,
                          seqs,
                          backbone
 ){
     # preG is optional (Thyme, 2016)
-    seqs <- Biostrings::DNAStringSet(paste0("G", seqs, "GT")) 
-    gap <- paste0(rep("-", spacerLength(guideSet) + 3), collapse="")
+    seqs <- paste0("G", seqs, "GT", recycle0=TRUE)
+    seqs <- Biostrings::DNAStringSet(seqs) 
     backbone <- .validateDNACharacterVariable(seq=backbone,
                                               argument="backbone",
                                               len=1,
                                               nullOk=FALSE)
-    backbone <- Biostrings::DNAString(paste0(gap, backbone))
     
-    hairpins <- vapply(seqs, function(x){
-        c(selfHairpin = .selfHairpin(x),
-          backboneHairpin = .backboneHairpin(x, backbone))
-    }, FUN.VALUE = logical(2))
+    selfHairpin <- vapply(seqs, .selfHairpin, FUN.VALUE=logical(1))
+    S4Vectors::mcols(guideSet)[["selfHairpin"]] <- selfHairpin
     
-    guideSet$selfHairpin <- hairpins['selfHairpin',]
-    guideSet$backboneHairpin <- hairpins['backboneHairpin',]
+    gapLength <- spacerLength(guideSet) + 3 + S4Vectors::nchar(backbone)
+    gap <- strrep("-", gapLength)
+    seqs <- paste0(seqs, gap, backbone, recycle0=TRUE)
+    seqs <- Biostrings::DNAStringSet(seqs)
+    backboneHairpin <- vapply(seqs, .backboneHairpin, FUN.VALUE=logical(1))
+    S4Vectors::mcols(guideSet)[["backboneHairpin"]] <- backboneHairpin
+    
     return(guideSet)
 }
 
@@ -120,7 +128,7 @@ addSequenceFeatures <- function(guideSet,
 ){
     min.armlength <- 4
     min.looplength <- 4
-    max.looplength <- nchar(seq)
+    max.looplength <- max(nchar(seq), min.looplength)
     hasSelfHairpin <- .findComplementarity(seq=seq,
                                            min.armlength=min.armlength,
                                            min.looplength=min.looplength,
@@ -129,14 +137,12 @@ addSequenceFeatures <- function(guideSet,
 }
 
 
-#' @importFrom Biostrings DNAString
-.backboneHairpin <- function(seq,
-                             backbone
+#' @importFrom Biostrings letterFrequency
+.backboneHairpin <- function(seq
 ){
     min.armlength <- 5
-    min.looplength <- nchar(seq)
-    max.looplength <- nchar(seq) + nchar(backbone)
-    seq <- Biostrings::DNAString(paste0(seq, backbone))
+    min.looplength <- Biostrings::letterFrequency(seq, letters="-")
+    max.looplength <- max(nchar(seq), min.looplength)
     hasBackboneHairpin <- .findComplementarity(seq=seq,
                                                min.armlength=min.armlength,
                                                min.looplength=min.looplength,

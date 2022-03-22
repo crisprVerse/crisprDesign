@@ -18,6 +18,12 @@ test_that("guideSet argument must be a GuideSet object", {
 })
 
 
+test_that("function handles empty GuideSet input gracefully", {
+    expect_error(addSequenceFeatures(guideSetExample[0]),
+                 regexp=NA)
+})
+
+
 test_that("addHairpin argument must be a logical value", {
     bad_input <- list(NULL,
                       0,

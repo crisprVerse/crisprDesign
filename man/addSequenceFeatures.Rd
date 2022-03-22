@@ -10,12 +10,11 @@ addSequenceFeatures(guideSet, addHairpin = FALSE, backbone = "AGGCTAGTCCGT")
 \arguments{
 \item{guideSet}{A \linkS4class{GuideSet} object.}
 
-\item{addHairpin}{Should predicted hairpin formation via
-sequence complementarity be calculated? FALSE by default.}
+\item{addHairpin}{Whether to include predicted hairpin formation via
+sequence complementarity. FALSE by default. See details.}
 
 \item{backbone}{Backbone sequence in the guide RNA that is susceptible
-to hairpin formation with a complementary region in the spacer sequence
-(>= 5bp).}
+to hairpin formation with a complementary region in the spacer sequence.}
 }
 \value{
 \code{guideSet} with the following columns appended to
@@ -25,15 +24,22 @@ to hairpin formation with a complementary region in the spacer sequence
        \item \code{polyA}, \code{polyC}, \code{polyG}, \code{polyT} —
        presence of homopolymers of 4nt or longer
        \item \code{selfHairpin} — prediction of hairpin formation within the
-       spacer sequence via self-complementarity (>= 4bp)
+       spacer sequence via self-complementarity
        \item \code{backboneHairpin} — prediction of hairpin formation with
-       the backbone sequence via complementarity (>= 5bp)
+       the backbone sequence via complementarity
    }
 }
 \description{
 Add spacer sequence feature annotation columns, such as
     GC content, homopolymers, and hairpin predictions, to a
     \linkS4class{GuideSet} object.
+}
+\details{
+\code{addSequenceFeatures} predicts spacers to form internal
+    hairpins when there is a palindromic sequence within the spacer having
+    arms of >=4nt and >=50\% GC content, and are separated by a loop of
+    >=4nt. Backbone hairpin formation is predicted when the spacer and
+    backbone share a complementary sequence of >=5nt and >=50\% GC content.
 }
 \examples{
 custom_seq <- c("ATTTCCGGAGGCGGAGAGGCGGGAGGAGCG")
