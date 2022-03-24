@@ -1,6 +1,6 @@
 Package: crisprDesign
 Title: Core functions for CRISPR design
-Version: 0.99.57
+Version: 0.99.58
 Authors@R: c(
     person("Jean-Philippe", "Fortin", email = "fortin946@gmail.com", role = c("aut", "cre")),
     person("Luke", "Hoberecht", email = "lukehob3@gmail.com", role = c("aut"))
@@ -38,8 +38,7 @@ Suggests:
     biomaRt,
     BSgenome.Hsapiens.UCSC.hg38,
     BSgenome.Mmusculus.UCSC.mm10,
-    Cas13design,
-    crisprScore (>= 0.99.16),
+    crisprScore (>= 0.99.20),
     BiocStyle,
     knitr,
     rmarkdown,

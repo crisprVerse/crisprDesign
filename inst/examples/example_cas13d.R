@@ -2,8 +2,8 @@ library(crisprDesignData)
 library(crisprDesign)
 library(crisprBase)
 library(BSgenome.Hsapiens.UCSC.hg38)
-bsgenome <- BSgenome.Hsapiens.UCSC.hg38
 data(CasRx)
+bsgenome <- BSgenome.Hsapiens.UCSC.hg38
 txObject <- txdb_human
 txids <- c("ENST00000367064") #CD55
 
@@ -12,6 +12,16 @@ out <- getMrnaSequences(txids,
                         bsgenome=bsgenome,
                         txObject=txObject)
 guides <- findSpacers(out[1], crisprNuclease=CasRx)
+guides <- addOnTargetScores(guides)
+
+
+
+guideSet <- guides
+
+
+
+
+
 #guides <- guides[1:10]
 guides <- addSequenceFeatures(guides)
 guides <- addPamScores(guides)

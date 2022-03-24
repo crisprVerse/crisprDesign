@@ -108,7 +108,7 @@ addOnTargetScores <- function(guideSet,
         stop("No scoring method found for crisprNuclease \n")
     }
     badMethods <- setdiff(methods, scoringMethodsInfo$method)
-    badMethods <- setdiff(badMethods, "casrxrf")
+    #badMethods <- setdiff(badMethods, "casrxrf")
     if (length(badMethods) > 0){
         stop("Scoring methods not recognized: ",
              paste(badMethods, collapse=", "))
@@ -150,7 +150,9 @@ addOnTargetScores <- function(guideSet,
                                enzyme,
                                promoter
 ){
-    if (method!="casrxrf"){
+    if (method=="casrxrf"){
+        scores <- .getCasRxRFScores(guideSet)
+    } else {
         utils::data("scoringMethodsInfo",
                     package="crisprScore",
                     envir=environment())
@@ -181,49 +183,31 @@ addOnTargetScores <- function(guideSet,
             }
             scores[good] <- results$score
         }
-    } else {
-        if (!requireNamespace("Cas13design")){
-            stop("Please install Cas13design to use",
-                 " 'addOnTargetScores' with Cas13.")
-        } else {
-            scores <- .getCasRxRfScores(guideSet)
-        }
-    }
+    } 
     return(scores)
 }
 
 
 
 
-.getCasRxRfScores <- function(guideSet){
+.getCasRxRFScores <- function(guideSet){
     spacerLen <- spacerLength(guideSet)
+    mrnaSequence <- metadata(guideSet)$customSequences
+    if (length(mrnaSequence)>1){
+        stop("mrnaSequence must be of length 1 for CasRxRF scoring")
+    }
     if (spacerLen != 23){
         stop("Spacer length must be 23 to use CasRxRF")
     }
-    inputs <- .getCasRxRFInputs(guideSet)
-    scores <- Cas13design::addCasRxScores(inputs[["spacers"]],
-                                          mrnaSequence=inputs[["mrnaSequence"]])
-    scores <- scores[match(names(guideSet), scores$ID),,drop=FALSE]
+    scores <- crisprScore::getCasRxRFScores(mrnaSequence=mrnaSequence)
+    wh <- match(spacers(guideSet, as.character=TRUE), scores$spacer)
+    scores <- scores[wh,,drop=FALSE]
     out <- scores[["standardizedScore"]]
     return(out)
 }
 
 
 
-.getCasRxRFInputs <- function(guideSet){
-    mrnaSequence <- metadata(guideSet)$customSequences
-    input <- data.frame(spacer=spacers(guideSet,
-                                        as.character=TRUE))
-    input$pfs_site <- pamSites(guideSet)
-    input$pos <- input$pfs_site-1
-    input$protospacer <- protospacers(guideSet,
-                                      as.character=TRUE)
-    input$PFS <- pams(guideSet, as.character=TRUE)
-    rownames(input) <- names(guideSet)
-    out <- list(spacers=input,
-                mrnaSequence=mrnaSequence)
-    return(out)
-}
 
 
 
