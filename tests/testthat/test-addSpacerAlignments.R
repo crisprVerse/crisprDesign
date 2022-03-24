@@ -175,9 +175,7 @@ test_that("n_mismatches arg must be a single non-negative integer value", {
     bad_input <- list(NA,
                       -1,
                       0.5,
-                      "1",
-                      list(1),
-                      c(1,1))
+                      "1")
     lapply(bad_input, function(x){
         expect_error(getSpacerAlignments(spacers=spacers,
                                          aligner="bowtie",
