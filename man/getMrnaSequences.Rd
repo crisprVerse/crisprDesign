@@ -2,38 +2,37 @@
 % Please edit documentation in R/getMrnaSequence.R
 \name{getMrnaSequences}
 \alias{getMrnaSequences}
-\title{To obtain mRNA nucleotide sequences for a transcript}
+\title{Retrieve mRNA sequences}
 \usage{
 getMrnaSequences(txids, txObject, bsgenome)
 }
 \arguments{
-\item{txids}{Character vector specifying Ensembl transcript IDs.}
+\item{txids}{A character vector of Ensembl transcript IDs. IDs not present
+in \code{txObject} will be silently ignored.}
 
 \item{txObject}{A \linkS4class{TxDb} object or a \linkS4class{GRangesList}
-object obtained using \code{\link{TxDb2GRangesList}} for annotating
-on-target and off-target alignments using gene annotation.}
+object obtained from \code{\link{TxDb2GRangesList}}. Defines genomic
+ranges for \code{txids}.}
 
 \item{bsgenome}{A \linkS4class{BSgenome} object from which to extract
-sequences if \code{x} is a \linkS4class{GRanges} object.}
+mRNA sequences.}
 }
 \value{
-DNAStringSet object representing mRNA sequences.
+A \linkS4class{DNAStringSet} object of mRNA sequences. Note that
+    sequences are returned as DNA rather than RNA.
 }
 \description{
-To obtain mRNA nucleotide sequences for a transcript.
+A function for retrieving mRNA sequences of select transcripts.
 }
 \examples{
 \dontrun{
 library(crisprDesignData)
 library(BSgenome.Hsapiens.UCSC.hg38)
-bsgenome <- BSgenome.Hsapiens.UCSC.hg38
+data("txdb_human")
 txObject <- txdb_human
-txids <- c("ENST00000457313",
-"ENST00000256078")
-
-out <- getMrnaSequences(txids,
-    bsgenome=bsgenome,
-    txObject=txObject)
+bsgenome <- BSgenome.Hsapiens.UCSC.hg38
+txids <- c("ENST00000457313", "ENST00000256078")
+out <- getMrnaSequences(txids, txObject, bsgenome)
 }
 
 }

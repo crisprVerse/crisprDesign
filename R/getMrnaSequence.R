@@ -1,15 +1,17 @@
-#' @title To obtain mRNA nucleotide sequences for a transcript
+#' @title Retrieve mRNA sequences
 #' 
-#' @description  To obtain mRNA nucleotide sequences for a transcript.
+#' @description A function for retrieving mRNA sequences of select transcripts.
 #' 
-#' @param txids Character vector specifying Ensembl transcript IDs.
+#' @param txids A character vector of Ensembl transcript IDs. IDs not present
+#'     in \code{txObject} will be silently ignored.
 #' @param txObject A \linkS4class{TxDb} object or a \linkS4class{GRangesList}
-#'     object obtained using \code{\link{TxDb2GRangesList}} for annotating
-#'     on-target and off-target alignments using gene annotation.
+#'     object obtained from \code{\link{TxDb2GRangesList}}. Defines genomic
+#'     ranges for \code{txids}.
 #' @param bsgenome A \linkS4class{BSgenome} object from which to extract
-#'     sequences if \code{x} is a \linkS4class{GRanges} object.
+#'     mRNA sequences.
 #' 
-#' @return DNAStringSet object representing mRNA sequences.
+#' @return A \linkS4class{DNAStringSet} object of mRNA sequences. Note that
+#'     sequences are returned as DNA rather than RNA.
 #' 
 #' @author Jean-Philippe Fortin
 #' 
@@ -17,72 +19,47 @@
 #' \dontrun{
 #' library(crisprDesignData)
 #' library(BSgenome.Hsapiens.UCSC.hg38)
-#' bsgenome <- BSgenome.Hsapiens.UCSC.hg38
+#' data("txdb_human")
 #' txObject <- txdb_human
-#' txids <- c("ENST00000457313",
-#' "ENST00000256078")
-#' 
-#' out <- getMrnaSequences(txids,
-#'     bsgenome=bsgenome,
-#'     txObject=txObject)
+#' bsgenome <- BSgenome.Hsapiens.UCSC.hg38
+#' txids <- c("ENST00000457313", "ENST00000256078")
+#' out <- getMrnaSequences(txids, txObject, bsgenome)
 #' }
 #' 
-#' @importFrom BSgenome getSeq
-#' @importFrom Biostrings DNAStringSet getSeq
+#' @importFrom Biostrings getSeq DNAStringSet
 #' @importFrom BiocGenerics width
-#' @importFrom S4Vectors metadata<-
+#' @importFrom S4Vectors mcols<- split
 #' @export
 getMrnaSequences <- function(txids,
                              txObject,
                              bsgenome
 ){
+    stopifnot("txids must be a character vector of Ensembl transcript IDs" = {
+        is.vector(txids, mode="character")
+    })
+    txObject <- .validateGRangesList(txObject)
+    .isBSGenome(bsgenome)
+    
     exons <- txObject[["exons"]]
     exons <- exons[exons$tx_id %in% txids]
     exons <- exons[order(exons$tx_id, exons$exon_rank)]
-    if (length(exons)==0){
-        stop("txids not found in txObject.")
-    }
-    mcols(exons)$sequence <- getSeq(bsgenome, exons)
-
-
-    #Splitting by tx:
-    exons <- split(exons, f=exons$tx_id) 
+    S4Vectors::mcols(exons)$sequence <- Biostrings::getSeq(bsgenome, exons)
+    exons <- S4Vectors::split(exons, f=exons$tx_id) 
     exons <- as.list(exons)
 
-
-    sequences <- lapply(seq_along(exons), function(i) {
-        sequence <- paste0(exons[[i]]$sequence, collapse='')
-        sequence <- DNAStringSet(sequence)
-        # Add exon number:
-        ns <- width(exons[[i]])
-        exon_number <- rep(seq_along(ns), ns)
-        mcols(sequence)$exonNumber <- paste0(exon_number, collapse="")
-        sequence
-    })
-    sequences <- do.call(c, sequences)
-    names(sequences) <- names(exons)
+    sequences <- vapply(exons, function(x){
+        paste0(x$sequence, collapse="")
+    }, FUN.VALUE=character(1))
+    sequences <- Biostrings::DNAStringSet(sequences, use.names=TRUE)
+    
+    if (length(sequences) > 0){
+        exonNumber <- vapply(exons, function(x){
+            ns <- BiocGenerics::width(x)
+            exonNumber <- rep(seq_along(ns), ns)
+            paste0(exonNumber, collapse="")
+        }, FUN.VALUE=character(1))
+        S4Vectors::mcols(sequences)$exonNumber <- exonNumber
+    }
+    
     return(sequences)
 }
-
-
-#ids <- unique(txObject$exons$tx_id)
-#mrnas <- getMrnaSequences(ids,
-#                          bsgenome=bsgenome,
-#                          txObject=txObject)
-
-
-
-#' \dontrun{
-#' library(crisprDesignData)
-#' library(BSgenome.Hsapiens.UCSC.hg38)
-#' bsgenome <- BSgenome.Hsapiens.UCSC.hg38
-#' txObject <- txdb_human
-#' txids <- c("ENST00000457313",
-#' "ENST00000256078")
-#' 
-#' out <- getMrnaSequences(txids,
-#'     bsgenome=bsgenome,
-#'     txObject=txObject)
-#' }
-#' 
-#' 
