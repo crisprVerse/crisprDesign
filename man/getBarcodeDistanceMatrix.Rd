@@ -16,11 +16,11 @@ getBarcodeDistanceMatrix(
 )
 }
 \arguments{
-\item{queryBarcodes}{Character vector of DNA sequences.}
+\item{queryBarcodes}{Character vector of DNA sequences or DNAStringSet.}
 
-\item{targetBarcodes}{Optional character vector of DNA sequences.
-If NULL, distances will be calculated between barcodes provided
-in the \code{queryBarcodes} vector.}
+\item{targetBarcodes}{Optional character vector of DNA sequences 
+or DNAStringSet. If NULL, distances will be calculated between
+barcodes provided in \code{queryBarcodes}.}
 
 \item{binnarize}{Should the distance matrix be made binnary?
 TRUE by default. See details section.}

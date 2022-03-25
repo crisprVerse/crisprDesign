@@ -743,7 +743,7 @@ Note that one can also use the `bowtie` aligner to perform an off-target search 
 
 
 
-# Misc
+# Miscellaneous design use cases
 
 ## Design with custom sequences
 
@@ -776,6 +776,62 @@ head(alignments(gs))
 
 
 ## Design for optical pooled screening (OPS)
+
+
+Optical pooled screening (OPS) combines image-based sequencing (in situ sequencing) of gRNAs and optical phenotyping on the same physical wells [@ops].  In such experiments, gRNA spacer sequences are partially sequenced from the 5 prime end. From a gRNA design perspective, additional gRNA design constraints are needed to ensure sufficient dissimilarity of the truncated spacer sequences. The length of the truncated sequences, which corresponds to the number of sequencing cycles,is fixed and chosen by the experimentalist.
+
+
+To illustrate the functionalities of `crisprDesign` for designing OPS libraries, we use the `guideSetExample`.
+We will design an OPS library with 8 cycles. 
+
+```{r}
+n_cycles=8
+```
+
+
+We add the 8nt OPS barcodes to the GuideSet using the `addOpsBarcodes` function:
+
+```{r}
+data(guideSetExample, package="crisprDesign")
+guideSetExample <- addOpsBarcodes(guideSetExample,
+                                  n_cycles=n_cycles)
+head(guideSetExample$opsBarcode)
+```
+
+The function `getBarcodeDistanceMatrix` calculates the nucleotide distance between a set of query barcodes and a set of target barcodes. The type of distance (hamming or levenstein) can be specified using the `dist_method` argument. The hamming distance (default) only considers substitutions when calculating distances, while the levenstein distance allows insertions and deletions. 
+
+When the argument `binnarize` is set to `FALSE`, the return object is a matrix of pairwise distances between query and target barcodes:
+
+
+```{r}
+barcodes <- guideSetExample$opsBarcode
+dist <- getBarcodeDistanceMatrix(barcodes[1:5],
+                                 barcodes[6:10],
+                                 binnarize=FALSE)
+print(dist)
+```
+
+
+When `binnarize` is set to `TRUE` (default), the matrix of distances is binnarized so that 1 indicates similar barcodes, and 0 indicates dissimilar barcodes. The `min_dist_edit` argument specifies the minimal distance between two barcodes to be considered dissimilar:
+
+```{r}
+dist <- getBarcodeDistanceMatrix(barcodes[1:5],
+                                 barcodes[6:10],
+                                 binnarize=TRUE,
+                                 min_dist_edit=4)
+print(dist)
+```
+
+The `designOpsLibrary` allows users to perform a complete end-to-end library design; see `?designOpsLibrary` for documentation. 
+
+
+
+# Frequently asked questions (FAQ)
+
+## GRanges related questions
+
+
+
 
 
 # Session Info

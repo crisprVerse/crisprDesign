@@ -59,10 +59,10 @@ addOpsBarcodes <- function(guideSet,
 #' 
 #' Get distance between query and target sets of barcodes
 #' 
-#' @param queryBarcodes Character vector of DNA sequences.
-#' @param targetBarcodes Optional character vector of DNA sequences.
-#'     If NULL, distances will be calculated between barcodes provided
-#'     in the \code{queryBarcodes} vector. 
+#' @param queryBarcodes Character vector of DNA sequences or DNAStringSet. 
+#' @param targetBarcodes Optional character vector of DNA sequences 
+#'     or DNAStringSet. If NULL, distances will be calculated between
+#'     barcodes provided in \code{queryBarcodes}.
 #' @param binnarize Should the distance matrix be made binnary?
 #'     TRUE by default. See details section. 
 #' @param min_dist_edit Integer specifying the minimum distance edit
@@ -110,6 +110,12 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
     if (is.null(targetBarcodes)){
         targetBarcodes <- queryBarcodes
         mode <- "self"
+    }
+    if (is(queryBarcodes, "DNAStringSet")){
+        queryBarcodes <- as.character(queryBarcodes)
+    }
+    if (is(targetBarcodes, "DNAStringSet")){
+        targetBarcodes <- as.character(targetBarcodes)
     }
 
     if (is.null(min_dist_edit) & binnarize){
