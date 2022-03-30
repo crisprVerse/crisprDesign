@@ -187,13 +187,16 @@ addSNPAnnotation <- function(guideSet,
             missingFileMessage <- paste0("Could not find the file '", vcf, "'")
             stop(missingFileMessage)
         } else {
+            # MtDNA not in tabix index
+            validChrs <- paste0("chr", c(seq_len(22),"X","Y"))
+            validChrs <- as.character(GenomeInfoDb::seqnames(guideSet)) %in% validChrs
+            guideSet <- guideSet[validChrs]
             protoGR <- convertToProtospacerGRanges(guideSet)
             if (length(protoGR) == 0){
                 chrs <- VariantAnnotation::scanVcf(vcf)
                 chrs <- GenomeInfoDb::seqlevels(chrs[[1]]$rowRanges)
-                protoGR <- GenomicRanges::GRanges(
-                    seqnames=chrs,
-                    ranges=IRanges::IRanges(start=0, width=1))
+                protoGR <- GenomicRanges::GRanges(seqnames=chrs,
+                                                  ranges=IRanges::IRanges(start=0, width=1))
             }
             GenomeInfoDb::seqlevelsStyle(protoGR) <- "Ensembl"
             genome <- GenomeInfoDb::seqinfo(protoGR)
