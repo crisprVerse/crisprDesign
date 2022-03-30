@@ -193,8 +193,9 @@ addSNPAnnotation <- function(guideSet,
             guideSet <- guideSet[validChrs]
             protoGR <- convertToProtospacerGRanges(guideSet)
             if (length(protoGR) == 0){
-                chrs <- VariantAnnotation::scanVcf(vcf)
-                chrs <- GenomeInfoDb::seqlevels(chrs[[1]]$rowRanges)
+                #chrs <- VariantAnnotation::scanVcf(vcf)
+                #chrs <- GenomeInfoDb::seqlevels(chrs[[1]]$rowRanges)
+                chrs <- "chr1"
                 protoGR <- GenomicRanges::GRanges(seqnames=chrs,
                                                   ranges=IRanges::IRanges(start=0, width=1))
             }
