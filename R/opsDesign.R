@@ -245,7 +245,12 @@ designOpsLibrary <- function(df,
         message("Since 'rank' column is not provided, using ",
                 "default order has ranking.")
         df <- .addOpsRank(df, gene_field)
-    }   
+    } else {
+        bad <- sum(is.na(df[["rank"]]))!=0
+        if (bad){
+            stop("Some values are missing in the rank column.")
+        }
+    }  
 
     genes <- unique(df[[gene_field]])
     grnaList <- list(selected=df[df$rank<=n_guides,,drop=FALSE],
