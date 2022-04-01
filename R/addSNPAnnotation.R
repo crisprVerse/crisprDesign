@@ -51,20 +51,25 @@ addSNPAnnotation <- function(guideSet,
                              vcf,
                              maf=0.01
 ){
-    guideSet <- .validateGuideSet(guideSet)
-    vcf <- .validateVcf(vcf, guideSet)
     stopifnot("maf must be a numeric value in the range [0, 1)" = {
         is.vector(maf, mode="numeric") &&
             length(maf) == 1 &&
             maf >= 0 &&
             maf < 1
     })
-    snps <- .getSNPAnnotation(guideSet=guideSet,
-                              maf=maf,
-                              vcf=vcf)
-    splitFactor <- factor(BiocGenerics::rownames(snps),
-                          levels=unique(names(guideSet)))
-    snps <- S4Vectors::split(snps, f=splitFactor)
+    guideSet <- .validateGuideSet(guideSet)
+    vcf <- .validateVcf(vcf, guideSet)
+    if (!is.null(vcf)){   
+        snps <- .getSNPAnnotation(guideSet=guideSet,
+                                  maf=maf,
+                                  vcf=vcf)
+        splitFactor <- factor(BiocGenerics::rownames(snps),
+                              levels=unique(names(guideSet)))
+        snps <- S4Vectors::split(snps, f=splitFactor)
+    } else {
+        snps <- lapply(seq_along(guideSet), .createEmptySnps)
+        names(snps) <- names(guideSet)
+    }
     S4Vectors::mcols(guideSet)[["hasSNP"]] <- vapply(snps, function(x){
         nrow(x) > 0
     }, FUN.VALUE=logical(1))
@@ -193,10 +198,7 @@ addSNPAnnotation <- function(guideSet,
             guideSet <- guideSet[validChrs]
             protoGR <- convertToProtospacerGRanges(guideSet)
             if (length(protoGR) == 0){
-                chrs <- VariantAnnotation::scanVcf(vcf)
-                chrs <- GenomeInfoDb::seqlevels(chrs[[1]]$rowRanges)[1]
-                protoGR <- GenomicRanges::GRanges(seqnames=chrs,
-                                                  ranges=IRanges::IRanges(start=1, width=2))
+                return(NULL)
             }
             GenomeInfoDb::seqlevelsStyle(protoGR) <- "Ensembl"
             genome <- GenomeInfoDb::seqinfo(protoGR)
@@ -218,6 +220,18 @@ addSNPAnnotation <- function(guideSet,
         })
     }
     return(vcf)
+}
+
+#' @importFrom S4Vectors DataFrame
+.createEmptySnps <- function(foo){
+    cols <- c("rs", "rs_site", "rs_site_rel",
+              "allele_ref", "allele_minor", 
+              "MAF_1000G", "MAF_TOPMED",
+              "type", "length")
+    out <- DataFrame(matrix(0, ncol=length(cols)))
+    colnames(out) <- cols
+    out <- out[-1,]
+    return(out)
 }
 
 
