@@ -484,6 +484,9 @@ validCriteria <- function(guideSet
         value
     })
     valuesToBin <- unlist(valuesToBin)
+    valuesToBin <- valuesToBin[names(guideSet)]
+    names(valuesToBin) <- names(guideSet)
+    return(valuesToBin)
 }
 
 
