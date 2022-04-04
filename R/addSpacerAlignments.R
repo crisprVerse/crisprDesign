@@ -229,6 +229,18 @@ addSpacerAlignmentsIterative <- function(guideSet,
         } else {
             na_col <- paste0("n", i)
             S4Vectors::mcols(guideSet)[[na_col]] <- as.numeric(NA)
+            ## fix to add any coding/promoter-targeting alignments ############
+            mismatch_c_col <- paste0(mismatch_col, "_c")
+            if (mismatch_c_col %in% colnames(S4Vectors::mcols(guideSet))){
+                na_c_col <- paste0(na_col, "_c")
+                S4Vectors::mcols(guideSet)[[na_c_col]] <- as.numeric(NA)
+            }
+            mismatch_p_col <- paste0(mismatch_col, "_p")
+            if (mismatch_p_col %in% colnames(S4Vectors::mcols(guideSet))){
+                na_p_col <- paste0(na_col, "_p")
+                S4Vectors::mcols(guideSet)[[na_p_col]] <- as.numeric(NA)
+            }
+            ###################################################################
         }
     }
     aln <- S4Vectors::mcols(guideSet)[[colname]]
