@@ -20,7 +20,8 @@ addCrispraiScores(
 to produce the \code{guideSet} object.}
 
 \item{tssObject}{A \linkS4class{GRanges} object containing TSS coordinates
-and annotation.}
+and annotation. The following columns must be present:
+"ID", promoter", "tx_id" and "gene_symbol".}
 
 \item{modality}{String specifying which modality is used.
 Must be either "CRISPRi" or "CRISPRa".}
