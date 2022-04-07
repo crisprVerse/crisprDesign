@@ -2,6 +2,7 @@
 
 export(GuideSet)
 export(TxDb2GRangesList)
+export(addCrispraiScores)
 export(addEditedAlleles)
 export(addGeneAnnotation)
 export(addOffTargetScores)
