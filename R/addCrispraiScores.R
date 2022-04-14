@@ -83,8 +83,31 @@ addCrispraiScores <- function(guideSet,
                       position=tssObject$start,
                       strand=tssObject$strand,
                       chr=tssObject$seqnames)
+
+    # Check if there are any missing values:
+    if (sum(is.na(out$gene_symbol))>0){
+        stop("gene_symbol has some missing values.")
+    }
+    if (sum(is.na(out$promoter))>0){
+        stop("promoter has some missing values.")
+    }
+    if (sum(is.na(out$transcripts))>0){
+        stop("tx_id has some missing values.")
+    }
+    if (sum(is.na(out$position))>0){
+        stop("start has some missing values.")
+    }
+    if (sum(is.na(out$strand))>0){
+        stop("strand has some missing values.")
+    }
+    if (sum(is.na(out$seqnames))>0){
+        stop("strand has some missing values.")
+    }
     return(out)
 }
+
+
+
 
 .prepareGrnaFrame <-function(guideSet, gr){
 
