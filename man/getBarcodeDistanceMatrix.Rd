@@ -60,7 +60,7 @@ Get distance between query and target sets of barcodes
 data(guideSetExample, package="crisprDesign")
 guideSetExample <- addOpsBarcodes(guideSetExample)
 barcodes <- as.character(guideSetExample$opsBarcode)
-dist <- getBarcodeDistanceMatrix(barcodes, min_dist_edit=3)
+dist <- getBarcodeDistanceMatrix(barcodes, min_dist_edit=2)
 
 }
 \author{

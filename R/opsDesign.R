@@ -52,9 +52,6 @@ addOpsBarcodes <- function(guideSet,
 
 
 
-
-
-
 #' Get distance between query and target sets of barcodes
 #' 
 #' Get distance between query and target sets of barcodes
@@ -92,7 +89,7 @@ addOpsBarcodes <- function(guideSet,
 #' data(guideSetExample, package="crisprDesign")
 #' guideSetExample <- addOpsBarcodes(guideSetExample)
 #' barcodes <- as.character(guideSetExample$opsBarcode)
-#' dist <- getBarcodeDistanceMatrix(barcodes, min_dist_edit=3)
+#' dist <- getBarcodeDistanceMatrix(barcodes, min_dist_edit=2)
 #' 
 #' @author Jean-Philippe Fortin
 #' 
@@ -160,7 +157,7 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 .getChunkDistanceMatrix <- function(queryBarcodes,
                                     targetBarcodes,
                                     min_dist_edit=NULL,
-                                    binnarize=binnarize,
+                                    binnarize=TRUE,
                                     dist_method=c("hamming","levenstein"),
                                     sparse=TRUE
 ){
@@ -203,9 +200,9 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 #' @param min_dist_edit Integer specifying the minimum distance edit
 #'     required for barcodes to be considered dissimilar. Barcodes that
 #'     have edit distances less than the min_dist_edit will not be
-#'     included in the library. 
-#' @param dist_method String specifying distance method. Must be
-#'     either "hamming" (default) or "levenstein". 
+#'     included in the library. 2 by default. 
+#' @param dist_method String specifying distance method. 
+#'     Must be either "hamming" (default) or "levenstein". 
 #' 
 #' @examples
 #' data("guideSetExample")
@@ -224,10 +221,87 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 designOpsLibrary <- function(df,
                              n_guides=4,
                              gene_field="gene",
-                             min_dist_edit=3,
+                             min_dist_edit=2,
                              dist_method=c("hamming","levenstein")
 ){
     dist_method <- match.arg(dist_method)
+    df <- .validateOpsGrnaInput(df, gene_field)
+    
+
+    genes <- unique(df[[gene_field]])
+    counts <- rep(0, length(genes))
+    grnaList <- list(selected=df[df$rank<=n_guides,,drop=FALSE],
+                     candidates=df[df$rank>n_guides,,drop=FALSE],
+                     discarded=NULL,
+                     genes=genes)
+    grnaList <- .initiateOpsLibrary(grnaList,
+                                    dist_method=dist_method,
+                                    min_dist_edit=min_dist_edit)
+    grnaList <- .updateOpsLibrary(grnaList,
+                                  gene_field=gene_field,
+                                  n_guides=n_guides,
+                                  dist_method=dist_method,
+                                  min_dist_edit=min_dist_edit)
+    out <- .getFinalOpsLibrary(grnaList)
+    out <- out[order(out[[gene_field]], out[["rank"]]),,drop=FALSE]
+    return(out)
+}
+
+
+
+#' Update OPS library with additional gRNAs
+#' 
+#' Update OPS library with additional gRNAs
+#' 
+#' @param opsLibrary data.frame obtained from \code{designOpsLibrary}.
+#' @param df data.frame containing information about additional
+#'     candidate gRNAs to add to the OPS library.
+#' @param n_guides Integer specifying how many gRNAs per
+#'     gene should be selected. 4 by default.
+#' @param gene_field String specifying the column in \code{df}
+#'     specifying gene names.
+#' @param min_dist_edit Integer specifying the minimum distance edit
+#'     required for barcodes to be considered dissimilar. Barcodes that
+#'     have edit distances less than the min_dist_edit will not be
+#'     included in the library. 2 by default. 
+#' @param dist_method String specifying distance method. 
+#'     Must be either "hamming" (default) or "levenstein". 
+#' 
+#' @author Jean-Philippe Fortin
+#'
+#' @export
+updateOpsLibrary <- function(opsLibrary, 
+                             df,
+                             n_guides=4,
+                             gene_field="gene",
+                             min_dist_edit=2,
+                             dist_method=c("hamming","levenstein")
+){
+    dist_method <- match.arg(dist_method)
+    df <- .validateOpsGrnaInput(df, gene_field)
+    genes <- unique(df[[gene_field]])
+    grnaList <- list(selected=opsLibrary,
+                     candidates=df,
+                     discarded=NULL,
+                     genes=genes)
+    grnaList <- .updateOpsLibrary(grnaList,
+                                  gene_field=gene_field,
+                                  n_guides=n_guides,
+                                  dist_method=dist_method,
+                                  min_dist_edit=min_dist_edit)
+    out <- .getFinalOpsLibrary(grnaList)
+    out <- out[order(out[[gene_field]], out[["rank"]]),,drop=FALSE]
+    return(out)
+}
+
+
+
+
+
+
+.validateOpsGrnaInput <- function(df,
+                                  gene_field
+){
     coreCols <- c("ID", "spacer", "opsBarcode")
     if (!all(coreCols %in% colnames(df))){
         diff <- setdiff(coreCols, colnames(df))
@@ -251,23 +325,7 @@ designOpsLibrary <- function(df,
             stop("Some values are missing in the rank column.")
         }
     }  
-
-    genes <- unique(df[[gene_field]])
-    grnaList <- list(selected=df[df$rank<=n_guides,,drop=FALSE],
-                     candidates=df[df$rank>n_guides,,drop=FALSE],
-                     discarded=NULL,
-                     genes=genes)
-    grnaList <- .initiateOpsLibrary(grnaList,
-                                    dist_method=dist_method,
-                                    min_dist_edit=min_dist_edit)
-    grnaList <- .updateOpsLibrary(grnaList,
-                                  gene_field=gene_field,
-                                  n_guides=n_guides,
-                                  dist_method=dist_method,
-                                  min_dist_edit=min_dist_edit)
-    out <- .getFinalOpsLibrary(grnaList)
-    out <- out[order(out[[gene_field]], out[["rank"]]),,drop=FALSE]
-    return(out)
+    return(df)
 }
 
 
@@ -278,6 +336,7 @@ designOpsLibrary <- function(df,
 ){
     selected <- grnaList[["selected"]]
     mat <- getBarcodeDistanceMatrix(queryBarcodes=selected[["opsBarcode"]],
+                                    binnarize=TRUE,
                                     dist_method=dist_method,
                                     min_dist_edit=min_dist_edit)
     good <- Matrix::rowSums(mat>0)==0
@@ -300,16 +359,29 @@ designOpsLibrary <- function(df,
                               dist_method,
                               min_dist_edit
 ){
-    delta <- 1
-    while (delta>0){
+    shouldWeContinue <- TRUE
+    while (shouldWeContinue){
         n <- nrow(grnaList[["selected"]])
         grnaList <- .updateOpsLibraryOnce(grnaList,
                                           gene_field=gene_field,
                                           n_guides=n_guides,
                                           dist_method=dist_method,
                                           min_dist_edit=min_dist_edit)
-        n_new <- nrow(grnaList[["selected"]])
-        delta <- n_new - n
+        counts <- table(factor(grnaList[["selected"]][[gene_field]],
+                          levels=grnaList[["genes"]]))
+        incomplete <- names(which(counts<n_guides))
+        remaining  <- grnaList[["candidates"]]
+        if (nrow(remaining)==0){
+            shouldWeContinue <- FALSE
+        } else {
+            if (length(incomplete)==0){
+                shouldWeContinue <- FALSE
+            } else {
+                if (sum(incomplete %in% remaining[[gene_field]])==0){
+                    shouldWeContinue <- FALSE
+                }
+            }
+        }
     }
     return(grnaList)
 }
