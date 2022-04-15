@@ -505,7 +505,7 @@ updateOpsLibrary <- function(opsLibrary,
 #' 
 #' @export
 validateOpsLibrary <- function(df,
-                               min_dist_edit=3,
+                               min_dist_edit=2,
                                dist_method=c("hamming","levenstein")
 ){
     dist <- getBarcodeDistanceMatrix(df[["opsBarcode"]],
