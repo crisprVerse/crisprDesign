@@ -91,9 +91,9 @@ addCrispraiScores <- function(guideSet,
     if (sum(is.na(out$promoter))>0){
         stop("promoter has some missing values.")
     }
-    if (sum(is.na(out$transcripts))>0){
-        stop("tx_id has some missing values.")
-    }
+    #if (sum(is.na(out$transcripts))>0){
+    #    stop("tx_id has some missing values.")
+    #}
     if (sum(is.na(out$position))>0){
         stop("start has some missing values.")
     }
