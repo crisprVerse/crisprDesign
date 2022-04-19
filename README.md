@@ -13,19 +13,20 @@ CRISPR base editing (CRISPRbe).
 
 ### Dependencies 
 
-This is depending on the following R packages:
 
 - crisprBase: https://github.com/Jfortin1/crisprBase
 
 - crisprBowtie: https://github.com/Jfortin1/crisprBowtie
 
-- crisprBwa: https://github.com/Jfortin1/crisprBwa
-
 - crisprScore: https://github.com/Jfortin1/crisprScore
 
-- Rbwa: https://github.com/Jfortin1/Rbwa
 
-- Cas13design (optional): https://github.com/Jfortin1/Cas13design
+### Optional dependencies (not available for Windows machines)
+
+- Rbwa: https://github.com/Jfortin1/Rbwa
+- 
+- crisprBwa: https://github.com/Jfortin1/crisprBwa
+
 
 ### Example data
 
