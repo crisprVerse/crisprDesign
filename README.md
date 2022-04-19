@@ -24,7 +24,7 @@ CRISPR base editing (CRISPRbe).
 ### Optional dependencies (not available for Windows machines)
 
 - Rbwa: https://github.com/Jfortin1/Rbwa
-- 
+
 - crisprBwa: https://github.com/Jfortin1/crisprBwa
 
 
