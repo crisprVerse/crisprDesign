@@ -385,6 +385,13 @@ getSpacerAlignments <- function(spacers,
                                 both_strands=TRUE
 ){
     
+    if (.Platform$OS.type=="windows" & aligner=="bwa"){
+        stop("BWA aligner not available for windows machines. Use bowtie instead")
+    }
+    if (!requireNamespace("crisprBwa")){
+        stop("Please install crisprBwa to use BWA alignment.")
+    }
+
     if (.isGuideSet(spacers)){
         spacers <- spacers(spacers)
     }
@@ -450,7 +457,6 @@ getSpacerAlignments <- function(spacers,
 
 
 #' @importFrom crisprBowtie runCrisprBowtie
-#' @importFrom crisprBwa runCrisprBwa
 #' @importFrom S4Vectors nchar
 .getSpacerAlignments_indexed <- function(spacers,
                                          aligner,
