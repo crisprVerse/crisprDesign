@@ -41,11 +41,6 @@ addOnTargetScores <- function(guideSet,
                                         "crisprscan",
                                         "casrxrf")
 ){
-    if (!requireNamespace("crisprScore")){
-        message("Please install crisprScore to use 'addOnTargetScores'.")
-        return(guideSet)
-    }
-    
     guideSet <- .validateGuideSet(guideSet)
     enzyme <- match.arg(enzyme)
     promoter <- match.arg(promoter)
@@ -142,9 +137,18 @@ addOnTargetScores <- function(guideSet,
 
 
 
+
+
 #' @author Jean-Philippe Fortin
 #' 
 #' @importFrom utils data
+#' @importFrom crisprScore getDeepHFScores
+#' @importFrom crisprScore getAzimuthScores
+#' @importFrom crisprScore getRuleSet1Scores
+#' @importFrom crisprScore getDeepCpf1Scores
+#' @importFrom crisprScore getLindelScores
+#' @importFrom crisprScore getEnPAMGBScores
+#' @importFrom crisprScore getCRISPRscanScores
 .getOnTargetScores <- function(guideSet,
                                method,
                                enzyme,
@@ -189,7 +193,7 @@ addOnTargetScores <- function(guideSet,
 
 
 
-
+#' @importFrom crisprScore getCasRxRFScores
 .getCasRxRFScores <- function(guideSet){
     spacerLen <- spacerLength(guideSet)
     mrnaSequence <- metadata(guideSet)$customSequences

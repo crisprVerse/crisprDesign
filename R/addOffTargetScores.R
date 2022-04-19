@@ -62,10 +62,6 @@ addOffTargetScores <- function(guideSet,
                                includeDistance=TRUE,
                                offset=0
 ){
-    if (!requireNamespace("crisprScore")){
-        message("Please install crisprScore to use 'addOffTargetScores'")
-        return(guideSet)
-    }
     
     guideSet <- .validateGuideSet(guideSet)
     .checkOffTargetScoresParameters(guideSet=guideSet,
@@ -113,6 +109,8 @@ addOffTargetScores <- function(guideSet,
 
 #' @importFrom utils data
 #' @importFrom S4Vectors split mcols<-
+#' @importFrom crisprScore getCFDScores
+#' @importFrom crisprScore getMITScores
 .addOffTargetScoresToAlignments <- function(guideSet,
                                             includeDistance=TRUE
 ){

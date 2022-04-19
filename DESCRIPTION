@@ -1,6 +1,6 @@
 Package: crisprDesign
 Title: Core functions for CRISPR design
-Version: 0.99.72
+Version: 0.99.73
 Authors@R: c(
     person("Jean-Philippe", "Fortin", email = "fortin946@gmail.com", role = c("aut", "cre")),
     person("Luke", "Hoberecht", email = "lukehob3@gmail.com", role = c("aut"))
@@ -21,8 +21,9 @@ Imports:
     BiocGenerics,
     Biostrings,
     BSgenome,
-    crisprBowtie (>= 0.99.4),
-    crisprBwa (>= 0.99.6),
+    crisprBowtie (>= 0.99.8),
+    crisprBwa (>= 0.99.7),
+    crisprScore (>= 0.99.24),
     GenomeInfoDb,
     GenomicFeatures,
     GenomicRanges (>= 1.38.0),
@@ -38,7 +39,6 @@ Suggests:
     biomaRt,
     BSgenome.Hsapiens.UCSC.hg38,
     BSgenome.Mmusculus.UCSC.mm10,
-    crisprScore (>= 0.99.20),
     BiocStyle,
     knitr,
     rmarkdown,

@@ -24,6 +24,7 @@
 #' @seealso \code{\link{addOnTargetScores}} to add other on-target scores.
 #' 
 #' @export
+#' @importFrom crisprScore getCrispraiScores
 addCrispraiScores <- function(guideSet,
                               gr,
                               tssObject,
@@ -31,11 +32,6 @@ addCrispraiScores <- function(guideSet,
                               chromatinFiles=NULL,
                               fastaFile=NULL
 ){
-
-    if (!requireNamespace("crisprScore")){
-        message("Please install crisprScore to use 'addCrispraiScores'.")
-        return(guideSet)
-    }
     crisprNuclease <- crisprNuclease(guideSet)
     data(SpCas9,
          package="crisprBase",
