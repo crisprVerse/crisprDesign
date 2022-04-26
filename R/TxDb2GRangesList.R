@@ -182,10 +182,10 @@ TxDb2GRangesList <- function(txdb,
     martDataset <- .inferMartDataset(organism)
     has_bm_dataset <- martDataset %in% biomaRt::listDatasets(mart)$dataset
     if (!has_bm_dataset){
-        message('Warning: organism "',
+        stop('Warning: organism "',
                 organism,
-                '" not recognized, gene names set to NA.')
-        bm <- NULL
+                '" not recognized in biomaRt. You can use",
+                "organism=NULL as a solution.')
     } else {
         mart <- biomaRt::useDataset(martDataset,
                                     mart=mart)
@@ -213,7 +213,7 @@ TxDb2GRangesList <- function(txdb,
                                        keytype='TXID')
     # remove duplicated rows with NA for CDSNAME
     dup <- tx_select$TXID[duplicated(tx_select$TXID)]
-    tx_select <- tx_select[!tx_select$TXID %in% dup | !is.na(tx_select$CDSNAME),]
+    tx_select <- tx_select[!tx_select$TXID %in% dup|!is.na(tx_select$CDSNAME),]
     transcripts$protein_id <- tx_select$CDSNAME[match(transcripts$tx_id,
                                                       tx_select$TXID)]
     transcripts$tx_type <- tx_select$TXTYPE[match(transcripts$tx_id,

@@ -17,13 +17,11 @@
 #' 
 #' @examples
 #' 
-#' if (require("BSgenome.Hsapiens.UCSC.hg38")){
 #' library(BSgenome.Hsapiens.UCSC.hg38)
 #' data(grListExample)
 #' bsgenome <- BSgenome.Hsapiens.UCSC.hg38
 #' txids <- c("ENST00000538872", "ENST00000382841")
 #' out <- getMrnaSequences(txids, grListExample, bsgenome)
-#' }
 #' 
 #' @importFrom Biostrings getSeq DNAStringSet
 #' @importFrom BiocGenerics width

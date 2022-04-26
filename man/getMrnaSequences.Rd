@@ -26,13 +26,11 @@ A function for retrieving mRNA sequences of select transcripts.
 }
 \examples{
 
-if (require("BSgenome.Hsapiens.UCSC.hg38")){
 library(BSgenome.Hsapiens.UCSC.hg38)
 data(grListExample)
 bsgenome <- BSgenome.Hsapiens.UCSC.hg38
 txids <- c("ENST00000538872", "ENST00000382841")
 out <- getMrnaSequences(txids, grListExample, bsgenome)
-}
 
 }
 \author{

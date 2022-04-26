@@ -23,7 +23,7 @@
 #' 
 #' @examples
 #' if (interactive()){
-#'     gs <- findSpacers("CCAACATAGTGAAACCACGTCTCTATAAAGAATACAAAAAATTAGCCGGGTTA")
+#'     gs <- findSpacers("CCAACATAGTGAAACCACGTCTCTATAAAGAATAAAAAATTAGCCGGGTTA")
 #'     gs <- addOnTargetScores(gs)
 #' }
 #' 
@@ -176,14 +176,14 @@ addOnTargetScores <- function(guideSet,
                                                         enzyme=enzyme,
                                                         promoter=promoter)
             } else {
-                scoreFun <- switch(method,
-                                   "azimuth"=crisprScore::getAzimuthScores,
-                                   "ruleset1"=crisprScore::getRuleSet1Scores,
-                                   "deepcpf1"=crisprScore::getDeepCpf1Scores,
-                                   "lindel"=crisprScore::getLindelScores,
-                                   "enpamgb"=crisprScore::getEnPAMGBScores,
-                                   "crisprscan"=crisprScore::getCRISPRscanScores)
-                results <- scoreFun(seqs)
+              scoreFun <- switch(method,
+                                 "azimuth"=crisprScore::getAzimuthScores,
+                                 "ruleset1"=crisprScore::getRuleSet1Scores,
+                                 "deepcpf1"=crisprScore::getDeepCpf1Scores,
+                                 "lindel"=crisprScore::getLindelScores,
+                                 "enpamgb"=crisprScore::getEnPAMGBScores,
+                                 "crisprscan"=crisprScore::getCRISPRscanScores)
+              results <- scoreFun(seqs)
             }
             scores[good] <- results$score
         }

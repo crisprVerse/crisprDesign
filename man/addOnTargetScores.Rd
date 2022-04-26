@@ -39,7 +39,7 @@ See \pkg{crisprScore} package for a description of each score.
 }
 \examples{
 if (interactive()){
-    gs <- findSpacers("CCAACATAGTGAAACCACGTCTCTATAAAGAATACAAAAAATTAGCCGGGTTA")
+    gs <- findSpacers("CCAACATAGTGAAACCACGTCTCTATAAAGAATAAAAAATTAGCCGGGTTA")
     gs <- addOnTargetScores(gs)
 }
 

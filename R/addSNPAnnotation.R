@@ -193,7 +193,8 @@ addSNPAnnotation <- function(guideSet,
         } else {
             # MtDNA not in tabix index
             validChrs <- paste0("chr", c(seq_len(22),"X","Y"))
-            validChrs <- as.character(GenomeInfoDb::seqnames(guideSet)) %in% validChrs
+            guidesetChrs <- as.character(GenomeInfoDb::seqnames(guideSet))
+            validChrs <- guidesetChrs %in% validChrs
             guideSet <- guideSet[validChrs]
             protoGR <- convertToProtospacerGRanges(guideSet)
             if (length(protoGR) == 0){

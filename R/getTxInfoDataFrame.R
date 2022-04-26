@@ -1,13 +1,14 @@
 #' @title To obtain a DataFrame of transcript-specific CDS and mRNA coordinates
-#' @description To obtain a DataFrame of transcript-specific CDS and mRNA coordinates.
+#' @description To obtain a DataFrame of transcript-specific CDS and mRNA
+#'     coordinates.
 #' 
 #' @param tx_id String specifying ENSEMBL Transcript id.
 #' @param txObject A \linkS4class{TxDb} object or a \linkS4class{GRangesList}
 #'     object obtained using \code{\link{TxDb2GRangesList}}. 
 #' @param bsgenome \linkS4class{BSgenome} object from which to extract
 #'     sequences if a \linkS4class{GRanges} object is provided as input. 
-#' @param extend Integer value specifying how many nucleotides in intron regions
-#'     should be included.
+#' @param extend Integer value specifying how many nucleotides in intron
+#'     regions should be included.
 #' @param checkCdsLength Should the CDS nucleotide length be a multiple of 3?
 #'     TRUE by default. 
 #' 
@@ -23,7 +24,8 @@
 #' \item \code{aa} Character specifying amino acid.
 #' \item \code{aa_number} Integer specifying amino acid number from 5' end.
 #' \item \code{exon} Integer specifying exon number. 
-#' \item \code{pos_plot} Integer specifying plot coordinate. Useful for plotting.
+#' \item \code{pos_plot} Integer specifying plot coordinate. Useful for
+#'     plotting.
 #' \item \code{pos_mrna} Integer specifying relative mRNA coordinate from the
 #'     start of the mRNA.
 #' \item \code{pos_cds} Integer specifying relative CDS coordinate from the

@@ -184,8 +184,9 @@ when \code{targetOrigin} is set to "customSequences".}
 \item{seqinfo}{A \linkS4class{Seqinfo} object containing informatioon
 about the set of genomic sequences present in the target genome.}
 
-\item{seqlengths}{\code{NULL}, or an integer vector named with \code{levels(seqnames)}
-and containing the lengths (or NA) for each level in \code{levels(seqnames)}.}
+\item{seqlengths}{\code{NULL}, or an integer vector named with
+\code{levels(seqnames)} and containing the lengths (or NA) for
+each level in \code{levels(seqnames)}.}
 
 \item{as.character}{Should sequences be returned as a character
 vector? FALSE by default, in which case sequences are returned

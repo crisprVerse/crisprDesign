@@ -208,7 +208,7 @@ The following columns are also stored when a \code{tssObject} is provided:
 }
 \examples{
 
-\dontrun{
+if (interactive()){
 # Creating a bowtie index:
 library(Rbowtie)
 library(BSgenome.Hsapiens.UCSC.hg38)

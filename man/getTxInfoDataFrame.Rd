@@ -21,8 +21,8 @@ object obtained using \code{\link{TxDb2GRangesList}}.}
 \item{bsgenome}{\linkS4class{BSgenome} object from which to extract
 sequences if a \linkS4class{GRanges} object is provided as input.}
 
-\item{extend}{Integer value specifying how many nucleotides in intron regions
-should be included.}
+\item{extend}{Integer value specifying how many nucleotides in intron
+regions should be included.}
 
 \item{checkCdsLength}{Should the CDS nucleotide length be a multiple of 3?
 TRUE by default.}
@@ -40,7 +40,8 @@ The columns are:
 \item \code{aa} Character specifying amino acid.
 \item \code{aa_number} Integer specifying amino acid number from 5' end.
 \item \code{exon} Integer specifying exon number. 
-\item \code{pos_plot} Integer specifying plot coordinate. Useful for plotting.
+\item \code{pos_plot} Integer specifying plot coordinate. Useful for
+    plotting.
 \item \code{pos_mrna} Integer specifying relative mRNA coordinate from the
     start of the mRNA.
 \item \code{pos_cds} Integer specifying relative CDS coordinate from the
@@ -50,7 +51,8 @@ The columns are:
 }
 }
 \description{
-To obtain a DataFrame of transcript-specific CDS and mRNA coordinates.
+To obtain a DataFrame of transcript-specific CDS and mRNA
+    coordinates.
 }
 \examples{
 

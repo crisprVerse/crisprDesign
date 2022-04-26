@@ -54,8 +54,9 @@ setClass("GuideSet", contains = "GRanges")
 #' @param ... Additional arguments for class-specific methods
 #' @param seqinfo A \linkS4class{Seqinfo} object containing informatioon
 #'     about the set of genomic sequences present in the target genome.
-#' @param seqlengths \code{NULL}, or an integer vector named with \code{levels(seqnames)}
-#'     and containing the lengths (or NA) for each level in \code{levels(seqnames)}.
+#' @param seqlengths \code{NULL}, or an integer vector named with
+#'     \code{levels(seqnames)} and containing the lengths (or NA) for
+#'     each level in \code{levels(seqnames)}.
 #' 
 #' @return A GuideSet object.
 #' @examples

@@ -76,7 +76,8 @@ addEditedAlleles <- function(guideSet,
     }
 
     if (verbose){
-        message("[addEditedAlleles] Obtaining edited alleles at each gRNA target site.")
+        message("[addEditedAlleles] Obtaining edited alleles at ",
+                "each gRNA target site.")
     }
     alleles <- lapply(seq_along(guideSet), function(guide){
         .getEditedAllelesPerGuide(gs=guideSet[guide],
@@ -86,7 +87,8 @@ addEditedAlleles <- function(guideSet,
     })
     if (addFunctionalConsequence){
         if (verbose){
-            message("[addEditedAlleles] Adding functional consequences to alleles.")
+            message("[addEditedAlleles] Adding functional ",
+                    "consequences to alleles.")
         }
         alleles <- lapply(alleles,
                           .addFunctionalConsequences,

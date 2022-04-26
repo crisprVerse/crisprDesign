@@ -2,7 +2,8 @@
 % Please edit documentation in R/addCrispraiScores.R
 \name{addCrispraiScores}
 \alias{addCrispraiScores}
-\title{Add CRISPRa/CRISPRi on-target scores to a \linkS4class{GuideSet} object.}
+\title{Add CRISPRa/CRISPRi on-target scores to
+    a \linkS4class{GuideSet} object.}
 \usage{
 addCrispraiScores(
   guideSet,

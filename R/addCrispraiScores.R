@@ -1,4 +1,5 @@
-#' @title Add CRISPRa/CRISPRi on-target scores to a \linkS4class{GuideSet} object.
+#' @title Add CRISPRa/CRISPRi on-target scores to
+#'     a \linkS4class{GuideSet} object.
 #' @description Add CRISPRa/CRISPRi on-target scores to a
 #'    \linkS4class{GuideSet} object. Only available for SpCas9, and for 
 #'    hg38 genome. Requires \pkg{crisprScore} package to be installed.
@@ -41,7 +42,7 @@ addCrispraiScores <- function(guideSet,
     }
 
     if (genome(guideSet)[1]!="hg38"){
-        stop("addCrispraiScores] Only hg38 genome supported at the moment.")        
+        stop("addCrispraiScores] Only hg38 genome supported at the moment.")
     }
     modality <- match.arg(modality)
     tssFrame  <- .prepareTssFrame(tssObject)

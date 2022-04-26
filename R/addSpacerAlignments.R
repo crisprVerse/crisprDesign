@@ -123,7 +123,7 @@
 #' 
 #' @examples 
 #' 
-#' \dontrun{
+#' if (interactive()){
 #' # Creating a bowtie index:
 #' library(Rbowtie)
 #' library(BSgenome.Hsapiens.UCSC.hg38)
@@ -158,7 +158,9 @@ NULL
 #' @export
 #' @importFrom S4Vectors mcols mcols<-
 addSpacerAlignmentsIterative <- function(guideSet,
-                                         aligner=c("bowtie", "bwa", "biostrings"),
+                                         aligner=c("bowtie",
+                                                   "bwa",
+                                                   "biostrings"),
                                          colname="alignments",
                                          addSummary=TRUE,
                                          txObject=NULL,
@@ -172,7 +174,8 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                          standard_chr_only=TRUE,
                                          both_strands=TRUE,
                                          anchor=c("cut_site", "pam_site"),
-                                         annotationType=c("gene_symbol", "gene_id"),
+                                         annotationType=c("gene_symbol",
+                                                          "gene_id"),
                                          tss_window=NULL,
                                          alignmentThresholds=c(n0=5,
                                                                n1=100,
@@ -278,7 +281,8 @@ addSpacerAlignmentsIterative <- function(guideSet,
     isNonNegative <- all(alignmentThresholds >= 0)
     isNotNA <- all(!is.na(alignmentThresholds))
     if (!isInteger | !isNonNegative | !isNotNA){
-        stop("alignmentThresholds must be a named numeric vector of non-negative integers")
+        stop("alignmentThresholds must be a named numeric vector",
+             " of non-negative integers")
     }
 
     return(alignmentThresholds)
@@ -386,7 +390,8 @@ getSpacerAlignments <- function(spacers,
 ){
     
     if (.Platform$OS.type=="windows" & aligner=="bwa"){
-        stop("BWA aligner not available for windows machines. Use bowtie instead")
+        stop("BWA aligner not available for windows machines. ",
+             "Use bowtie instead")
     }
     if (!requireNamespace("crisprBwa")){
         stop("Please install crisprBwa to use BWA alignment.")
@@ -643,7 +648,7 @@ getSpacerAlignments <- function(spacers,
     results <- Reduce(BiocGenerics::rbind, results)
     results <- GenomicRanges::GRanges(
         seqnames=results$seqnames,
-        ranges=IRanges::IRanges(start=results$pam_site, width=1), # handle null case
+        ranges=IRanges::IRanges(start=results$pam_site, width=1), # handle null
         strand=results$strand,
         spacer=Biostrings::DNAStringSet(results$spacer),
         protospacer=Biostrings::DNAStringSet(results$seq),
@@ -814,7 +819,8 @@ getSpacerAlignments <- function(spacers,
 
 
 
-## maybe change to pamFromCustomSeq, and adapt for export (and move to completeSpacers)
+## maybe change to pamFromCustomSeq, and adapt for export
+## (and move to completeSpacers)
 #' @importFrom crisprBase pamLength
 .addPamFromCustomSeq <- function(hits,
                                  custom_seq,

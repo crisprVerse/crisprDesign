@@ -40,8 +40,8 @@ for Pfam domains annotation . E.g. "hsapiens_gene_ensembl".}
 }
 \value{
 A \linkS4class{GuideSet} object with a "geneAnnotation" list column
-    stored in \code{mcols(guideSet)}. See details section for a description of
-    the different gene annotation columns.
+    stored in \code{mcols(guideSet)}. See details section for a
+    description of the different gene annotation columns.
 }
 \description{
 Add gene context annotation to spacer sequence stored
