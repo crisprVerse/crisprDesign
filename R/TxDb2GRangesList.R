@@ -53,6 +53,7 @@ getTxDb <- function(file=NA,
 
 
 
+
 #' @title Convert a \linkS4class{TxDb} object into a \linkS4class{GRangesList}
 #' @description Convenience function to reformat a \linkS4class{TxDb} object
 #'    into a \linkS4class{GRangesList}.
@@ -104,7 +105,7 @@ TxDb2GRangesList <- function(txdb,
             is.vector(genome, mode="character") &&
             length(genome) == 1
     })
-    message("Converting TxDb to GRangesList...")
+    #message("Converting TxDb to GRangesList...")
     gRangesList <- .TxDb2GRangesList(txdb=txdb,
                                      standardChromOnly=standardChromOnly,
                                      genome=genome)
@@ -182,7 +183,7 @@ TxDb2GRangesList <- function(txdb,
     martDataset <- .inferMartDataset(organism)
     has_bm_dataset <- martDataset %in% biomaRt::listDatasets(mart)$dataset
     if (!has_bm_dataset){
-        stop('Warning: organism "',
+        stop('Organism "',
                 organism,
                 '" not recognized in biomaRt. You can use",
                 "organism=NULL as a solution.')
@@ -372,29 +373,6 @@ TxDb2GRangesList <- function(txdb,
     }
     return(promoters)
 }
-
-
-
-
-
-# .isTxDbAlreadyConverted <- function(txdb){
-#     if (!.isGRangesList(txdb)){
-#         return(FALSE)
-#     }
-#     fields <- c("transcripts",
-#                 "exons",
-#                 "cds",
-#                 "fiveUTRs",
-#                 "threeUTRs",
-#                 "introns",
-#                 "tss")
-# 
-#     checks <- fields %in% names(txdb)
-#     if (!all(checks)){
-#         return(FALSE)
-#     }
-#     return(TRUE)
-# }
 
 
 

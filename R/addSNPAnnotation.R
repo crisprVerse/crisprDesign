@@ -235,5 +235,3 @@ addSNPAnnotation <- function(guideSet,
 }
 
 
-
-# fix rownames

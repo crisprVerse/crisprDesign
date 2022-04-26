@@ -466,11 +466,6 @@ findSpacers <- function(x,
                                remove_ambiguities
 ){
     if (remove_ambiguities){
-        #if (crisprBase::isDnase(crisprNuclease)){
-        #    bases <- Biostrings::DNA_BASES
-        #} else if (crisprBase::isRnase(crisprNuclease)){
-        #    bases <- Biostrings::RNA_BASES
-        #}
         bases <- Biostrings::DNA_BASES
         bases <- paste0(bases, collapse="")
         pattern <- paste0("^[", bases, "]+$")
