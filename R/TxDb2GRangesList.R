@@ -79,6 +79,16 @@ getTxDb <- function(file=NA,
 #' @importFrom AnnotationDbi select
 #' @importFrom methods as
 #' 
+#' @examples
+#' if (interactive()){
+#'     # To obtain a TxDb for Homo sapiens from Ensembl:
+#'     txdb <- getTxDb()
+#'     
+#'     # To convert to a GRanges list:
+#'     txdb <- TxDb2GRangesList(txdb)
+#' }
+#' 
+#' 
 #' @export
 #' @importFrom S4Vectors isTRUEorFALSE
 TxDb2GRangesList <- function(txdb,

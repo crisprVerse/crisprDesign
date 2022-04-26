@@ -41,6 +41,29 @@ A data.frame containing the original gRNAs from
 \description{
 Update OPS library with additional gRNAs
 }
+\examples{
+data(guideSetExample, package="crisprDesign")
+guideSet <- unique(guideSetExample)
+guideSet <- addOpsBarcodes(guideSet)
+guideSet1 <- guideSet[1:200]
+guideSet2 <- guideSet[201:400]
+
+df1 <- data.frame(ID=names(guideSet1),
+                  spacer=spacers(guideSet1, as.character=TRUE),
+                  opsBarcode=as.character(guideSet1$opsBarcode))
+df2 <- data.frame(ID=names(guideSet2),
+                  spacer=spacers(guideSet2, as.character=TRUE),
+                  opsBarcode=as.character(guideSet2$opsBarcode))
+
+# Creating mock gene:
+df1$gene <- rep(paste0("gene",1:10),each=20)
+df2$gene <- rep(paste0("gene",1:10+10),each=20)
+df1$rank <- rep(1:20,10)
+df2$rank <- rep(1:20,10)
+opsLib <- designOpsLibrary(df1)
+opsLib <- updateOpsLibrary(opsLib, df2)
+
+}
 \author{
 Jean-Philippe Fortin
 }

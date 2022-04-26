@@ -57,7 +57,7 @@ A sparse matrix of class \code{dgCMatrix} or \code{dsCMatrix}
 Get distance between query and target sets of barcodes
 }
 \examples{
-data(guideSetExample)
+data(guideSetExample, package="crisprDesign")
 guideSetExample <- addOpsBarcodes(guideSetExample)
 barcodes <- as.character(guideSetExample$opsBarcode)
 dist <- getBarcodeDistanceMatrix(barcodes, min_dist_edit=2)

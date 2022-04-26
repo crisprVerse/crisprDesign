@@ -30,6 +30,15 @@ A \linkS4class{GRanges} object. Searches yielding no results will
 \description{
 Convenience function to search for TSS coordinates.
 }
+\examples{
+
+data(tssObjectExample, package="crisprDesign")
+queryTss(tssObjectExample,
+         queryColumn="gene_symbol",
+         queryValue="IQSEC3")
+
+
+}
 \seealso{
 \code{\link{queryTxObject}} for querying gene annotations.
 }

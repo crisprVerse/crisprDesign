@@ -32,23 +32,31 @@
 #' @examples
 #' 
 #' data(BE4max, package="crisprBase")
+#' data(grListExample, package="crisprDesign")
 #' library(BSgenome.Hsapiens.UCSC.hg38)
 #' bsgenome <- BSgenome.Hsapiens.UCSC.hg38
-#' txid="ENST00000357654"
-#' library(crisprDesignData)
-#' txTable <- getTxInfoDataFrame(tx_id=txid,
-#'     txObject=txdb_human,
-#'     bsgenome=bsgenome)
-#' gr <- queryTxObject(txdb_human,
-#'     queryValue=txid,
-#'     queryColumn="tx_id",
-#'     featureType="cds")
-#' gs <- findSpacers(gr,
-#'     bsgenome=bsgenome,
-#'     crisprNuclease=BE4max)
+#' gr <- queryTxObject(grListExample,
+#'                     featureType="cds",
+#'                     queryColumn="gene_symbol",
+#'                     queryValue="IQSEC3")
+#' gs <- findSpacers(gr[1],
+#'                   crisprNuclease=BE4max,
+#'                   bsgenome=bsgenome)
 #' gs <- unique(gs)
 #' gs <- gs[1:2] # For the sake of time
-#' gs <- addEditedAlleles(gs, baseEditor=BE4max,txTable=txTable)
+#' 
+#' # Getting transcript info:
+#' txid="ENST00000538872"
+#' txTable <- getTxInfoDataFrame(tx_id=txid,
+#'     txObject=grListExample,
+#'     bsgenome=bsgenome)
+#' 
+#' #Adding alelles:
+#' editingWindow <- c(-20,-8)
+#' gs <- addEditedAlleles(gs,
+#'                        baseEditor=BE4max,
+#'                        txTable=txTable,
+#'                        editingWindow=editingWindow)
 #' 
 #' @author Jean-Philippe Fortin
 #' 

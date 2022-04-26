@@ -85,6 +85,14 @@ queryTxObject <- function(txObject,
 #' 
 #' @author Luke Hoberecht, Jean-Philippe Fortin
 #' 
+#' @examples
+#' 
+#' data(tssObjectExample, package="crisprDesign")
+#' queryTss(tssObjectExample,
+#'          queryColumn="gene_symbol",
+#'          queryValue="IQSEC3")
+#' 
+#' 
 #' @seealso \code{\link{queryTxObject}} for querying gene annotations.
 #' 
 #' @export

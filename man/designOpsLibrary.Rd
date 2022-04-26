@@ -38,14 +38,18 @@ A subset of the \code{df} containing the gRNAs
 Design gRNA library for optical pooled screening
 }
 \examples{
-data("guideSetExample")
+data(guideSetExample, package="crisprDesign")
 guideSet <- unique(guideSetExample)
 guideSet <- addOpsBarcodes(guideSet)
+guideSet <- guideSet[1:200]
+
 df <- data.frame(ID=names(guideSet),
                  spacer=spacers(guideSet, as.character=TRUE),
                  opsBarcode=as.character(guideSet$opsBarcode))
-df$gene <- rep(paste0("gene",1:40),each=20)
-df$rank <- rep(1:20,40)
+
+# Creating mock gene:
+df$gene <- rep(paste0("gene",1:10),each=20)
+df$rank <- rep(1:20,10)
 opsLib <- designOpsLibrary(df)
 
 }

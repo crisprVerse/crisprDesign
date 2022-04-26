@@ -19,7 +19,7 @@
 #'     
 #' 
 #' @examples
-#' data(guideSetExample)
+#' data(guideSetExample, package="crisprDesign")
 #' guideSetExample <- addOpsBarcodes(guideSetExample)
 #' 
 #' @author Jean-Philippe Fortin
@@ -86,7 +86,7 @@ addOpsBarcodes <- function(guideSet,
 #'     the actual calculated distances between barcodes.
 #' 
 #' @examples 
-#' data(guideSetExample)
+#' data(guideSetExample, package="crisprDesign")
 #' guideSetExample <- addOpsBarcodes(guideSetExample)
 #' barcodes <- as.character(guideSetExample$opsBarcode)
 #' dist <- getBarcodeDistanceMatrix(barcodes, min_dist_edit=2)
@@ -208,14 +208,18 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 #'     selected for the OPS library. 
 #' 
 #' @examples
-#' data("guideSetExample")
+#' data(guideSetExample, package="crisprDesign")
 #' guideSet <- unique(guideSetExample)
 #' guideSet <- addOpsBarcodes(guideSet)
+#' guideSet <- guideSet[1:200]
+#' 
 #' df <- data.frame(ID=names(guideSet),
 #'                  spacer=spacers(guideSet, as.character=TRUE),
 #'                  opsBarcode=as.character(guideSet$opsBarcode))
-#' df$gene <- rep(paste0("gene",1:40),each=20)
-#' df$rank <- rep(1:20,40)
+#' 
+#' # Creating mock gene:
+#' df$gene <- rep(paste0("gene",1:10),each=20)
+#' df$rank <- rep(1:20,10)
 #' opsLib <- designOpsLibrary(df)
 #' 
 #' @author Jean-Philippe Fortin
@@ -275,6 +279,28 @@ designOpsLibrary <- function(df,
 #' @return A data.frame containing the original gRNAs from 
 #'    the input \code{opsLibrary} data.frame as well as additional
 #'    gRNAs selected from the input data.frame \code{df}.
+#' 
+#' @examples
+#' data(guideSetExample, package="crisprDesign")
+#' guideSet <- unique(guideSetExample)
+#' guideSet <- addOpsBarcodes(guideSet)
+#' guideSet1 <- guideSet[1:200]
+#' guideSet2 <- guideSet[201:400]
+#' 
+#' df1 <- data.frame(ID=names(guideSet1),
+#'                   spacer=spacers(guideSet1, as.character=TRUE),
+#'                   opsBarcode=as.character(guideSet1$opsBarcode))
+#' df2 <- data.frame(ID=names(guideSet2),
+#'                   spacer=spacers(guideSet2, as.character=TRUE),
+#'                   opsBarcode=as.character(guideSet2$opsBarcode))
+#' 
+#' # Creating mock gene:
+#' df1$gene <- rep(paste0("gene",1:10),each=20)
+#' df2$gene <- rep(paste0("gene",1:10+10),each=20)
+#' df1$rank <- rep(1:20,10)
+#' df2$rank <- rep(1:20,10)
+#' opsLib <- designOpsLibrary(df1)
+#' opsLib <- updateOpsLibrary(opsLib, df2)
 #' 
 #' @export
 updateOpsLibrary <- function(opsLibrary, 

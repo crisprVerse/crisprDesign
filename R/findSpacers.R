@@ -56,22 +56,20 @@
 #' 
 #' # Exon-intro region of human KRAS specified 
 #' # using a GRanges object:
-#' if (requireNamespace("BSgenome.Hsapiens.UCSC.hg38")){
-#'     library(GenomicRanges)
-#'     bsgenome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
+#' library(GenomicRanges)
+#' library(BSgenome.Hsapiens.UCSC.hg38)
+#' bsgenome <- BSgenome.Hsapiens.UCSC.hg38
 #' 
-#'     gr_input <- GRanges(c("chr12"),
-#'                         IRanges(start=25224014, end=25227007))
-#'     guideSet <- findSpacers(gr_input, bsgenome=bsgenome)
+#' gr_input <- GRanges(c("chr12"),
+#'                     IRanges(start=25224014, end=25227007))
+#' guideSet <- findSpacers(gr_input, bsgenome=bsgenome)
 #' 
-#'     # Designing guides for enAsCas12a nuclease:
-#'     data(enAsCas12a, package="crisprBase")
-#'     guideSet <- findSpacers(gr_input, 
-#'                             canonical=FALSE,
-#'                             bsgenome=bsgenome,
-#'                             crisprNuclease=enAsCas12a)
-#' }
-#' 
+#' # Designing guides for enAsCas12a nuclease:
+#' data(enAsCas12a, package="crisprBase")
+#' guideSet <- findSpacers(gr_input, 
+#'                         canonical=FALSE,
+#'                         bsgenome=bsgenome,
+#'                         crisprNuclease=enAsCas12a)
 #' 
 #' @importFrom BiocGenerics sort
 #' @export

@@ -25,6 +25,17 @@ A named \linkS4class{GRangesList} of length 7 with the
 Convenience function to reformat a \linkS4class{TxDb} object
    into a \linkS4class{GRangesList}.
 }
+\examples{
+if (interactive()){
+    # To obtain a TxDb for Homo sapiens from Ensembl:
+    txdb <- getTxDb()
+    
+    # To convert to a GRanges list:
+    txdb <- TxDb2GRangesList(txdb)
+}
+
+
+}
 \seealso{
 \code{\link{getTxDb}} to obtain a \linkS4class{TxDb} object.
 }
