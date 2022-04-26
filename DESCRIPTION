@@ -1,6 +1,6 @@
 Package: crisprDesign
 Title: Core functions for CRISPR design
-Version: 0.99.74
+Version: 0.99.75
 Authors@R: c(
     person("Jean-Philippe", "Fortin", email = "fortin946@gmail.com", role = c("aut", "cre")),
     person("Luke", "Hoberecht", email = "lukehob3@gmail.com", role = c("aut"))
@@ -14,7 +14,7 @@ Description:
     DNA- and RNA-target nucleases such as Cas9, Cas12a, and Cas13d. All types of base editors are
     also supported. gRNA design can be performed on reference genomes, transcriptomes,
     and custom DNA and RNA sequences. 
-Depends: R (>= 4.1.0),
+Depends: R (>= 4.2.0),
     crisprBase (>= 0.99.15)
 Imports:
     AnnotationDbi,

@@ -32,6 +32,12 @@ gs <- addSpacerAlignmentsIterative(gs,
                                    n_mismatches=3,
                                    aligner_index=bwa_index,
                                    bsgenome=bsgenome)
+guideSetExampleWithAlignments <- gs
+use_data(guideSetExampleWithAlignments,
+         compress="xz",
+         overwrite=TRUE)
+
+         
 gs <- addOffTargetScores(gs)
 gs <- addOnTargetScores(gs)
 gs <- addPamScores(gs)

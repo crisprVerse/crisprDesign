@@ -33,6 +33,11 @@ included in the library. 2 by default.}
 \item{dist_method}{String specifying distance method. 
 Must be either "hamming" (default) or "levenstein".}
 }
+\value{
+A data.frame containing the original gRNAs from 
+   the input \code{opsLibrary} data.frame as well as additional
+   gRNAs selected from the input data.frame \code{df}.
+}
 \description{
 Update OPS library with additional gRNAs
 }

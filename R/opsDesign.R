@@ -204,6 +204,9 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 #' @param dist_method String specifying distance method. 
 #'     Must be either "hamming" (default) or "levenstein". 
 #' 
+#' @return A subset of the \code{df} containing the gRNAs
+#'     selected for the OPS library. 
+#' 
 #' @examples
 #' data("guideSetExample")
 #' guideSet <- unique(guideSetExample)
@@ -214,7 +217,7 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 #' df$gene <- rep(paste0("gene",1:40),each=20)
 #' df$rank <- rep(1:20,40)
 #' opsLib <- designOpsLibrary(df)
-
+#' 
 #' @author Jean-Philippe Fortin
 #'
 #' @export
@@ -269,6 +272,10 @@ designOpsLibrary <- function(df,
 #' 
 #' @author Jean-Philippe Fortin
 #'
+#' @return A data.frame containing the original gRNAs from 
+#'    the input \code{opsLibrary} data.frame as well as additional
+#'    gRNAs selected from the input data.frame \code{df}.
+#' 
 #' @export
 updateOpsLibrary <- function(opsLibrary, 
                              df,
@@ -500,7 +507,11 @@ updateOpsLibrary <- function(opsLibrary,
 #' df$rank <- rep(1:20,40)
 #' opsLib <- designOpsLibrary(df)
 #' opsLib <- validateOpsLibrary(opsLib)
-
+#' 
+#' @return The original \code{df} is all checks pass.
+#'     Otherwise, a stop error.
+#' 
+#' 
 #' @author Jean-Philippe Fortin
 #' 
 #' @export
@@ -557,46 +568,6 @@ validateOpsLibrary <- function(df,
 }
 
 
-
-# addToOpsLibrary <- function(opsLibrary,
-#                               pool,
-#                               genes=NULL,
-#                               n_guides=4,
-#                               min_dist_edit
-#                               dist_method,
-# ){
-#     .checkPool(pool, spacer_len)
-#     .checkPool(opsLibrary, spacer_len)
-#     pool <- .addBarcodeColumn(pool,
-#                               spacer_len=spacer_len,
-#                               n_cycles=n_cycles)
-
-#     # Subsetting
-#     missing <- genes[!genes %in% pool$gene_symbol]
-#     genes <- setdiff(genes, missing)
-#     pool <- pool[pool$gene_symbol %in% genes,]
-
-#     # Creating guideSets:
-#     grnas <- list(candidates=pool,
-#                   selected=opsLibrary,
-#                   discarded=NULL,
-#                   genes=genes)
-#     grnas <- updateLibrary(grnas,
-#                            n_guides=n_guides,
-#                            spacer_len=spacer_len,
-#                            n_cycles=n_cycles,
-#                            dist_method=dist_method,
-#                            min_dist_edit=min_dist_edit,
-#                            verbose=verbose)
-#     finalLib   <- getFinalLibrary(grnas)
-#     return(finalLib)
-# }
-
-
-
-
-
-# #sapply(grnas, nrow)
 
 
 

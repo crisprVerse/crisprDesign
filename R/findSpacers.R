@@ -97,7 +97,7 @@ findSpacers <- function(x,
         .checkBoolean(i, get(i))
     }
     if (isRnase(crisprNuclease)){
-        both_strands=FALSE
+        both_strands <- FALSE
     }
     dna <- .asDNAStringSet(x,
                            bsgenome=bsgenome,

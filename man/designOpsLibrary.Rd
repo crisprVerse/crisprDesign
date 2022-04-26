@@ -30,6 +30,10 @@ included in the library. 2 by default.}
 \item{dist_method}{String specifying distance method. 
 Must be either "hamming" (default) or "levenstein".}
 }
+\value{
+A subset of the \code{df} containing the gRNAs
+    selected for the OPS library.
+}
 \description{
 Design gRNA library for optical pooled screening
 }
@@ -43,6 +47,7 @@ df <- data.frame(ID=names(guideSet),
 df$gene <- rep(paste0("gene",1:40),each=20)
 df$rank <- rep(1:20,40)
 opsLib <- designOpsLibrary(df)
+
 }
 \author{
 Jean-Philippe Fortin

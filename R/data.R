@@ -54,6 +54,23 @@
 "guideSetExample"
 
 
+#' Example of a \linkS4class{GuideSet} object storing gRNA sequences targeting
+#'     the CDS of IQSEC3 with off-target alignments.
+#'
+#' Example of a \linkS4class{GuideSet} object storing gRNA sequences targeting
+#'    the coding sequence of human gene IQSEC3 (ENSG00000120645) for SpCas9
+#'    nuclease with off-target alignments.
+#' 
+#' @format A \linkS4class{GuideSet} object.
+#' 
+#' @details The object was obtained by adding off-target alignments
+#'      to a randomly selected 20-guide subset of
+#'      \code{guideSetExample}. See code in
+#'     \code{inst/scripts/generateGuideSetFullAnnotation.R}.
+#' @usage data(guideSetExampleWithAlignments, package="crisprDesign")
+"guideSetExampleWithAlignments"
+
+
 
 
 #' Example of a fully-annotated \linkS4class{GuideSet} object storing gRNA

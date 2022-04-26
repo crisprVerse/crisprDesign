@@ -20,6 +20,10 @@ required for barcodes to be considered dissimilar.}
 \item{dist_method}{String specifying distance method. Must be
 either "hamming" (default) or "levenstein".}
 }
+\value{
+The original \code{df} is all checks pass.
+    Otherwise, a stop error.
+}
 \description{
 Validate gRNA library for optical pooled screening
 }
@@ -34,6 +38,7 @@ df$gene <- rep(paste0("gene",1:40),each=20)
 df$rank <- rep(1:20,40)
 opsLib <- designOpsLibrary(df)
 opsLib <- validateOpsLibrary(opsLib)
+
 }
 \author{
 Jean-Philippe Fortin

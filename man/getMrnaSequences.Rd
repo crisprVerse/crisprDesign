@@ -25,14 +25,13 @@ A \linkS4class{DNAStringSet} object of mRNA sequences. Note that
 A function for retrieving mRNA sequences of select transcripts.
 }
 \examples{
-\dontrun{
-library(crisprDesignData)
+
+if (require("BSgenome.Hsapiens.UCSC.hg38")){
 library(BSgenome.Hsapiens.UCSC.hg38)
-data("txdb_human")
-txObject <- txdb_human
+data(grListExample)
 bsgenome <- BSgenome.Hsapiens.UCSC.hg38
-txids <- c("ENST00000457313", "ENST00000256078")
-out <- getMrnaSequences(txids, txObject, bsgenome)
+txids <- c("ENST00000538872", "ENST00000382841")
+out <- getMrnaSequences(txids, grListExample, bsgenome)
 }
 
 }

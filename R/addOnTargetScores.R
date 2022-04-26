@@ -60,7 +60,7 @@ addOnTargetScores <- function(guideSet,
         if (any(valid)){
             status <- paste0("[addOnTargetScores] Adding ", i,
                              " scores. \n")
-            cat(status)
+            message(status)
         }
         scores <- .getOnTargetScores(guideSet=guideSet[valid],
                                      method=i,

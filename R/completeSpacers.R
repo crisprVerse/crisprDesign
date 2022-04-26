@@ -230,12 +230,12 @@ getSpacerSequence <- function(chr,
 convertToProtospacerGRanges <- function(guideSet){
     guideSet <- .validateGuideSet(guideSet)
     crisprNuclease <- crisprNuclease(guideSet)
-    pamSide  <- pamSide(crisprNuclease)
+    pamSide <- pamSide(crisprNuclease)
     spacer_len <- spacerLength(crisprNuclease)
     pam_len <- pamLength(crisprNuclease)
 
     # Get protospacer GRanges:
-    r <-  as.character(BiocGenerics::strand(guideSet))=='-'
+    r <- as.character(BiocGenerics::strand(guideSet))=='-'
   
     if (pamSide=='3prime'){
         start    <- pamSites(guideSet) - spacer_len
@@ -292,7 +292,7 @@ convertToProtospacerGRanges <- function(guideSet){
     seqs <- as.character(seqs)
 
     #Making sure the sequences are not out of bound:
-    len = end-start+1 # Expected length
+    len <- end-start+1 # Expected length
     seqs[seqs==""] <- NA
     seqs[nchar(seqs)<len] <- NA
     return(seqs)

@@ -265,8 +265,8 @@ addSpacerAlignmentsIterative <- function(guideSet,
     duplicatedNames <- duplicated(names(alignmentThresholds))
     invalidNames <- !names(alignmentThresholds) %in% names(maxAlignments)
     if (any(duplicatedNames) || any(invalidNames)){
-        stop(paste("names for alignmentThresholds must be unique and in",
-                   "c('n0', 'n1', 'n2', 'n3', 'n4')"))
+        stop("names for alignmentThresholds must be unique and in",
+             "c('n0', 'n1', 'n2', 'n3', 'n4')")
     }
     
     maxAlignments <- maxAlignments[setdiff(names(maxAlignments),
@@ -399,8 +399,8 @@ getSpacerAlignments <- function(spacers,
         spacers <- as.character(spacers)
     }
     if (!is.vector(spacers, mode="character")){
-        stop(paste("'spacers' argument must be a GuideSet, XString, or",
-                   "XStringSet object, or a character vector"))
+        stop("'spacers' argument must be a GuideSet, XString, or",
+             "XStringSet object, or a character vector")
     }
     aligner <- match.arg(aligner)
     crisprNuclease <- .validateCrisprNuclease(crisprNuclease)

@@ -69,7 +69,7 @@ addEditedAlleles <- function(guideSet,
     }
 
     if (verbose){
-        cat("[addEditedAlleles] Obtaining edited alleles at each gRNA target site. \n")
+        message("[addEditedAlleles] Obtaining edited alleles at each gRNA target site.")
     }
     alleles <- lapply(seq_along(guideSet), function(guide){
         .getEditedAllelesPerGuide(gs=guideSet[guide],
@@ -79,7 +79,7 @@ addEditedAlleles <- function(guideSet,
     })
     if (addFunctionalConsequence){
         if (verbose){
-            cat("[addEditedAlleles] Adding functional consequences to alleles. \n")
+            message("[addEditedAlleles] Adding functional consequences to alleles.")
         }
         alleles <- lapply(alleles,
                           .addFunctionalConsequences,
@@ -110,7 +110,7 @@ addEditedAlleles <- function(guideSet,
         return(out)
     })
     scores <- do.call(rbind, scores)
-    scores <- scores[, 1:3, drop=FALSE]
+    scores <- scores[, seq_len(3), drop=FALSE]
     colnames(scores) <- paste0("score_", colnames(scores))
     variants <- .voteVariant(scores)
     mcols(guideSet)[colnames(scores)] <- scores

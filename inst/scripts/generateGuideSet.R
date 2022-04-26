@@ -1,8 +1,8 @@
 library(crisprDesign)
 library(GenomicRanges)
 library(devtools)
-data(grListExample)
 library(BSgenome.Hsapiens.UCSC.hg38)
+data(grListExample, package="crisprDesign")
 bsgenome <- BSgenome.Hsapiens.UCSC.hg38
 
 
@@ -13,7 +13,6 @@ gr <- queryTxObject(grListExample,
                     queryValue="IQSEC3")
 guideSet <- findSpacers(gr,
                         bsgenome=bsgenome)
-
 guideSetExample <- guideSet
 use_data(guideSetExample,
          compress="xz",
