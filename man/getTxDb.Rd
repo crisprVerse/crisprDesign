@@ -31,7 +31,7 @@ Convenience function for constructing
     a \linkS4class{TxDb} object.
 }
 \examples{
-\dontrun{
+if (interactive()){
     # To obtain a TxDb for Homo sapiens from Ensembl:
     txdb <- getTxDb()
 

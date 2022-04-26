@@ -29,7 +29,7 @@ The original \code{guideSet} object with an additional
 Add optical pooled screening (OPS) barcodes.
 }
 \examples{
-data(guideSetExample, package="crisprDesign")
+data(guideSetExample)
 guideSetExample <- addOpsBarcodes(guideSetExample)
 
 }

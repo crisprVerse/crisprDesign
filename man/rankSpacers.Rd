@@ -113,15 +113,10 @@ Use \code{validCriteria(guideSet)} for information on expected values
     used multiple times.
 }
 \examples{
-\dontrun{
-data(guideSetExample, package="crisprDesign")
-guides <- guideSetExample
 
-# annotate guides
-guides <- addSequenceFeatures(guides)
-guides <- addRestrictionEnzymes(guides)
-guides <- addOnTargetScores(guides, methods=c('deephf', 'azimuth'))
-guides <- addGeneAnnotation(guides, txObject=grListExample)
+data(guideSetExampleFullAnnotation)
+guides <- guideSetExampleFullAnnotation
+guides <- guides[1:2]
 
 # check guide attributes available for filtering and ranking
 validCriteria(guides)
@@ -138,9 +133,9 @@ rank_criteria <- list(
     score_deephf = c(0.7, 0.6, 0.5),
     score_azimuth = c(0.7, 0.6, 0.5)
 )
-guides <- rankSpacers(guides, rank_criteria, geneId="ENSG00000120645")
-guides
-}
+guides <- rankSpacers(guides,
+                      rank_criteria,
+                      geneId="ENSG00000120645")
 
 }
 \author{

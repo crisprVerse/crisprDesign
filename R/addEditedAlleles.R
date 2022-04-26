@@ -30,7 +30,7 @@
 #'     gRNA strand. 
 #' 
 #' @examples
-#' \dontrun{
+#' 
 #' data(BE4max, package="crisprBase")
 #' library(BSgenome.Hsapiens.UCSC.hg38)
 #' bsgenome <- BSgenome.Hsapiens.UCSC.hg38
@@ -47,9 +47,8 @@
 #'     bsgenome=bsgenome,
 #'     crisprNuclease=BE4max)
 #' gs <- unique(gs)
-#' gs <- gs[100:200]
+#' gs <- gs[1:2] # For the sake of time
 #' gs <- addEditedAlleles(gs, baseEditor=BE4max,txTable=txTable)
-#' }
 #' 
 #' @author Jean-Philippe Fortin
 #' 

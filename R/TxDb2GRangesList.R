@@ -20,7 +20,7 @@
 #' @author Jean-Philippe Fortin, Luke Hoberecht
 #' 
 #' @examples
-#' \dontrun{
+#' if (interactive()){
 #'     # To obtain a TxDb for Homo sapiens from Ensembl:
 #'     txdb <- getTxDb()
 #' 

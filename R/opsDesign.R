@@ -19,7 +19,7 @@
 #'     
 #' 
 #' @examples
-#' data(guideSetExample, package="crisprDesign")
+#' data(guideSetExample)
 #' guideSetExample <- addOpsBarcodes(guideSetExample)
 #' 
 #' @author Jean-Philippe Fortin
@@ -86,7 +86,7 @@ addOpsBarcodes <- function(guideSet,
 #'     the actual calculated distances between barcodes.
 #' 
 #' @examples 
-#' data(guideSetExample, package="crisprDesign")
+#' data(guideSetExample)
 #' guideSetExample <- addOpsBarcodes(guideSetExample)
 #' barcodes <- as.character(guideSetExample$opsBarcode)
 #' dist <- getBarcodeDistanceMatrix(barcodes, min_dist_edit=2)
