@@ -296,7 +296,10 @@ validCriteria <- function(guideSet
                               geneId=geneId,
                               isoformAggFun=isoformAggFun)
     }, FUN.VALUE = numeric(length(guideSet)))
-  
+    binValues <- matrix(binValues,
+                        nrow=length(guideSet),
+                        ncol=length(criteria))
+    
     binValues <- S4Vectors::DataFrame(binValues,
                                       row.names=names(guideSet))
     colnames(binValues) <- .binValuesColnames(names(criteria))
