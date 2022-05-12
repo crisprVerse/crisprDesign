@@ -12,16 +12,11 @@
 ## Overview
 
 
-Functions for design and annotation of CRISPR single-guide RNAs.
+`crisprDesign` is a one-stop shop R package for CRISPR gRNA design. It provides a comprehensive suite of functions to design and annotate CRISPR guide RNA (gRNAs) sequences. This includes on- and off-target search, on-target efficiency scoring, off-target scoring, full gene and TSS
+contextual annotations, and SNP annotation (human only). It currently support five types of CRISPR modalities (modes of perturbations): CRISPR knockout (CRISPRko), CRISPR activation (CRISPRa), CRISPR inhibition (CRISPRi), CRISPR base editing (CRISPRbe), and CRISPR knockdown (CRISPRkd). All types of CRISPR nucleases are supported, including DNA- and RNA-target nucleases such as Cas9, Cas12a, and Cas13d. All types of base editors are also supported. gRNA design can be performed on reference genomes, transcriptomes, and custom DNA and RNA sequences. 
 
+Our work is described in a recent bioRxiv preprint: ["A comprehensive Bioconductor ecosystem for the design of CRISPR guide RNAs across nucleases and technologies"](https://www.biorxiv.org/content/10.1101/2022.04.21.488824v2)
 
-All RNA- and DNA-targeting nucleases are supported, including SpCas9, 
-AsCas12a, enAsCas12, RfxCas13d, etc. Base editors are also supported,
-such as BE4max. 
-
-The package contains advanced functionalities for CRISPR knockout (CRISPRko),
-CRISPR activation (CRISPRa), CRISPR inhibition (CRISPRi) and
-CRISPR base editing (CRISPRbe). 
 
 <div id='id-section2'/>
 
