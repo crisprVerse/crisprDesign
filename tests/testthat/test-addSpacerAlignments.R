@@ -1,5 +1,4 @@
 library(crisprBase)
-library(crisprDesignData)
 library(BSgenome.Hsapiens.UCSC.hg38)
 library(BSgenome.Mmusculus.UCSC.mm10)
 data("SpCas9", "AsCas12a")
