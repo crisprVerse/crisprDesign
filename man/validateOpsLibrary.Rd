@@ -28,7 +28,7 @@ The original \code{df} is all checks pass.
 Validate gRNA library for optical pooled screening
 }
 \examples{
-data("guideSetExample")
+data(guideSetExample, package="crisprDesign")
 guideSet <- unique(guideSetExample)
 guideSet <- addOpsBarcodes(guideSet)
 df <- data.frame(ID=names(guideSet),

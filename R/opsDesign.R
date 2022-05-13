@@ -523,7 +523,7 @@ updateOpsLibrary <- function(opsLibrary,
 #'     either "hamming" (default) or "levenstein". 
 #' 
 #' @examples
-#' data("guideSetExample")
+#' data(guideSetExample, package="crisprDesign")
 #' guideSet <- unique(guideSetExample)
 #' guideSet <- addOpsBarcodes(guideSet)
 #' df <- data.frame(ID=names(guideSet),
