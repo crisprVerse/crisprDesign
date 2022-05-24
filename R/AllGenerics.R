@@ -58,11 +58,28 @@ setGeneric("snps",
            function(object, ...) standardGeneric("snps"))
 
 
+#' @description Store SNP annotation.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("snps<-",
+           function(object, value) standardGeneric("snps<-"))
+
+
+
 #' @description Return genomic alignments of spacer sequences.
 #' @rdname GuideSet-class
 #' @export
 setGeneric("alignments",
            function(object, ...) standardGeneric("alignments"))
+
+
+#' @description Store genomic alignments of spacer sequences.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("alignments<-",
+           function(object, value) standardGeneric("alignments<-"))
+
+
 
 
 
@@ -88,6 +105,13 @@ setGeneric("geneAnnotation",
            function(object, ...) standardGeneric("geneAnnotation"))
 
 
+#' @description Store gene annotation table of spacer sequences.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("geneAnnotation<-",
+           function(object, value) standardGeneric("geneAnnotation<-"))
+
+
 
 #' @description Return TSS annotation table of spacer sequences.
 #' @rdname GuideSet-class
@@ -95,12 +119,28 @@ setGeneric("geneAnnotation",
 setGeneric("tssAnnotation",
            function(object, ...) standardGeneric("tssAnnotation"))
 
+#' @description Store TSS annotation table of spacer sequences.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("tssAnnotation<-",
+           function(object, value) standardGeneric("tssAnnotation<-"))
+
+
 
 #' @description Return restriction enzymes annotation table.
 #' @rdname GuideSet-class
 #' @export
 setGeneric("enzymeAnnotation",
            function(object, ...) standardGeneric("enzymeAnnotation"))
+
+
+#' @description Store restriction enzymes annotation table.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("enzymeAnnotation<-",
+           function(object, value) standardGeneric("enzymeAnnotation<-"))
+
+
 
 
 

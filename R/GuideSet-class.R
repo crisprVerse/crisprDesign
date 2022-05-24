@@ -490,6 +490,57 @@ setMethod("alignments", "GuideSet",
 
 
 
+
+#' @rdname GuideSet-class
+#' @param value Object to replace with
+#' @export
+setMethod("alignments<-", "GuideSet", 
+    function(object, value){
+    mcols(object)[["alignments"]] <- value
+    return(object)
+})
+
+#' @rdname GuideSet-class
+#' @export
+setMethod("geneAnnotation<-", "GuideSet", 
+    function(object, value){
+    mcols(object)[["geneAnnotation"]] <- value
+    return(object)
+})
+
+#' @rdname GuideSet-class
+#' @export
+setMethod("tssAnnotation<-", "GuideSet", 
+    function(object, value){
+    mcols(object)[["tssAnnotation"]] <- value
+    return(object)
+})
+
+#' @rdname GuideSet-class
+#' @export
+setMethod("enzymeAnnotation<-", "GuideSet", 
+    function(object, value){
+    mcols(object)[["enzymeAnnotation"]] <- value
+    return(object)
+})
+
+
+#' @rdname GuideSet-class
+#' @export
+setMethod("snps<-", "GuideSet", 
+    function(object, value){
+    mcols(object)[["snps"]] <- value
+    return(object)
+})
+
+
+
+
+
+
+
+
+
 #' @rdname GuideSet-class
 #' @importFrom S4Vectors mcols split
 #' @importFrom BiocGenerics unlist

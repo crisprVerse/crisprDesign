@@ -10,12 +10,17 @@
 \alias{protospacers}
 \alias{pamSites}
 \alias{snps}
+\alias{snps<-}
 \alias{alignments}
+\alias{alignments<-}
 \alias{onTargets}
 \alias{offTargets}
 \alias{geneAnnotation}
+\alias{geneAnnotation<-}
 \alias{tssAnnotation}
+\alias{tssAnnotation<-}
 \alias{enzymeAnnotation}
+\alias{enzymeAnnotation<-}
 \alias{editedAlleles}
 \alias{GuideSet-class}
 \alias{GuideSet}
@@ -34,6 +39,11 @@
 \alias{pamSide,GuideSet-method}
 \alias{snps,GuideSet-method}
 \alias{alignments,GuideSet-method}
+\alias{alignments<-,GuideSet-method}
+\alias{geneAnnotation<-,GuideSet-method}
+\alias{tssAnnotation<-,GuideSet-method}
+\alias{enzymeAnnotation<-,GuideSet-method}
+\alias{snps<-,GuideSet-method}
 \alias{onTargets,GuideSet-method}
 \alias{offTargets,GuideSet-method}
 \alias{geneAnnotation,GuideSet-method}
@@ -58,7 +68,11 @@ pamSites(object, ...)
 
 snps(object, ...)
 
+snps(object) <- value
+
 alignments(object, ...)
+
+alignments(object) <- value
 
 onTargets(object, ...)
 
@@ -66,9 +80,15 @@ offTargets(object, ...)
 
 geneAnnotation(object, ...)
 
+geneAnnotation(object) <- value
+
 tssAnnotation(object, ...)
 
+tssAnnotation(object) <- value
+
 enzymeAnnotation(object, ...)
+
+enzymeAnnotation(object) <- value
 
 editedAlleles(object, ...)
 
@@ -122,6 +142,16 @@ GuideSet(
 
 \S4method{alignments}{GuideSet}(object, columnName = "alignments", unlist = TRUE, use.names = TRUE)
 
+\S4method{alignments}{GuideSet}(object) <- value
+
+\S4method{geneAnnotation}{GuideSet}(object) <- value
+
+\S4method{tssAnnotation}{GuideSet}(object) <- value
+
+\S4method{enzymeAnnotation}{GuideSet}(object) <- value
+
+\S4method{snps}{GuideSet}(object) <- value
+
 \S4method{onTargets}{GuideSet}(object, columnName = "alignments", unlist = TRUE, use.names = TRUE)
 
 \S4method{offTargets}{GuideSet}(
@@ -157,6 +187,8 @@ GuideSet(
 \item{object}{\linkS4class{GuideSet} object.}
 
 \item{...}{Additional arguments for class-specific methods}
+
+\item{value}{Object to replace with}
 
 \item{protospacers}{Character vector of protospacers sequences.}
 
@@ -241,7 +273,11 @@ Return PAM site coordinates.
 
 Return SNP annotation.
 
+Store SNP annotation.
+
 Return genomic alignments of spacer sequences.
+
+Store genomic alignments of spacer sequences.
 
 Return on-target alignments of spacer sequences.
 
@@ -249,9 +285,15 @@ Return off-target alignments of spacer sequences.
 
 Return gene annotation table of spacer sequences.
 
+Store gene annotation table of spacer sequences.
+
 Return TSS annotation table of spacer sequences.
 
+Store TSS annotation table of spacer sequences.
+
 Return restriction enzymes annotation table.
+
+Store restriction enzymes annotation table.
 
 Return list of edited alleles
 }
