@@ -445,6 +445,7 @@ setMethod("pamSide", "PairedGuideSet",
 # This allows to add annotations to a PairedGuideSet object
 # using annotations added to a unified GuideSet object
 # obtained from the function .pairedGuideSet2GuideSet
+#' @importFrom S4Vectors first<- second<-
 .addColumnsFromUnifiedGuideSet <- function(pairedGuideSet,
                                            unifiedGuideSet
 ){
