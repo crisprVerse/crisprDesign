@@ -419,3 +419,19 @@ compact <- function(x) {
 
 
 
+#' @importFrom GenomeInfoDb seqnames
+#' @importFrom S4Vectors mcols mcols<-
+#' @importFrom BiocGenerics strand
+#' @importFrom methods is
+.addCoordID <- function(gs){
+    chr <- as.character(seqnames(gs))
+    pam_site <- mcols(gs)$pam_site
+    strand <- as.character(BiocGenerics::strand(gs))
+    coordID <- paste(chr, pam_site, strand, sep="_")
+    mcols(gs)$coordID <- coordID
+    return(gs)
+}
+
+
+
+
