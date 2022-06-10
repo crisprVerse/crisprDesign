@@ -141,14 +141,51 @@ setGeneric("enzymeAnnotation<-",
            function(object, value) standardGeneric("enzymeAnnotation<-"))
 
 
-
-
-
 #' @description Return list of edited alleles
 #' @rdname GuideSet-class
 #' @export
 setGeneric("editedAlleles",
            function(object, ...) standardGeneric("editedAlleles"))
+
+
+
+
+#' @description Return PAM orientation configuration
+#' @rdname PairedGuideSet-class
+#' @export
+setGeneric("pamOrientation",
+           function(object, ...) standardGeneric("pamOrientation"))
+
+
+#' @description Return distance between PAM sites from paired gRNAs
+#' @rdname PairedGuideSet-class
+#' @export
+setGeneric("pamDistance",
+           function(object, ...) standardGeneric("pamDistance"))
+
+
+
+#' @description Return distance between spacer sequences from paired gRNAs
+#' @rdname PairedGuideSet-class
+#' @export
+setGeneric("spacerDistance",
+           function(object, ...) standardGeneric("spacerDistance"))
+
+
+#' @description Return cut length resulting from paired gRNAs
+#' @rdname PairedGuideSet-class
+#' @export
+setGeneric("cutLength",
+           function(object, ...) standardGeneric("cutLength"))
+
+
+
+
+
+
+
+
+
 
 
 
