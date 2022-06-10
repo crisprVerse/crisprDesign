@@ -123,12 +123,14 @@ setValidity("PairedGuideSet", function(object){
     return(out)
 }
 
+
 #' @importFrom GenomeInfoDb seqnames
 .onSameChr <- function(gs1, gs2){
     chr1 <- as.character(seqnames(gs1))
     chr2 <- as.character(seqnames(gs2))
     chr1==chr2
 }
+
 
 
 #' @rdname PairedGuideSet-class
@@ -139,6 +141,7 @@ setMethod("pamOrientation", "PairedGuideSet",
     return(out)
 })
 
+
 #' @rdname PairedGuideSet-class
 setMethod("pamDistance", "PairedGuideSet",
     function(object){
@@ -147,12 +150,14 @@ setMethod("pamDistance", "PairedGuideSet",
 })
 
 
+
 #' @rdname PairedGuideSet-class
 setMethod("pamDistance", "PairedGuideSet",
     function(object){
     out <- mcols(object)[["pamDistance"]]
     return(out)
 })
+
 
 #' @rdname PairedGuideSet-class
 setMethod("cutLength", "PairedGuideSet",
@@ -193,6 +198,8 @@ setMethod("crisprNuclease", "PairedGuideSet",
 })
 
 
+
+
 #' @rdname PairedGuideSet-class
 #' @param as.character Should sequences be returned as a character
 #'     vector? FALSE by default, in which case sequences are returned
@@ -229,6 +236,8 @@ setMethod("spacers", "PairedGuideSet",
 })
 
 
+
+
 #' @rdname PairedGuideSet-class
 #' @export
 setMethod("pams", "PairedGuideSet", 
@@ -259,6 +268,8 @@ setMethod("pams", "PairedGuideSet",
 })
 
 
+
+
 #' @rdname PairedGuideSet-class
 #' @export
 setMethod("pamSites", "PairedGuideSet", 
@@ -283,6 +294,7 @@ setMethod("pamSites", "PairedGuideSet",
 
 
 
+
 #' @rdname PairedGuideSet-class
 #' @export
 setMethod("cutSites", "PairedGuideSet", 
@@ -304,6 +316,8 @@ setMethod("cutSites", "PairedGuideSet",
     }
     return(out)
 })
+
+
 
 
 #' @rdname PairedGuideSet-class
@@ -341,6 +355,8 @@ setMethod("protospacers", "PairedGuideSet",
 })
 
 
+
+
 #' @rdname PairedGuideSet-class
 #' @export
 setMethod("spacerLength", "PairedGuideSet", 
@@ -360,6 +376,9 @@ setMethod("spacerLength", "PairedGuideSet",
 })
 
 
+
+
+
 #' @rdname PairedGuideSet-class
 #' @export
 setMethod("pamLength", "PairedGuideSet", 
@@ -377,6 +396,9 @@ setMethod("pamLength", "PairedGuideSet",
     }
     return(out)
 })
+
+
+
 
 #' @rdname PairedGuideSet-class
 #' @export
