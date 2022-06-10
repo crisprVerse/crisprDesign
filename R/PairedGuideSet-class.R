@@ -108,6 +108,7 @@ setValidity("PairedGuideSet", function(object){
 
 
 
+
 #' @importFrom crisprBase getProtospacerRanges
 .getCutLength <- function(gs1, gs2){
     sites1 <- cutSites(gs1)
@@ -381,8 +382,6 @@ setMethod("pamSide", "PairedGuideSet",
     }
     return(out)
 })
-
-
 
 
 
