@@ -90,9 +90,31 @@ S4Vectors::mcols
     methods::is(object, "GuideSet")
 }
 
+.isPairedGuideSet <- function(object){
+    methods::is(object, "PairedGuideSet")
+}
+
+
 
 .validateGuideSet <- function(object){
     if (!.isGuideSet(object)){
+        stop("Object must be a GuideSet")
+    }
+    return(object)
+}
+
+
+.validatePairedGuideSet <- function(object){
+    if (!.isPairedGuideSet(object)){
+        stop("Object must be a PairedGuideSet")
+    }
+    return(object)
+}
+
+
+
+.validateGuideSetOrPairedGuideSet <- function(object){
+    if (!(.isGuideSet(object) | .isPairedGuideSet(object))){
         stop("Object must be a GuideSet")
     }
     return(object)

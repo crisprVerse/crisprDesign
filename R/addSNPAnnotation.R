@@ -45,10 +45,31 @@
 #' 
 #' 
 #' @export
-#' @importFrom S4Vectors split mcols<-
 addSNPAnnotation <- function(guideSet,
                              vcf,
                              maf=0.01
+){
+    guideSet <- .validateGuideSetOrPairedGuideSet(guideSet)
+    if (.isGuideSet(guideSet)){
+        out <- addSNPAnnotation_guideset(guideSet,
+                                         vcf=vcf,
+                                         maf=maf)
+    } else if (.isPairedGuideSet(guideSet)){
+        unifiedGuideSet <- .pairedGuideSet2GuideSet(guideSet)
+        unifiedGuideSet <- addSNPAnnotation_guideset(unifiedGuideSet,
+                                                     vcf=vcf,
+                                                     maf=maf)
+        out <- .addColumnsFromUnifiedGuideSet(guideSet,
+                                              unifiedGuideSet)
+    }
+    return(out)
+}
+
+
+#' @importFrom S4Vectors split mcols<-
+addSNPAnnotation_guideset <- function(guideSet,
+                                      vcf,
+                                      maf=0.01
 ){
     stopifnot("maf must be a numeric value in the range [0, 1)" = {
         is.vector(maf, mode="numeric") &&
@@ -77,6 +98,8 @@ addSNPAnnotation <- function(guideSet,
 }
 
 
+
+  
 
 
 #' @importFrom S4Vectors metadata metadata<- DataFrame mcols nchar

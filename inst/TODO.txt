@@ -1,3 +1,26 @@
 Misc:
 - Remove annoying message when convert TxDB
 - Check crisprbe for all strand configuration
+
+PairedGuideSet
+- Modify addXYZ functions
+- Modify getter functions
+- Create a findPairedSpacers function.
+
+
+
+# Done:
+addOnTargetScores.R
+addSNPAnnotation.R       
+addPamScores.R  
+addRestrictionEnzymes.R
+addSequenceFeatures.R  
+
+# Not done
+addCrispraiScores.R 
+addGeneAnnotation.R
+addRepeats.R
+addSpacerAlignments.R
+addOffTargetScores.R
+addTssAnnotation.R      
+

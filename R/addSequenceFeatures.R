@@ -37,10 +37,32 @@
 #' 
 #' 
 #' @export
-#' @importFrom S4Vectors mcols<-
 addSequenceFeatures <- function(guideSet,
                                 addHairpin=FALSE,
                                 backbone="AGGCTAGTCCGT"
+){
+    guideSet <- .validateGuideSetOrPairedGuideSet(guideSet)
+    if (.isGuideSet(guideSet)){
+        out <- addSequenceFeatures_guideset(guideSet,
+                                            addHairpin=addHairpin,
+                                            backbone=backbone)
+    } else if (.isPairedGuideSet(guideSet)){
+        unifiedGuideSet <- .pairedGuideSet2GuideSet(guideSet)
+        unifiedGuideSet <- addSequenceFeatures_guideset(unifiedGuideSet,
+                                                        addHairpin=addHairpin,
+                                                        backbone=backbone)
+        out <- .addColumnsFromUnifiedGuideSet(guideSet,
+                                              unifiedGuideSet)
+    }
+    return(out)
+}
+
+
+
+#' @importFrom S4Vectors mcols<-
+addSequenceFeatures_guideset <- function(guideSet,
+                                         addHairpin=FALSE,
+                                         backbone="AGGCTAGTCCGT"
 ){
     guideSet <- .validateGuideSet(guideSet)
     
@@ -58,6 +80,7 @@ addSequenceFeatures <- function(guideSet,
     
     return(guideSet)
 }
+
 
 
 #' @importFrom S4Vectors mcols<-
