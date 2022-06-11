@@ -7,7 +7,8 @@
 addPamScores(guideSet)
 }
 \arguments{
-\item{guideSet}{A \linkS4class{GuideSet} object.}
+\item{guideSet}{A \linkS4class{GuideSet} or a 
+\linkS4class{PairedGuideSet} object.}
 }
 \value{
 \code{guideSet} with an appended \code{score_pam} column in

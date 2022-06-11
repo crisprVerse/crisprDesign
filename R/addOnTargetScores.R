@@ -28,7 +28,6 @@
 #' }
 #' 
 #' @export
-#' @importFrom S4Vectors mcols<-
 addOnTargetScores <- function(guideSet,
                               enzyme=c("WT", "ESP", "HF"),
                               promoter=c("U6", "T7"),
@@ -40,6 +39,40 @@ addOnTargetScores <- function(guideSet,
                                         "enpamgb",
                                         "crisprscan",
                                         "casrxrf")
+){
+    guideSet <- .validateGuideSetOrPairedGuideSet(guideSet)
+    if (.isGuideSet(guideSet)){
+        out <- addOnTargetScores_guideset(guideSet,
+                                          enzyme=enzyme,
+                                          promoter=promoter,
+                                          methods=methods)
+    } else if (.isPairedGuideSet(guideSet)){
+        unifiedGuideSet <- .pairedGuideSet2GuideSet(guideSet)
+        unifiedGuideSet <- addOnTargetScores_guideset(unifiedGuideSet,
+                                                      enzyme=enzyme,
+                                                      promoter=promoter,
+                                                      methods=methods)
+        out <- .addColumnsFromUnifiedGuideSet(guideSet,
+                                              unifiedGuideSet)
+    }
+    return(out)
+}
+
+
+
+
+#' @importFrom S4Vectors mcols<-
+addOnTargetScores_guideset <- function(guideSet,
+                                       enzyme=c("WT", "ESP", "HF"),
+                                       promoter=c("U6", "T7"),
+                                       methods=c("azimuth",
+                                                 "deephf",
+                                                 "ruleset1",
+                                                 "lindel",
+                                                 "deepcpf1",
+                                                 "enpamgb",
+                                                 "crisprscan",
+                                                 "casrxrf")
 ){
     guideSet <- .validateGuideSet(guideSet)
     enzyme <- match.arg(enzyme)
@@ -73,6 +106,9 @@ addOnTargetScores <- function(guideSet,
     }
     return(guideSet)
 }
+
+
+
 
 
 

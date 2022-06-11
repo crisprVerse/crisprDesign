@@ -6,7 +6,8 @@
 #'     A score of 1 indicates a PAM sequence that is fully
 #'     recognized by the nuclease.
 #' 
-#' @param guideSet A \linkS4class{GuideSet} object.
+#' @param guideSet A \linkS4class{GuideSet} or a 
+#'     \linkS4class{PairedGuideSet} object.
 #' 
 #' @return \code{guideSet} with an appended \code{score_pam} column in
 #'     \code{mcols(guideSet)}.
@@ -25,8 +26,23 @@
 #' @export
 #' @importFrom crisprBase weights
 #' @importFrom S4Vectors mcols<-
-addPamScores <- function(guideSet
-){
+addPamScores <- function(guideSet){
+    guideSet <- .validateGuideSetOrPairedGuideSet(guideSet)
+    if (.isGuideSet(guideSet)){
+        out <- addPamScores_guideset(guideSet)
+    } else if (.isPairedGuideSet(guideSet)){
+        unifiedGuideSet <- .pairedGuideSet2GuideSet(guideSet)
+        unifiedGuideSet <- addPamScores_guideset(unifiedGuideSet)
+        out <- .addColumnsFromUnifiedGuideSet(guideSet,
+                                              unifiedGuideSet)
+    }
+    return(out)
+}
+
+
+#' @importFrom crisprBase weights
+#' @importFrom S4Vectors mcols<-
+addPamScores_guideset <- function(guideSet){
     guideSet <- .validateGuideSet(guideSet)
     crisprNuclease <- crisprNuclease(guideSet)
     pamScoreWeights <- crisprBase::weights(crisprNuclease, expand=TRUE)

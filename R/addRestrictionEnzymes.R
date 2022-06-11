@@ -61,13 +61,48 @@
 #'                                   patterns=c(EcoRI="GANNTC")) # ignored
 #' 
 #' @export
-#' @importFrom S4Vectors split mcols<-
 addRestrictionEnzymes <- function(guideSet,
                                   enzymeNames=NULL,
                                   patterns=NULL,
                                   includeDefault=TRUE,
                                   flanking5="ACCG",
                                   flanking3="GTTT"
+){
+    guideSet <- .validateGuideSetOrPairedGuideSet(guideSet)
+    if (.isGuideSet(guideSet)){
+        out <- addRestrictionEnzymes_guideset(guideSet,
+                                              enzymeNames=enzymeNames,
+                                              patterns=patterns,
+                                              includeDefault=includeDefault,
+                                              flanking5=flanking5,
+                                              flanking3=flanking3)
+    } else if (.isPairedGuideSet(guideSet)){
+        unifiedGuideSet <- .pairedGuideSet2GuideSet(guideSet)
+        unifiedGuideSet <- addRestrictionEnzymes_guideset(unifiedGuideSet,
+                                                          enzymeNames=enzymeNames,
+                                                          patterns=patterns,
+                                                          includeDefault=includeDefault,
+                                                          flanking5=flanking5,
+                                                          flanking3=flanking3)
+        out <- .addColumnsFromUnifiedGuideSet(guideSet,
+                                              unifiedGuideSet)
+    }
+    return(out)
+}
+
+
+
+
+
+
+
+#' @importFrom S4Vectors split mcols<-
+addRestrictionEnzymes_guideset <- function(guideSet,
+                                           enzymeNames=NULL,
+                                           patterns=NULL,
+                                           includeDefault=TRUE,
+                                           flanking5="ACCG",
+                                           flanking3="GTTT"
 ){
     enzymeAnnotation <- getRestrictionEnzymes(guideSet,
                                               enzymeNames=enzymeNames,
@@ -81,6 +116,10 @@ addRestrictionEnzymes <- function(guideSet,
     S4Vectors::mcols(guideSet)[["enzymeAnnotation"]] <- dfs
     return(guideSet)
 }
+
+
+
+
 
 
 
