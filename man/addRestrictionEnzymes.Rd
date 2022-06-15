@@ -4,7 +4,6 @@
 \alias{addRestrictionEnzymes,GuideSet-method}
 \alias{addRestrictionEnzymes,PairedGuideSet-method}
 \alias{addRestrictionEnzymes,NULL-method}
-\alias{getRestrictionEnzymes}
 \title{Restriction enzyme recognition sites in spacer sequences}
 \usage{
 \S4method{addRestrictionEnzymes}{GuideSet}(
@@ -26,15 +25,6 @@
 )
 
 \S4method{addRestrictionEnzymes}{`NULL`}(object)
-
-getRestrictionEnzymes(
-  guideSet,
-  enzymeNames = NULL,
-  patterns = NULL,
-  includeDefault = TRUE,
-  flanking5 = "ACCG",
-  flanking3 = "GTTT"
-)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} or a 
@@ -57,7 +47,7 @@ sequence, respectively, of the spacer sequence in the lentivial vector.}
     cassette (flanking sequences + spacer sequences).
     
     \code{\link{addRestrictionEnzymes}} adds the annotation from
-    \code{getRestrictionEnzymes} to \code{guideSet}.
+    \code{getRestrictionEnzymes} to \code{object}.
 }
 \description{
 Functions for identifying spacers sequences that contain

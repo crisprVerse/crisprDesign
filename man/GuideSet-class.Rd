@@ -23,8 +23,9 @@
 \alias{snps<-}
 \alias{alignments<-}
 \alias{addOnTargetScores}
-\alias{addSNPAnnotation}
 \alias{addPamScores}
+\alias{addCrispraiScores}
+\alias{addSNPAnnotation}
 \alias{addRestrictionEnzymes}
 \alias{addSequenceFeatures}
 \alias{addRepeats}
@@ -101,9 +102,11 @@ alignments(object) <- value
 
 addOnTargetScores(object, ...)
 
-addSNPAnnotation(object, ...)
-
 addPamScores(object, ...)
+
+addCrispraiScores(object, ...)
+
+addSNPAnnotation(object, ...)
 
 addRestrictionEnzymes(object, ...)
 
@@ -322,9 +325,11 @@ Store genomic alignments of spacer sequences.
 
 Add on-target scores.
 
-Add SNP annotation.
-
 Add PAM scores.
+
+Add CRISPRai scores.
+
+Add SNP annotation.
 
 Add restriction enzymes annotation.
 

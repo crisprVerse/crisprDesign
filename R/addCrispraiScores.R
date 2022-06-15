@@ -4,7 +4,8 @@
 #'    \linkS4class{GuideSet} object. Only available for SpCas9, and for 
 #'    hg38 genome. Requires \pkg{crisprScore} package to be installed.
 #' 
-#' @param guideSet A \linkS4class{GuideSet} object. 
+#' @param object A \linkS4class{GuideSet} object or a 
+#'     \linkS4class{PairedGuideSet} object.
 #' @param gr A \linkS4class{GRanges} object derived from \code{queryTss} used
 #'     to produce the \code{guideSet} object.
 #' @param tssObject  A \linkS4class{GRanges} object containing TSS coordinates
@@ -26,14 +27,16 @@
 #' 
 #' @export
 #' @importFrom crisprScore getCrispraiScores
-addCrispraiScores <- function(guideSet,
-                              gr,
-                              tssObject,
-                              modality=c("CRISPRi", "CRISPRa"),
-                              chromatinFiles=NULL,
-                              fastaFile=NULL
+#' @rdname addCrispraiScores
+setMethod("addCrispraiScores", "GuideSet",
+          function(object,
+                   gr,
+                   tssObject,
+                   modality=c("CRISPRi", "CRISPRa"),
+                   chromatinFiles=NULL,
+                   fastaFile=NULL
 ){
-    crisprNuclease <- crisprNuclease(guideSet)
+    crisprNuclease <- crisprNuclease(object)
     data(SpCas9,
          package="crisprBase",
          envir=environment())
@@ -41,25 +44,62 @@ addCrispraiScores <- function(guideSet,
         stop("[addCrispraiScores] Only SpCas9 is supported at the moment.")
     }
 
-    if (genome(guideSet)[1]!="hg38"){
+    if (genome(object)[1]!="hg38"){
         stop("addCrispraiScores] Only hg38 genome supported at the moment.")
     }
     modality <- match.arg(modality)
     tssFrame  <- .prepareTssFrame(tssObject)
-    grnaFrame <- .prepareGrnaFrame(guideSet, gr)
+    grnaFrame <- .prepareGrnaFrame(object, gr)
     scores <- crisprScore::getCrispraiScores(sgrna_df=grnaFrame,
                                              tss_df=tssFrame,
                                              chromatinFiles=chromatinFiles,
                                              fastaFile=fastaFile,
                                              modality=modality)
-    scores <- scores[match(names(guideSet), rownames(scores)),1]
+    scores <- scores[match(names(object), rownames(scores)),1]
     if (modality=="CRISPRa"){
-        mcols(guideSet)$score_crispra <- scores
+        mcols(object)$score_crispra <- scores
     } else {
-        mcols(guideSet)$score_crispri <- scores
+        mcols(object)$score_crispri <- scores
     }
-    return(guideSet)
-}
+    return(object)
+})
+
+
+
+
+#' @rdname addCrispraiScores
+#' @export
+setMethod("addCrispraiScores", "PairedGuideSet",
+          function(object,
+                   gr,
+                   tssObject,
+                   modality=c("CRISPRi", "CRISPRa"),
+                   chromatinFiles=NULL,
+                   fastaFile=NULL
+){
+    object <- .validatePairedGuideSet(object)
+    unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
+    unifiedGuideSet <- addCrispraiScores(unifiedGuideSet,
+                                         gr=gr,
+                                         tssObject=tssObject,
+                                         modality=modality,
+                                         chromatinFiles=chromatinFiles,
+                                         fastaFile=fastaFile)
+    out <- .addColumnsFromUnifiedGuideSet(object,
+                                          unifiedGuideSet)
+    return(out)
+})
+
+
+
+#' @rdname addCrispraiScores
+#' @export
+setMethod("addCrispraiScores", "NULL", function(object){
+    return(NULL)
+})
+
+
+
 
 
 

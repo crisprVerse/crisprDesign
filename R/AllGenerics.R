@@ -185,18 +185,27 @@ setGeneric("addOnTargetScores",
            function(object, ...) standardGeneric("addOnTargetScores"))
 
 
+#' @description Add PAM scores.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("addPamScores",
+           function(object, ...) standardGeneric("addPamScores"))
+
+
+#' @description Add CRISPRai scores.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("addCrispraiScores",
+           function(object, ...) standardGeneric("addCrispraiScores"))
+
+
+
 #' @description Add SNP annotation.
 #' @rdname GuideSet-class
 #' @export
 setGeneric("addSNPAnnotation",
            function(object, ...) standardGeneric("addSNPAnnotation"))
 
-
-#' @description Add PAM scores.
-#' @rdname GuideSet-class
-#' @export
-setGeneric("addPamScores",
-           function(object, ...) standardGeneric("addPamScores"))
 
 
 #' @description Add restriction enzymes annotation.
@@ -224,7 +233,6 @@ setGeneric("addSequenceFeatures",
 #' @export
 setGeneric("addRepeats",
            function(object, ...) standardGeneric("addRepeats"))
-
 
 
 #' @description Remove rows overlaping repeat elements

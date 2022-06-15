@@ -18,7 +18,7 @@
 #'     cassette (flanking sequences + spacer sequences).
 #'     
 #'     \code{\link{addRestrictionEnzymes}} adds the annotation from
-#'     \code{getRestrictionEnzymes} to \code{guideSet}.
+#'     \code{getRestrictionEnzymes} to \code{object}.
 #' 
 #' @details Restriction enzymes are often used for cloning purpose during the
 #'     oligonucleotide synthesis of gRNA lentiviral constructs. Consequently,
@@ -127,8 +127,6 @@ setMethod("addRestrictionEnzymes", "NULL", function(object){
 
 
 
-#' @rdname addRestrictionEnzymes
-#' @export
 #' @importFrom S4Vectors DataFrame
 getRestrictionEnzymes <- function(guideSet,
                                   enzymeNames=NULL,

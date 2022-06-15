@@ -9,16 +9,16 @@ PairedGuideSet
 
 
 # Done:
-addOnTargetScores.R
 addSNPAnnotation.R
+addOnTargetScores.R
 addPamScores.R  
+addCrispraiScores.R 
 addRestrictionEnzymes.R
 addSequenceFeatures.R  
 addRepeats.R
 
 
 # Not done     
-addCrispraiScores.R 
 addGeneAnnotation.R
 addTssAnnotation.R      
 addSpacerAlignments.R
