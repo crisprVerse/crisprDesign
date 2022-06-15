@@ -741,41 +741,7 @@ onTargets(gs["spacer_1095"])
 
 Note that one can also use the `bowtie` aligner to perform an off-target search to a set of mRNA sequences. This requires building a transcriptome bowtie index first instead of building a genome index. See the `crisprBowtie` vignette for more detail. 
 
-
-
-# Miscellaneous design use cases
-
-## Design with custom sequences
-
-`crisprDesign` also allows gRNA design for DNA sequences without
-genomic context (such as a synthesized DNA construct). See `?findSpacers`
-for more information, and here's an example:
-
-```{r}
-seqs <- c(seq1="AGGCGGAGGCCCGACCCGGGCGCGGGGCGGCGC",
-          seq2="AGGCGGAGGCCCGACCCGGGCGCGGGAAAAAAAGGC")
-gs <- findSpacers(seqs)
-head(gs)
-```
-
-## Off-target search in custom sequences
-
-One can also search for off-targets in a custom sequence as follows:
-
-
-```{r}
-ontarget <- "AAGACCCGGGCGCGGGGCGGGGG"
-offtarget <- "TTGACCCGGGCGCGGGGCGGGGG"
-gs <- findSpacers(ontarget)
-gs <- addSpacerAlignments(gs,
-                          aligner="biostrings",
-                          n_mismatches=2,
-                          custom_seq=offtarget)
-head(alignments(gs))
-```
-
-
-## Design for optical pooled screening (OPS)
+# Design for optical pooled screening (OPS)
 
 
 Optical pooled screening (OPS) combines image-based sequencing (in situ sequencing) of gRNAs and optical phenotyping on the same physical wells [@ops].  In such experiments, gRNA spacer sequences are partially sequenced from the 5 prime end. From a gRNA design perspective, additional gRNA design constraints are needed to ensure sufficient dissimilarity of the truncated spacer sequences. The length of the truncated sequences, which corresponds to the number of sequencing cycles,is fixed and chosen by the experimentalist.
@@ -823,6 +789,42 @@ print(dist)
 ```
 
 The `designOpsLibrary` allows users to perform a complete end-to-end library design; see `?designOpsLibrary` for documentation. 
+
+
+# Design of gRNA pairs with the \code{PairedGuideSet} object
+
+TBD
+
+# Miscellaneous design use cases
+
+## Design with custom sequences
+
+`crisprDesign` also allows gRNA design for DNA sequences without
+genomic context (such as a synthesized DNA construct). See `?findSpacers`
+for more information, and here's an example:
+
+```{r}
+seqs <- c(seq1="AGGCGGAGGCCCGACCCGGGCGCGGGGCGGCGC",
+          seq2="AGGCGGAGGCCCGACCCGGGCGCGGGAAAAAAAGGC")
+gs <- findSpacers(seqs)
+head(gs)
+```
+
+## Off-target search in custom sequences
+
+One can also search for off-targets in a custom sequence as follows:
+
+
+```{r}
+ontarget <- "AAGACCCGGGCGCGGGGCGGGGG"
+offtarget <- "TTGACCCGGGCGCGGGGCGGGGG"
+gs <- findSpacers(ontarget)
+gs <- addSpacerAlignments(gs,
+                          aligner="biostrings",
+                          n_mismatches=2,
+                          custom_seq=offtarget)
+head(alignments(gs))
+```
 
 
 
