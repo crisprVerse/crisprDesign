@@ -90,6 +90,23 @@ setGeneric("onTargets",
            function(object, ...) standardGeneric("onTargets"))
 
 
+
+#' @description Add on-target scores. 
+#' @rdname GuideSet-class
+#' @export
+setGeneric("addOnTargetScores",
+           function(object, ...) standardGeneric("addOnTargetScores"))
+
+
+#' @description Add off-target scores. 
+#' @rdname GuideSet-class
+#' @export
+setGeneric("addOffTargetScores",
+           function(object, ...) standardGeneric("addOffTargetScores"))
+
+
+
+
 #' @description Return off-target alignments of spacer sequences.
 #' @rdname GuideSet-class
 #' @export

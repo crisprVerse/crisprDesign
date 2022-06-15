@@ -28,61 +28,28 @@
 #' }
 #' 
 #' @export
-addOnTargetScores <- function(guideSet,
-                              enzyme=c("WT", "ESP", "HF"),
-                              promoter=c("U6", "T7"),
-                              methods=c("azimuth",
-                                        "deephf",
-                                        "ruleset1",
-                                        "lindel",
-                                        "deepcpf1",
-                                        "enpamgb",
-                                        "crisprscan",
-                                        "casrxrf")
+setMethod("addOnTargetScores", "GuideSet",
+    function(object,
+             enzyme=c("WT", "ESP", "HF"),
+             promoter=c("U6", "T7"),
+             methods=c("azimuth",
+                       "deephf",
+                       "ruleset1",
+                       "lindel",
+                       "deepcpf1",
+                       "enpamgb",
+                       "crisprscan",
+                       "casrxrf")
 ){
-    guideSet <- .validateGuideSetOrPairedGuideSet(guideSet)
-    if (.isGuideSet(guideSet)){
-        out <- addOnTargetScores_guideset(guideSet,
-                                          enzyme=enzyme,
-                                          promoter=promoter,
-                                          methods=methods)
-    } else if (.isPairedGuideSet(guideSet)){
-        unifiedGuideSet <- .pairedGuideSet2GuideSet(guideSet)
-        unifiedGuideSet <- addOnTargetScores_guideset(unifiedGuideSet,
-                                                      enzyme=enzyme,
-                                                      promoter=promoter,
-                                                      methods=methods)
-        out <- .addColumnsFromUnifiedGuideSet(guideSet,
-                                              unifiedGuideSet)
-    }
-    return(out)
-}
-
-
-
-
-#' @importFrom S4Vectors mcols<-
-addOnTargetScores_guideset <- function(guideSet,
-                                       enzyme=c("WT", "ESP", "HF"),
-                                       promoter=c("U6", "T7"),
-                                       methods=c("azimuth",
-                                                 "deephf",
-                                                 "ruleset1",
-                                                 "lindel",
-                                                 "deepcpf1",
-                                                 "enpamgb",
-                                                 "crisprscan",
-                                                 "casrxrf")
-){
-    guideSet <- .validateGuideSet(guideSet)
+    object <- .validateGuideSet(object)
     enzyme <- match.arg(enzyme)
     promoter <- match.arg(promoter)
-    crisprNuclease <- crisprNuclease(guideSet)
+    crisprNuclease <- crisprNuclease(object)
     
     methods <- .validateOnTargetScoreMethods(methods=methods,
                                              crisprNuclease=crisprNuclease)
 
-    valid <- .validSpacersForOnTargetScores(guideSet=guideSet,
+    valid <- .validSpacersForOnTargetScores(guideSet=object,
                                             crisprNuclease=crisprNuclease)
     if (!any(valid)){
         warning("No valid chromosome data or PAM sequences; ",
@@ -95,19 +62,45 @@ addOnTargetScores_guideset <- function(guideSet,
                              " scores. \n")
             message(status)
         }
-        scores <- .getOnTargetScores(guideSet=guideSet[valid],
+        scores <- .getOnTargetScores(guideSet=object[valid],
                                      method=i,
                                      promoter=promoter,
                                      enzyme=enzyme)
         scoreColname <- paste0("score_", i)
-        S4Vectors::mcols(guideSet)[[scoreColname]] <- rep(NA,
-                                                          length(guideSet))
-        S4Vectors::mcols(guideSet)[[scoreColname]][valid] <- scores
+        S4Vectors::mcols(object)[[scoreColname]] <- rep(NA,
+                                                          length(object))
+        S4Vectors::mcols(object)[[scoreColname]][valid] <- scores
     }
-    return(guideSet)
-}
+    return(object)
+})
 
 
+
+#' @rdname addOnTargetScores
+#' @export
+setMethod("addOnTargetScores", "PairedGuideSet",
+          function(object,
+                   enzyme=c("WT", "ESP", "HF"),
+                   promoter=c("U6", "T7"),
+                   methods=c("azimuth",
+                             "deephf",
+                             "ruleset1",
+                             "lindel",
+                             "deepcpf1",
+                             "enpamgb",
+                             "crisprscan",
+                             "casrxrf")
+){
+    object <- .validatePairedGuideSet(object)
+    unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
+    unifiedGuideSet <- addOnTargetScores_guideset(unifiedGuideSet,
+                                                  enzyme=enzyme,
+                                                  promoter=promoter,
+                                                  methods=methods)
+    out <- .addColumnsFromUnifiedGuideSet(object,
+                                          unifiedGuideSet)
+    return(out)
+})
 
 
 
