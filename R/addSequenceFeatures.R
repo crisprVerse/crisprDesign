@@ -4,7 +4,8 @@
 #'     GC content, homopolymers, and hairpin predictions, to a
 #'     \linkS4class{GuideSet} object.
 #' 
-#' @param guideSet A \linkS4class{GuideSet} object.
+#' @param object A \linkS4class{GuideSet} or a 
+#'     \linkS4class{PairedGuideSet} object.
 #' @param addHairpin Whether to include predicted hairpin formation via
 #'     sequence complementarity. FALSE by default. See details.
 #' @param backbone Backbone sequence in the guide RNA that is susceptible

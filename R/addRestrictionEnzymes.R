@@ -3,7 +3,8 @@
 #' @description Functions for identifying spacers sequences that contain
 #'     restriction recognition sites for specific restriction enzymes.
 #' 
-#' @param guideSet A \linkS4class{GuideSet} object.
+#' @param object A \linkS4class{GuideSet} or a 
+#'     \linkS4class{PairedGuideSet} object.
 #' @param enzymeNames Character vector of enzyme names. 
 #' @param patterns Optional named character vector for custom restriction site
 #'     patterns. Vector names are treated as enzymes names. See example.

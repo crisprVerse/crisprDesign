@@ -37,6 +37,9 @@ getRestrictionEnzymes(
 )
 }
 \arguments{
+\item{object}{A \linkS4class{GuideSet} or a 
+\linkS4class{PairedGuideSet} object.}
+
 \item{enzymeNames}{Character vector of enzyme names.}
 
 \item{patterns}{Optional named character vector for custom restriction site
@@ -47,8 +50,6 @@ TRUE by default.}
 
 \item{flanking5, flanking3}{Character string indicating the 5' or 3' flanking
 sequence, respectively, of the spacer sequence in the lentivial vector.}
-
-\item{guideSet}{A \linkS4class{GuideSet} object.}
 }
 \value{
 \code{\link{getRestrictionEnzymes}} returns a DataFrame indicating

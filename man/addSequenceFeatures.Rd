@@ -14,13 +14,14 @@
 \S4method{addSequenceFeatures}{`NULL`}(object)
 }
 \arguments{
+\item{object}{A \linkS4class{GuideSet} or a 
+\linkS4class{PairedGuideSet} object.}
+
 \item{addHairpin}{Whether to include predicted hairpin formation via
 sequence complementarity. FALSE by default. See details.}
 
 \item{backbone}{Backbone sequence in the guide RNA that is susceptible
 to hairpin formation with a complementary region in the spacer sequence.}
-
-\item{guideSet}{A \linkS4class{GuideSet} object.}
 }
 \value{
 \code{guideSet} with the following columns appended to

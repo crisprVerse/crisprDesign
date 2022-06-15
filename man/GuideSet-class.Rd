@@ -10,23 +10,25 @@
 \alias{protospacers}
 \alias{pamSites}
 \alias{snps}
-\alias{snps<-}
 \alias{alignments}
-\alias{alignments<-}
 \alias{onTargets}
+\alias{offTargets}
+\alias{geneAnnotation}
+\alias{tssAnnotation}
+\alias{enzymeAnnotation}
+\alias{editedAlleles}
+\alias{tssAnnotation<-}
+\alias{geneAnnotation<-}
+\alias{enzymeAnnotation<-}
+\alias{snps<-}
+\alias{alignments<-}
 \alias{addOnTargetScores}
 \alias{addSNPAnnotation}
 \alias{addPamScores}
 \alias{addRestrictionEnzymes}
 \alias{addSequenceFeatures}
-\alias{offTargets}
-\alias{geneAnnotation}
-\alias{geneAnnotation<-}
-\alias{tssAnnotation}
-\alias{tssAnnotation<-}
-\alias{enzymeAnnotation}
-\alias{enzymeAnnotation<-}
-\alias{editedAlleles}
+\alias{addRepeats}
+\alias{removeRepeats}
 \alias{GuideSet-class}
 \alias{GuideSet}
 \alias{targetOrigin,GuideSet-method}
@@ -73,13 +75,29 @@ pamSites(object, ...)
 
 snps(object, ...)
 
-snps(object) <- value
-
 alignments(object, ...)
 
-alignments(object) <- value
-
 onTargets(object, ...)
+
+offTargets(object, ...)
+
+geneAnnotation(object, ...)
+
+tssAnnotation(object, ...)
+
+enzymeAnnotation(object, ...)
+
+editedAlleles(object, ...)
+
+tssAnnotation(object) <- value
+
+geneAnnotation(object) <- value
+
+enzymeAnnotation(object) <- value
+
+snps(object) <- value
+
+alignments(object) <- value
 
 addOnTargetScores(object, ...)
 
@@ -91,21 +109,11 @@ addRestrictionEnzymes(object, ...)
 
 addSequenceFeatures(object, ...)
 
-offTargets(object, ...)
+addSequenceFeatures(object, ...)
 
-geneAnnotation(object, ...)
+addRepeats(object, ...)
 
-geneAnnotation(object) <- value
-
-tssAnnotation(object, ...)
-
-tssAnnotation(object) <- value
-
-enzymeAnnotation(object, ...)
-
-enzymeAnnotation(object) <- value
-
-editedAlleles(object, ...)
+removeRepeats(object, ...)
 
 GuideSet(
   protospacers = NA_character_,
@@ -288,13 +296,29 @@ Return PAM site coordinates.
 
 Return SNP annotation.
 
-Store SNP annotation.
-
 Return genomic alignments of spacer sequences.
 
-Store genomic alignments of spacer sequences.
-
 Return on-target alignments of spacer sequences.
+
+Return off-target alignments of spacer sequences.
+
+Return gene annotation table of spacer sequences.
+
+Return TSS annotation table of spacer sequences.
+
+Return restriction enzymes annotation table.
+
+Return list of edited alleles
+
+Store TSS annotation table of spacer sequences.
+
+Store gene annotation table of spacer sequences.
+
+Store restriction enzymes annotation table.
+
+Store SNP annotation.
+
+Store genomic alignments of spacer sequences.
 
 Add on-target scores.
 
@@ -306,21 +330,11 @@ Add restriction enzymes annotation.
 
 Add spacer sequence features.
 
-Return off-target alignments of spacer sequences.
+Add spacer sequence features.
 
-Return gene annotation table of spacer sequences.
+Annotate with repeat elements
 
-Store gene annotation table of spacer sequences.
-
-Return TSS annotation table of spacer sequences.
-
-Store TSS annotation table of spacer sequences.
-
-Return restriction enzymes annotation table.
-
-Store restriction enzymes annotation table.
-
-Return list of edited alleles
+Remove rows overlaping repeat elements
 }
 \section{Functions}{
 \itemize{

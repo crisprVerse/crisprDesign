@@ -2,7 +2,8 @@
 #' @description Add an annotation column to a \linkS4class{GuideSet} object
 #'     that identifies spacer sequences overlapping repeat elements.
 #' 
-#' @param guideSet A \linkS4class{GuideSet} object.
+#' @param object A \linkS4class{GuideSet} object or a 
+#'     \linkS4class{PairedGuideSet} object.
 #' @param gr.repeats A \linkS4class{GRanges} object containing repeat
 #'     elements regions.
 #' @param ignore.strand Should gene strand be ignored when annotating?
@@ -25,36 +26,66 @@
 #' @export
 #' @importFrom GenomicRanges findOverlaps
 #' @importFrom S4Vectors queryHits
-addRepeats <- function(guideSet,
-                       gr.repeats=NULL,
-                       ignore.strand=TRUE
+#' @rdname addRepeats
+setMethod("addRepeats", "GuideSet", function(object,
+                                             gr.repeats=NULL,
+                                             ignore.strand=TRUE
 ){
-    guideSet <- .validateGuideSet(guideSet)
+    object <- .validateGuideSet(object)
     stopifnot("gr.repeats must be a GRanges object" = {
         is(gr.repeats, "GRanges")
     })
-    repeatOverlaps <- GenomicRanges::findOverlaps(guideSet,
+    repeatOverlaps <- GenomicRanges::findOverlaps(object,
                                                   gr.repeats,
                                                   ignore.strand=ignore.strand)
     guidesInRepeats <- S4Vectors::queryHits(repeatOverlaps)
-    guideSet$inRepeats <- seq_along(guideSet) %in% guidesInRepeats
-    return(guideSet)
-}
+    object$inRepeats <- seq_along(object) %in% guidesInRepeats
+    return(object)
+})
+
+
+#' @export
+#' @rdname addRepeats
+setMethod("addRepeats", "PairedGuideSet", function(object,
+                                                   gr.repeats=NULL,
+                                                   ignore.strand=TRUE
+){
+    object <- .validatePairedGuideSet(object)
+    unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
+    unifiedGuideSet <- addRepeats(unifiedGuideSet,
+                                  gr.repeats=gr.repeats,
+                                  ignore.strand=ignore.strand)
+    out <- .addColumnsFromUnifiedGuideSet(object,
+                                          unifiedGuideSet)
+    return(out)
+})
+
+
+
+#' @rdname addRepeats
+#' @export
+setMethod("addRepeats", "NULL", function(object){
+    return(NULL)
+})
+
+
+
 
 
 #' @title Remove \linkS4class{GuideSet} gRNAs that overlap repeat elements
 #' @description Remove \linkS4class{GuideSet} gRNAs that overlap repeat
 #'     elements.
 #' 
-#' @param guideSet A \linkS4class{GuideSet} object.
+#' @param object A \linkS4class{GuideSet} object or a 
+#'     \linkS4class{PairedGuideSet} object.
 #' @param gr.repeats A \linkS4class{GRanges} object containing
 #'     repeat elements regions.
 #' @param ignore.strand Should gene strand be ignored when annotating?
 #'     TRUE by default. 
 #' 
-#' @return \code{guideSet} filtered for spacer sequences not overlapping
+#' @return \code{object} filtered for spacer sequences not overlapping
 #'     any repeat elements. An \code{inRepeats} column is also appended in
-#'     \code{mcols(guideSet)}.
+#'     \code{mcols(object)}.
 #' 
 #' @author Jean-Philippe Fortin, Luke Hoberecht
 #' 
@@ -67,13 +98,42 @@ addRepeats <- function(guideSet,
 #'                           gr.repeats=grRepeatsExample)
 #' 
 #' @export
-removeRepeats <- function(guideSet,
-                          gr.repeats,
-                          ignore.strand=TRUE
+#' @rdname removeRepeats
+setMethod("removeRepeats", "GuideSet", function(object,
+                                                gr.repeats=NULL,
+                                                ignore.strand=TRUE
 ){
-    guideSet <- addRepeats(guideSet,
-                           gr.repeats=gr.repeats,
-                           ignore.strand=ignore.strand)
-    guideSet <- guideSet[!guideSet$inRepeats]
-    return(guideSet)
-}
+    object <- addRepeats(object,
+                         gr.repeats=gr.repeats,
+                         ignore.strand=ignore.strand)
+    object <- object[!object$inRepeats]
+    return(object)
+})
+
+
+#' @export
+#' @rdname removeRepeats
+setMethod("removeRepeats", "PairedGuideSet", function(object,
+                                                      gr.repeats=NULL,
+                                                      ignore.strand=TRUE
+){
+    object <- .validatePairedGuideSet(object)
+    gs1 <- addRepeats(first(object),
+                      gr.repeats=gr.repeats,
+                      ignore.strand=ignore.strand)
+    gs2 <- addRepeats(second(object),
+                      gr.repeats=gr.repeats,
+                      ignore.strand=ignore.strand)
+    toKeep <- !gs1$inRepeats & !gs2$inRepeats
+    object <- object[toKeep]
+    return(object)
+})
+
+
+
+#' @rdname removeRepeats
+#' @export
+setMethod("removeRepeats", "NULL", function(object){
+    return(NULL)
+})
+

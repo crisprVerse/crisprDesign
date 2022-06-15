@@ -8,20 +8,20 @@ PairedGuideSet
 - Create a findPairedSpacers function.
 
 
-
 # Done:
 addOnTargetScores.R
 addSNPAnnotation.R
 addPamScores.R  
 addRestrictionEnzymes.R
 addSequenceFeatures.R  
+addRepeats.R
 
 
 # Not done     
 addCrispraiScores.R 
 addGeneAnnotation.R
-addRepeats.R
+addTssAnnotation.R      
 addSpacerAlignments.R
 addOffTargetScores.R
-addTssAnnotation.R      
+
 

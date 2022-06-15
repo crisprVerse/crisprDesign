@@ -1,3 +1,5 @@
+############# Getter methods #############
+
 #' @description Return \linkS4class{CrisprNuclease} object.
 #' @rdname GuideSet-class
 #' @export
@@ -20,13 +22,12 @@ setGeneric("customSequences",
            function(object, ...) standardGeneric("customSequences"))
 
 
+
 #' @description Return BSgenome object used for designing gRNAs.
 #' @rdname GuideSet-class
 #' @export
 setGeneric("bsgenome",
            function(object, ...) standardGeneric("bsgenome"))
-
-
 
 
 #' @description Return spacer sequences.
@@ -58,20 +59,113 @@ setGeneric("snps",
            function(object, ...) standardGeneric("snps"))
 
 
-#' @description Store SNP annotation.
-#' @rdname GuideSet-class
-#' @export
-setGeneric("snps<-",
-           function(object, value) standardGeneric("snps<-"))
-
-
-
 #' @description Return genomic alignments of spacer sequences.
 #' @rdname GuideSet-class
 #' @export
 setGeneric("alignments",
            function(object, ...) standardGeneric("alignments"))
 
+
+#' @description Return on-target alignments of spacer sequences.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("onTargets",
+           function(object, ...) standardGeneric("onTargets"))
+
+
+#' @description Return off-target alignments of spacer sequences.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("offTargets",
+           function(object, ...) standardGeneric("offTargets"))
+
+
+#' @description Return gene annotation table of spacer sequences.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("geneAnnotation",
+           function(object, ...) standardGeneric("geneAnnotation"))
+
+
+#' @description Return TSS annotation table of spacer sequences.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("tssAnnotation",
+           function(object, ...) standardGeneric("tssAnnotation"))
+
+
+#' @description Return restriction enzymes annotation table.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("enzymeAnnotation",
+           function(object, ...) standardGeneric("enzymeAnnotation"))
+
+
+#' @description Return list of edited alleles
+#' @rdname GuideSet-class
+#' @export
+setGeneric("editedAlleles",
+           function(object, ...) standardGeneric("editedAlleles"))
+
+#' @description Return PAM orientation configuration
+#' @rdname PairedGuideSet-class
+#' @export
+setGeneric("pamOrientation",
+           function(object, ...) standardGeneric("pamOrientation"))
+
+
+#' @description Return distance between PAM sites from paired gRNAs
+#' @rdname PairedGuideSet-class
+#' @export
+setGeneric("pamDistance",
+           function(object, ...) standardGeneric("pamDistance"))
+
+
+
+#' @description Return distance between spacer sequences from paired gRNAs
+#' @rdname PairedGuideSet-class
+#' @export
+setGeneric("spacerDistance",
+           function(object, ...) standardGeneric("spacerDistance"))
+
+
+#' @description Return cut length resulting from paired gRNAs
+#' @rdname PairedGuideSet-class
+#' @export
+setGeneric("cutLength",
+           function(object, ...) standardGeneric("cutLength"))
+
+
+
+
+############# Setter methods #############
+
+#' @description Store TSS annotation table of spacer sequences.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("tssAnnotation<-",
+           function(object, value) standardGeneric("tssAnnotation<-"))
+
+
+#' @description Store gene annotation table of spacer sequences.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("geneAnnotation<-",
+           function(object, value) standardGeneric("geneAnnotation<-"))
+
+
+#' @description Store restriction enzymes annotation table.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("enzymeAnnotation<-",
+           function(object, value) standardGeneric("enzymeAnnotation<-"))
+
+
+#' @description Store SNP annotation.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("snps<-",
+           function(object, value) standardGeneric("snps<-"))
 
 #' @description Store genomic alignments of spacer sequences.
 #' @rdname GuideSet-class
@@ -82,14 +176,7 @@ setGeneric("alignments<-",
 
 
 
-
-#' @description Return on-target alignments of spacer sequences.
-#' @rdname GuideSet-class
-#' @export
-setGeneric("onTargets",
-           function(object, ...) standardGeneric("onTargets"))
-
-
+############# Add methods #############
 
 #' @description Add on-target scores.
 #' @rdname GuideSet-class
@@ -125,95 +212,30 @@ setGeneric("addRestrictionEnzymes",
 setGeneric("addSequenceFeatures",
            function(object, ...) standardGeneric("addSequenceFeatures"))
 
-
-
-#' @description Return off-target alignments of spacer sequences.
+#' @description Add spacer sequence features.
 #' @rdname GuideSet-class
 #' @export
-setGeneric("offTargets",
-           function(object, ...) standardGeneric("offTargets"))
+setGeneric("addSequenceFeatures",
+           function(object, ...) standardGeneric("addSequenceFeatures"))
 
 
-
-#' @description Return gene annotation table of spacer sequences.
+#' @description Annotate with repeat elements
 #' @rdname GuideSet-class
 #' @export
-setGeneric("geneAnnotation",
-           function(object, ...) standardGeneric("geneAnnotation"))
+setGeneric("addRepeats",
+           function(object, ...) standardGeneric("addRepeats"))
 
 
-#' @description Store gene annotation table of spacer sequences.
+
+#' @description Remove rows overlaping repeat elements
 #' @rdname GuideSet-class
 #' @export
-setGeneric("geneAnnotation<-",
-           function(object, value) standardGeneric("geneAnnotation<-"))
-
-
-
-#' @description Return TSS annotation table of spacer sequences.
-#' @rdname GuideSet-class
-#' @export
-setGeneric("tssAnnotation",
-           function(object, ...) standardGeneric("tssAnnotation"))
-
-#' @description Store TSS annotation table of spacer sequences.
-#' @rdname GuideSet-class
-#' @export
-setGeneric("tssAnnotation<-",
-           function(object, value) standardGeneric("tssAnnotation<-"))
-
-
-
-#' @description Return restriction enzymes annotation table.
-#' @rdname GuideSet-class
-#' @export
-setGeneric("enzymeAnnotation",
-           function(object, ...) standardGeneric("enzymeAnnotation"))
-
-
-#' @description Store restriction enzymes annotation table.
-#' @rdname GuideSet-class
-#' @export
-setGeneric("enzymeAnnotation<-",
-           function(object, value) standardGeneric("enzymeAnnotation<-"))
-
-
-#' @description Return list of edited alleles
-#' @rdname GuideSet-class
-#' @export
-setGeneric("editedAlleles",
-           function(object, ...) standardGeneric("editedAlleles"))
+setGeneric("removeRepeats",
+           function(object, ...) standardGeneric("removeRepeats"))
 
 
 
 
-#' @description Return PAM orientation configuration
-#' @rdname PairedGuideSet-class
-#' @export
-setGeneric("pamOrientation",
-           function(object, ...) standardGeneric("pamOrientation"))
-
-
-#' @description Return distance between PAM sites from paired gRNAs
-#' @rdname PairedGuideSet-class
-#' @export
-setGeneric("pamDistance",
-           function(object, ...) standardGeneric("pamDistance"))
-
-
-
-#' @description Return distance between spacer sequences from paired gRNAs
-#' @rdname PairedGuideSet-class
-#' @export
-setGeneric("spacerDistance",
-           function(object, ...) standardGeneric("spacerDistance"))
-
-
-#' @description Return cut length resulting from paired gRNAs
-#' @rdname PairedGuideSet-class
-#' @export
-setGeneric("cutLength",
-           function(object, ...) standardGeneric("cutLength"))
 
 
 
