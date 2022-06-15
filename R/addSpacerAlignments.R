@@ -393,7 +393,7 @@ getSpacerAlignments <- function(spacers,
         stop("BWA aligner not available for windows machines. ",
              "Use bowtie instead")
     }
-    if (!requireNamespace("crisprBwa")){
+    if (!requireNamespace("crisprBwa" & aligner=="bwa")){
         stop("Please install crisprBwa to use BWA alignment.")
     }
 
