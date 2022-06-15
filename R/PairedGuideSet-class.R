@@ -10,16 +10,6 @@ setClass("PairedGuideSet", contains="Pairs")
 
 
 
-# pairedGuideSet <- pgs
-# unifiedGuideSet <- .pairedGuideSetToGuideSet(pgs)
-# unifiedGuideSet <- addPamScores(unifiedGuideSet)
-# pairedGuideSet <- .addColumnsFromUnifiedGuideSet(pgs,
-#                                                  unifiedGuideSet)
-
-
-
-
-
 
 
 #' @describeIn PairedGuideSet Create a \linkS4class{PairedGuideSet} object
@@ -485,6 +475,8 @@ setMethod("pamSide", "PairedGuideSet",
                                                  unifiedGuideSet)
     return(pairedGuideSet)
 }
+
+
 
 # Doing the heavy lifting for .addColumnsFromUnifiedGuideSet
 .borrowAnnotations <- function(targetGuideSet,

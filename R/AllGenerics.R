@@ -105,27 +105,25 @@ setGeneric("addSNPAnnotation",
            function(object, ...) standardGeneric("addSNPAnnotation"))
 
 
-# #' @description Add PAM scores.
-# #' @rdname GuideSet-class
-# #' @export
-# setGeneric("addPamScores",
-#            function(object, ...) standardGeneric("addPamScores"))
+#' @description Add PAM scores.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("addPamScores",
+           function(object, ...) standardGeneric("addPamScores"))
 
 
-# #' @description Add restriction enzymes annotation.
-# #' @rdname GuideSet-class
-# #' @export
-# setGeneric("addRestrictionEnzymes",
-#            function(object, ...) standardGeneric("addRestrictionEnzymes"))
+#' @description Add restriction enzymes annotation.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("addRestrictionEnzymes",
+           function(object, ...) standardGeneric("addRestrictionEnzymes"))
 
 
-# #' @description Add spacer sequence features.
-# #' @rdname GuideSet-class
-# #' @export
-# setGeneric("addSequenceFeatures",
-#            function(object, ...) standardGeneric("addSequenceFeatures"))
-
-
+#' @description Add spacer sequence features.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("addSequenceFeatures",
+           function(object, ...) standardGeneric("addSequenceFeatures"))
 
 
 

@@ -35,51 +35,55 @@
 #' guideSet <- addSequenceFeatures(guideSet)
 #' 
 #' 
-#' 
-#' @export
-addSequenceFeatures <- function(guideSet,
-                                addHairpin=FALSE,
-                                backbone="AGGCTAGTCCGT"
-){
-    guideSet <- .validateGuideSetOrPairedGuideSet(guideSet)
-    if (.isGuideSet(guideSet)){
-        out <- addSequenceFeatures_guideset(guideSet,
-                                            addHairpin=addHairpin,
-                                            backbone=backbone)
-    } else if (.isPairedGuideSet(guideSet)){
-        unifiedGuideSet <- .pairedGuideSet2GuideSet(guideSet)
-        unifiedGuideSet <- addSequenceFeatures_guideset(unifiedGuideSet,
-                                                        addHairpin=addHairpin,
-                                                        backbone=backbone)
-        out <- .addColumnsFromUnifiedGuideSet(guideSet,
-                                              unifiedGuideSet)
-    }
-    return(out)
-}
-
-
-
+#' @rdname addSequenceFeatures
 #' @importFrom S4Vectors mcols<-
-addSequenceFeatures_guideset <- function(guideSet,
-                                         addHairpin=FALSE,
-                                         backbone="AGGCTAGTCCGT"
+setMethod("addSequenceFeatures", "GuideSet", function(object,
+                                                      addHairpin=FALSE,
+                                                      backbone="AGGCTAGTCCGT"
 ){
-    guideSet <- .validateGuideSet(guideSet)
+    object <- .validateGuideSet(object)
     
-    seqs <- spacers(guideSet)
-    guideSet <- .addPercentGC(guideSet, seqs)
-    guideSet <- .addHomopolymers(guideSet, seqs)
-    S4Vectors::mcols(guideSet)[["startingGGGGG"]] <- grepl("^GGGGG", seqs)
+    seqs <- spacers(object)
+    object <- .addPercentGC(object, seqs)
+    object <- .addHomopolymers(object, seqs)
+    S4Vectors::mcols(object)[["startingGGGGG"]] <- grepl("^GGGGG", seqs)
     
     stopifnot("addHairpin must be TRUE or FALSE" = {
         isTRUEorFALSE(addHairpin)
     })
     if (addHairpin){
-        guideSet <- .addHairpins(guideSet, seqs, backbone)
+        object <- .addHairpins(object, seqs, backbone)
     }
     
-    return(guideSet)
-}
+    return(object)
+})
+
+
+#' @rdname addSequenceFeatures
+#' @export
+setMethod("addSequenceFeatures",
+          "PairedGuideSet", function(object,
+                                     addHairpin=FALSE,
+                                     backbone="AGGCTAGTCCGT"
+){
+    object <- .validateGuideSetOrPairedGuideSet(object)
+    unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
+    unifiedGuideSet <- addSequenceFeatures(unifiedGuideSet,
+                                           addHairpin=addHairpin,
+                                           backbone=backbone)
+    out <- .addColumnsFromUnifiedGuideSet(object,
+                                          unifiedGuideSet)
+    return(out)
+})
+
+
+#' @rdname addSequenceFeatures
+#' @export
+setMethod("addSequenceFeatures", "NULL", function(object){
+    return(NULL)
+})
+
+
 
 
 

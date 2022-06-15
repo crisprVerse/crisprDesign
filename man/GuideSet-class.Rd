@@ -16,6 +16,9 @@
 \alias{onTargets}
 \alias{addOnTargetScores}
 \alias{addSNPAnnotation}
+\alias{addPamScores}
+\alias{addRestrictionEnzymes}
+\alias{addSequenceFeatures}
 \alias{offTargets}
 \alias{geneAnnotation}
 \alias{geneAnnotation<-}
@@ -81,6 +84,12 @@ onTargets(object, ...)
 addOnTargetScores(object, ...)
 
 addSNPAnnotation(object, ...)
+
+addPamScores(object, ...)
+
+addRestrictionEnzymes(object, ...)
+
+addSequenceFeatures(object, ...)
 
 offTargets(object, ...)
 
@@ -290,6 +299,12 @@ Return on-target alignments of spacer sequences.
 Add on-target scores.
 
 Add SNP annotation.
+
+Add PAM scores.
+
+Add restriction enzymes annotation.
+
+Add spacer sequence features.
 
 Return off-target alignments of spacer sequences.
 

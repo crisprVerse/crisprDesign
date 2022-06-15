@@ -61,50 +61,16 @@
 #'                                   patterns=c(EcoRI="GANNTC")) # ignored
 #' 
 #' @export
-addRestrictionEnzymes <- function(guideSet,
-                                  enzymeNames=NULL,
-                                  patterns=NULL,
-                                  includeDefault=TRUE,
-                                  flanking5="ACCG",
-                                  flanking3="GTTT"
-){
-    guideSet <- .validateGuideSetOrPairedGuideSet(guideSet)
-    if (.isGuideSet(guideSet)){
-        out <- addRestrictionEnzymes_guideset(guideSet,
-                                              enzymeNames=enzymeNames,
-                                              patterns=patterns,
-                                              includeDefault=includeDefault,
-                                              flanking5=flanking5,
-                                              flanking3=flanking3)
-    } else if (.isPairedGuideSet(guideSet)){
-        unifiedGuideSet <- .pairedGuideSet2GuideSet(guideSet)
-        unifiedGuideSet <- addRestrictionEnzymes_guideset(unifiedGuideSet,
-                                                          enzymeNames=enzymeNames,
-                                                          patterns=patterns,
-                                                          includeDefault=includeDefault,
-                                                          flanking5=flanking5,
-                                                          flanking3=flanking3)
-        out <- .addColumnsFromUnifiedGuideSet(guideSet,
-                                              unifiedGuideSet)
-    }
-    return(out)
-}
-
-
-
-
-
-
-
+#' @rdname addRestrictionEnzymes
 #' @importFrom S4Vectors split mcols<-
-addRestrictionEnzymes_guideset <- function(guideSet,
-                                           enzymeNames=NULL,
-                                           patterns=NULL,
-                                           includeDefault=TRUE,
-                                           flanking5="ACCG",
-                                           flanking3="GTTT"
+setMethod("addRestrictionEnzymes", "GuideSet", function(object,
+                                                        enzymeNames=NULL,
+                                                        patterns=NULL,
+                                                        includeDefault=TRUE,
+                                                        flanking5="ACCG",
+                                                        flanking3="GTTT"
 ){
-    enzymeAnnotation <- getRestrictionEnzymes(guideSet,
+    enzymeAnnotation <- getRestrictionEnzymes(object,
                                               enzymeNames=enzymeNames,
                                               patterns=patterns,
                                               includeDefault=includeDefault,
@@ -112,10 +78,46 @@ addRestrictionEnzymes_guideset <- function(guideSet,
                                               flanking3=flanking3)
     dfs <- S4Vectors::split(enzymeAnnotation,
                             f=factor(rownames(enzymeAnnotation),
-                                     levels=names(guideSet)))
-    S4Vectors::mcols(guideSet)[["enzymeAnnotation"]] <- dfs
-    return(guideSet)
-}
+                                     levels=names(object)))
+    S4Vectors::mcols(object)[["enzymeAnnotation"]] <- dfs
+    return(object)
+})
+
+
+#' @export
+#' @rdname addRestrictionEnzymes
+setMethod("addRestrictionEnzymes",
+          "PairedGuideSet", function(object,
+                                     enzymeNames=NULL,
+                                     patterns=NULL,
+                                     includeDefault=TRUE,
+                                     flanking5="ACCG",
+                                     flanking3="GTTT"
+){
+    object <- .validatePairedGuideSet(object)
+    unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
+    unifiedGuideSet <- addRestrictionEnzymes(unifiedGuideSet,
+                                             enzymeNames=enzymeNames,
+                                             patterns=patterns,
+                                             includeDefault=includeDefault,
+                                             flanking5=flanking5,
+                                             flanking3=flanking3)
+    out <- .addColumnsFromUnifiedGuideSet(object,
+                                          unifiedGuideSet)
+    return(out)
+})
+
+
+
+
+
+
+#' @rdname addRestrictionEnzymes
+#' @export
+setMethod("addRestrictionEnzymes", "NULL", function(object){
+    return(NULL)
+})
+
 
 
 
