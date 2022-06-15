@@ -91,18 +91,40 @@ setGeneric("onTargets",
 
 
 
-#' @description Add on-target scores. 
+#' @description Add on-target scores.
 #' @rdname GuideSet-class
 #' @export
 setGeneric("addOnTargetScores",
            function(object, ...) standardGeneric("addOnTargetScores"))
 
 
-#' @description Add off-target scores. 
+#' @description Add SNP annotation.
 #' @rdname GuideSet-class
 #' @export
-setGeneric("addOffTargetScores",
-           function(object, ...) standardGeneric("addOffTargetScores"))
+setGeneric("addSNPAnnotation",
+           function(object, ...) standardGeneric("addSNPAnnotation"))
+
+
+# #' @description Add PAM scores.
+# #' @rdname GuideSet-class
+# #' @export
+# setGeneric("addPamScores",
+#            function(object, ...) standardGeneric("addPamScores"))
+
+
+# #' @description Add restriction enzymes annotation.
+# #' @rdname GuideSet-class
+# #' @export
+# setGeneric("addRestrictionEnzymes",
+#            function(object, ...) standardGeneric("addRestrictionEnzymes"))
+
+
+# #' @description Add spacer sequence features.
+# #' @rdname GuideSet-class
+# #' @export
+# setGeneric("addSequenceFeatures",
+#            function(object, ...) standardGeneric("addSequenceFeatures"))
+
 
 
 

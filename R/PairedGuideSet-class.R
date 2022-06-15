@@ -8,10 +8,40 @@
 setClass("PairedGuideSet", contains="Pairs")
 
 
+
+
+# pairedGuideSet <- pgs
+# unifiedGuideSet <- .pairedGuideSetToGuideSet(pgs)
+# unifiedGuideSet <- addPamScores(unifiedGuideSet)
+# pairedGuideSet <- .addColumnsFromUnifiedGuideSet(pgs,
+#                                                  unifiedGuideSet)
+
+
+
+
+
+
+
+#' @describeIn PairedGuideSet Create a \linkS4class{PairedGuideSet} object
+#' @param GuideSet1 A \linkS4class{GuideSet} object containing gRNAs at
+#'     the first position of the pairs.
+#' @param GuideSet2 A \linkS4class{GuideSet} object containing gRNAs at
+#'     the second position of the pairs.
+#' 
+#' @return A PairedGuideSet object.
+#' @examples
+#' library(crisprDesign)
+#' data(guideSetExample, package="crisprDesign")
+#' gs <- guideSetExample
+#' gs <- gs[order(BiocGenerics::start(gs))]
+#' gs1 <- gs[1:10]
+#' gs2 <- gs[1:10+10]
+#' pgs <- PairedGuideSet(gs1, gs2)
+#' @export
 #' @importFrom S4Vectors Pairs
 #' @export
-PairedGuideSet <- function(GuideSet1 = NULL,
-                           GuideSet2 = NULL
+PairedGuideSet <- function(GuideSet1=NULL,
+                           GuideSet2=NULL
 ){
     .checkCutSitesOrder(GuideSet1, GuideSet2)
     pgs <- Pairs(GuideSet1, GuideSet2)
@@ -491,22 +521,6 @@ setMethod("pamSide", "PairedGuideSet",
 }
 
 
-
-
-# library(crisprDesign)
-# gs <- guideSetExample
-# gs <- gs[order(BiocGenerics::start(gs))]
-# gs1 <- c(gs[1:10],gs[1:10])
-# gs2 <- c(gs[5:14+3],gs[5:14+80])
-# pgs <- PairedGuideSet(gs1, gs2)
-# gs <- .pairedGuideSetToGuideSet(pgs)
-
-
-# pairedGuideSet <- pgs
-# unifiedGuideSet <- .pairedGuideSetToGuideSet(pgs)
-# unifiedGuideSet <- addPamScores(unifiedGuideSet)
-# pairedGuideSet <- .addColumnsFromUnifiedGuideSet(pgs,
-#                                                  unifiedGuideSet)
 
 
 

@@ -3,7 +3,8 @@
 #' @description Add SNP annotation to a \linkS4class{GuideSet} object.
 #'    Only available for sgRNAs designed for human genome.
 #' 
-#' @param guideSet A \linkS4class{GuideSet} object.
+#' @param object A \linkS4class{GuideSet} object or a 
+#'     \linkS4class{PairedGuideSet} object.
 #' @param vcf Either a character string specfying a path to a VCF file
 #'     or connection, or a \linkS4class{VCF} object.
 #' @param maf Minimum minor allele frequency to report (for a least one source
@@ -43,33 +44,14 @@
 #' data(guideSetExample, package="crisprDesign")
 #' guideSet <- addSNPAnnotation(guideSetExample, vcf=vcf)
 #' 
-#' 
+#' @rdname addSNPAnnotation
 #' @export
-addSNPAnnotation <- function(guideSet,
-                             vcf,
-                             maf=0.01
-){
-    guideSet <- .validateGuideSetOrPairedGuideSet(guideSet)
-    if (.isGuideSet(guideSet)){
-        out <- addSNPAnnotation_guideset(guideSet,
-                                         vcf=vcf,
-                                         maf=maf)
-    } else if (.isPairedGuideSet(guideSet)){
-        unifiedGuideSet <- .pairedGuideSet2GuideSet(guideSet)
-        unifiedGuideSet <- addSNPAnnotation_guideset(unifiedGuideSet,
-                                                     vcf=vcf,
-                                                     maf=maf)
-        out <- .addColumnsFromUnifiedGuideSet(guideSet,
-                                              unifiedGuideSet)
-    }
-    return(out)
-}
-
-
 #' @importFrom S4Vectors split mcols<-
-addSNPAnnotation_guideset <- function(guideSet,
-                                      vcf,
-                                      maf=0.01
+setMethod("addSNPAnnotation",
+          "GuideSet", 
+          function(object,
+                   vcf,
+                   maf=0.01
 ){
     stopifnot("maf must be a numeric value in the range [0, 1)" = {
         is.vector(maf, mode="numeric") &&
@@ -77,29 +59,54 @@ addSNPAnnotation_guideset <- function(guideSet,
             maf >= 0 &&
             maf < 1
     })
-    guideSet <- .validateGuideSet(guideSet)
-    vcf <- .validateVcf(vcf, guideSet)
+    object <- .validateGuideSet(object)
+    vcf <- .validateVcf(vcf, object)
     if (!is.null(vcf)){   
-        snps <- .getSNPAnnotation(guideSet=guideSet,
+        snps <- .getSNPAnnotation(guideSet=object,
                                   maf=maf,
                                   vcf=vcf)
         splitFactor <- factor(BiocGenerics::rownames(snps),
-                              levels=unique(names(guideSet)))
+                              levels=unique(names(object)))
         snps <- S4Vectors::split(snps, f=splitFactor)
     } else {
-        snps <- lapply(seq_along(guideSet), .createEmptySnps)
-        names(snps) <- names(guideSet)
+        snps <- lapply(seq_along(object), .createEmptySnps)
+        names(snps) <- names(object)
     }
-    S4Vectors::mcols(guideSet)[["hasSNP"]] <- vapply(snps, function(x){
+    S4Vectors::mcols(object)[["hasSNP"]] <- vapply(snps, function(x){
         nrow(x) > 0
     }, FUN.VALUE=logical(1))
-    S4Vectors::mcols(guideSet)[["snps"]] <- snps
-    return(guideSet)
-}
+    S4Vectors::mcols(object)[["snps"]] <- snps
+    return(object)
+})
 
 
 
-  
+#' @rdname addSNPAnnotation
+#' @export
+setMethod("addSNPAnnotation",
+          "PairedGuideSet", 
+          function(object,
+                   vcf,
+                   maf=0.01
+){
+    object <- .validatePairedGuideSet(object)
+    unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
+    unifiedGuideSet <- addSNPAnnotation(unifiedGuideSet,
+                                        vcf=vcf,
+                                        maf=maf)
+    out <- .addColumnsFromUnifiedGuideSet(object,
+                                          unifiedGuideSet)
+    
+    return(out)
+})
+
+
+#' @rdname addSNPAnnotation
+#' @export
+setMethod("addSNPAnnotation", "NULL", function(object){
+    return(NULL)
+})
+
 
 
 #' @importFrom S4Vectors metadata metadata<- DataFrame mcols nchar

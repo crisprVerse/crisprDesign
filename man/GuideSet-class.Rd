@@ -14,6 +14,8 @@
 \alias{alignments}
 \alias{alignments<-}
 \alias{onTargets}
+\alias{addOnTargetScores}
+\alias{addSNPAnnotation}
 \alias{offTargets}
 \alias{geneAnnotation}
 \alias{geneAnnotation<-}
@@ -75,6 +77,10 @@ alignments(object, ...)
 alignments(object) <- value
 
 onTargets(object, ...)
+
+addOnTargetScores(object, ...)
+
+addSNPAnnotation(object, ...)
 
 offTargets(object, ...)
 
@@ -280,6 +286,10 @@ Return genomic alignments of spacer sequences.
 Store genomic alignments of spacer sequences.
 
 Return on-target alignments of spacer sequences.
+
+Add on-target scores.
+
+Add SNP annotation.
 
 Return off-target alignments of spacer sequences.
 

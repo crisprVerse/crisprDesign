@@ -7,6 +7,7 @@
 \alias{spacerDistance}
 \alias{cutLength}
 \alias{PairedGuideSet-class}
+\alias{PairedGuideSet}
 \alias{pamOrientation,PairedGuideSet-method}
 \alias{pamDistance,PairedGuideSet-method}
 \alias{cutLength,PairedGuideSet-method}
@@ -28,6 +29,8 @@ pamDistance(object, ...)
 spacerDistance(object, ...)
 
 cutLength(object, ...)
+
+PairedGuideSet(GuideSet1 = NULL, GuideSet2 = NULL)
 
 \S4method{pamOrientation}{PairedGuideSet}(object)
 
@@ -66,6 +69,12 @@ cutLength(object, ...)
 
 \item{...}{Additional arguments}
 
+\item{GuideSet1}{A \linkS4class{GuideSet} object containing gRNAs at
+the first position of the pairs.}
+
+\item{GuideSet2}{A \linkS4class{GuideSet} object containing gRNAs at
+the second position of the pairs.}
+
 \item{index}{Integer value indicating gRNA position.
 Must be either 1, 2, or NULL (default).
 If NULL, both positions are returned.}
@@ -80,6 +89,9 @@ instead of DNA? FALSE by default.}
 \item{include.pam}{Should PAM sequences be included?
 FALSE by default.}
 }
+\value{
+A PairedGuideSet object.
+}
 \description{
 Return PAM orientation configuration
 
@@ -89,9 +101,23 @@ Return distance between spacer sequences from paired gRNAs
 
 Return cut length resulting from paired gRNAs
 }
+\section{Functions}{
+\itemize{
+\item \code{PairedGuideSet}: Create a \linkS4class{PairedGuideSet} object
+}}
+
 \section{Constructors}{
 
     Use the constructor \code{link{PairedGuideSet}} to create a
     PairedGuideSet object.
 }
 
+\examples{
+library(crisprDesign)
+data(guideSetExample, package="crisprDesign")
+gs <- guideSetExample
+gs <- gs[order(BiocGenerics::start(gs))]
+gs1 <- gs[1:10]
+gs2 <- gs[1:10+10]
+pgs <- PairedGuideSet(gs1, gs2)
+}

@@ -11,12 +11,12 @@ PairedGuideSet
 
 # Done:
 addOnTargetScores.R
-addSNPAnnotation.R       
+addSNPAnnotation.R
+
+# Not done     
 addPamScores.R  
 addRestrictionEnzymes.R
 addSequenceFeatures.R  
-
-# Not done
 addCrispraiScores.R 
 addGeneAnnotation.R
 addRepeats.R

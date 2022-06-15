@@ -3,7 +3,8 @@
 #'    for all methods available in the \pkg{crisprScore} package for a given
 #'    CRISPR nuclease. Requires \pkg{crisprScore} package to be installed.
 #' 
-#' @param guideSet A \linkS4class{GuideSet} object. 
+#' @param object A \linkS4class{GuideSet} object or a 
+#'     \linkS4class{PairedGuideSet} object.
 #' @param enzyme Character string specifying the Cas9 variant to be used
 #'     for DeepHF scoring. Wildtype Cas9 (WT) by default. See details below.
 #' @param promoter Character string speciyfing promoter used for expressing 
@@ -28,6 +29,7 @@
 #' }
 #' 
 #' @export
+#' @rdname addOnTargetScores
 setMethod("addOnTargetScores", "GuideSet",
     function(object,
              enzyme=c("WT", "ESP", "HF"),
@@ -76,6 +78,7 @@ setMethod("addOnTargetScores", "GuideSet",
 
 
 
+
 #' @rdname addOnTargetScores
 #' @export
 setMethod("addOnTargetScores", "PairedGuideSet",
@@ -93,14 +96,23 @@ setMethod("addOnTargetScores", "PairedGuideSet",
 ){
     object <- .validatePairedGuideSet(object)
     unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
-    unifiedGuideSet <- addOnTargetScores_guideset(unifiedGuideSet,
-                                                  enzyme=enzyme,
-                                                  promoter=promoter,
-                                                  methods=methods)
+    unifiedGuideSet <- addOnTargetScores(unifiedGuideSet,
+                                         enzyme=enzyme,
+                                         promoter=promoter,
+                                         methods=methods)
     out <- .addColumnsFromUnifiedGuideSet(object,
                                           unifiedGuideSet)
     return(out)
 })
+
+
+
+#' @rdname addOnTargetScores
+#' @export
+setMethod("addOnTargetScores", "NULL", function(object){
+    return(NULL)
+})
+
 
 
 
