@@ -30,6 +30,8 @@
 \alias{addSequenceFeatures}
 \alias{addRepeats}
 \alias{removeRepeats}
+\alias{addGeneAnnotation}
+\alias{addTssAnnotation}
 \alias{GuideSet-class}
 \alias{GuideSet}
 \alias{targetOrigin,GuideSet-method}
@@ -117,6 +119,10 @@ addSequenceFeatures(object, ...)
 addRepeats(object, ...)
 
 removeRepeats(object, ...)
+
+addGeneAnnotation(object, ...)
+
+addTssAnnotation(object, ...)
 
 GuideSet(
   protospacers = NA_character_,
@@ -340,6 +346,10 @@ Add spacer sequence features.
 Annotate with repeat elements
 
 Remove rows overlaping repeat elements
+
+Add gene context annotation
+
+Add TSS context annotation
 }
 \section{Functions}{
 \itemize{

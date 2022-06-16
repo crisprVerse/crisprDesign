@@ -1,7 +1,8 @@
 #' @title Add TSS context annotation to a \linkS4class{GuideSet} object
 #' @description Add transcription start site (TSS) context annotation to
 #'     spacer sequences stored in a \linkS4class{GuideSet} object.
-#' @param guideSet A \linkS4class{GuideSet} object.
+#' @param object A \linkS4class{GuideSet} object or a 
+#'     \linkS4class{PairedGuideSet} object.
 #' @param tssObject A \linkS4class{GRanges} object containing TSS coordinates
 #'     and annotation.
 #' @param anchor A character string specifying which gRNA-specific coordinate
@@ -57,25 +58,60 @@
 #' @export
 #' @importFrom BiocGenerics rownames
 #' @importFrom S4Vectors split mcols<-
-addTssAnnotation <- function(guideSet,
-                             tssObject,
-                             anchor=c("cut_site", "pam_site"),
-                             tss_window=NULL,
-                             ignore.strand=TRUE
+#' @rdname addTssAnnotation
+setMethod("addTssAnnotation",
+          "GuideSet", 
+          function(object,
+                   tssObject,
+                   anchor=c("cut_site", "pam_site"),
+                   tss_window=NULL,
+                   ignore.strand=TRUE
 ){
-    guideSet <- .validateGuideSet(guideSet)
+    object <- .validateGuideSet(object)
     anchor <- match.arg(anchor)
-    tssAnn <- .getTssAnnotation(guideSet=guideSet,
+    tssAnn <- .getTssAnnotation(guideSet=object,
                                 tssObject=tssObject,
                                 anchor=anchor,
                                 tss_window=tss_window,
                                 ignore.strand=ignore.strand)
     splitFactor <- factor(BiocGenerics::rownames(tssAnn),
-                          levels=names(guideSet))
+                          levels=names(object))
     tssAnn <- S4Vectors::split(tssAnn, f=splitFactor)
-    S4Vectors::mcols(guideSet)[["tssAnnotation"]] <- tssAnn
-    return(guideSet)
-}
+    S4Vectors::mcols(object)[["tssAnnotation"]] <- tssAnn
+    return(object)
+})
+
+
+
+#' @rdname addTssAnnotation
+#' @export
+setMethod("addTssAnnotation",
+          "PairedGuideSet", 
+          function(object,
+                   tssObject,
+                   anchor=c("cut_site", "pam_site"),
+                   tss_window=NULL,
+                   ignore.strand=TRUE
+){
+    object <- .validatePairedGuideSet(object)
+    unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
+    unifiedGuideSet <- addTssAnnotation(unifiedGuideSet,
+                                        tssObject,
+                                        anchor=anchor,
+                                        tss_window=tss_window,
+                                        ignore.strand=ignore.strand)
+    out <- .addColumnsFromUnifiedGuideSet(object,
+                                          unifiedGuideSet)
+    
+    return(out)
+})
+
+
+#' @rdname addTssAnnotation
+#' @export
+setMethod("addTssAnnotation", "NULL", function(object){
+    return(NULL)
+})
 
 
 

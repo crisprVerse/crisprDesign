@@ -1,7 +1,8 @@
 #' @title Add gene context annotation to a \linkS4class{GuideSet} object
 #' @description Add gene context annotation to spacer sequence stored
 #'     in a \linkS4class{GuideSet} object
-#' @param guideSet A \linkS4class{GuideSet} object.
+#' @param object A \linkS4class{GuideSet} object or a 
+#'     \linkS4class{PairedGuideSet} object.
 #' @param txObject A \linkS4class{TxDb} object or a
 #'     \linkS4class{GRangesList} object obtained using
 #'     \code{\link{TxDb2GRangesList}} to provide a 
@@ -98,17 +99,20 @@
 #' @export
 #' @importFrom S4Vectors split mcols<-
 #' @importFrom BiocGenerics rownames
-addGeneAnnotation <- function(guideSet,
-                              txObject,
-                              anchor=c("cut_site", "pam_site"),
-                              ignore_introns=TRUE,
-                              ignore.strand=TRUE,
-                              addPfam=FALSE,
-                              mart_dataset=NULL
+#' @rdname addGeneAnnotation
+setMethod("addGeneAnnotation",
+          "GuideSet", 
+          function(object,
+                   txObject,
+                   anchor=c("cut_site", "pam_site"),
+                   ignore_introns=TRUE,
+                   ignore.strand=TRUE,
+                   addPfam=FALSE,
+                   mart_dataset=NULL
 ){
-    guideSet <- .validateGuideSet(guideSet)
+    object <- .validateGuideSet(object)
     anchor <- match.arg(anchor)
-    geneAnn <- .getGeneAnnotation(guideSet=guideSet,
+    geneAnn <- .getGeneAnnotation(guideSet=object,
                                   txObject=txObject,
                                   anchor=anchor,
                                   ignore_introns=ignore_introns,
@@ -116,11 +120,47 @@ addGeneAnnotation <- function(guideSet,
                                   addPfam=addPfam,
                                   mart_dataset=mart_dataset)
     splitFactor <- factor(BiocGenerics::rownames(geneAnn),
-                          levels=names(guideSet))
+                          levels=names(object))
     geneAnn <- S4Vectors::split(geneAnn, f=splitFactor)
-    S4Vectors::mcols(guideSet)[["geneAnnotation"]] <- geneAnn
-    return(guideSet)
-}
+    S4Vectors::mcols(object)[["geneAnnotation"]] <- geneAnn
+    return(object)
+})
+
+
+
+#' @rdname addGeneAnnotation
+#' @export
+setMethod("addGeneAnnotation",
+          "PairedGuideSet", 
+          function(object,
+                   txObject,
+                   anchor=c("cut_site", "pam_site"),
+                   ignore_introns=TRUE,
+                   ignore.strand=TRUE,
+                   addPfam=FALSE,
+                   mart_dataset=NULL
+){
+    object <- .validatePairedGuideSet(object)
+    unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
+    unifiedGuideSet <- addGeneAnnotation(unifiedGuideSet,
+                                         txObject=txObject,
+                                         anchor=anchor,
+                                         ignore_introns=ignore_introns,
+                                         ignore.strand=ignore.strand,
+                                         addPfam=addPfam,
+                                         mart_dataset=mart_dataset)
+    out <- .addColumnsFromUnifiedGuideSet(object,
+                                          unifiedGuideSet)
+    
+    return(out)
+})
+
+
+#' @rdname addSNPAnnotation
+#' @export
+setMethod("addGeneAnnotation", "NULL", function(object){
+    return(NULL)
+})
 
 
 

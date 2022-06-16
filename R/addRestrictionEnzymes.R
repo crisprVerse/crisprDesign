@@ -1,7 +1,6 @@
 #' @title Restriction enzyme recognition sites in spacer sequences
 #' 
-#' @description Functions for identifying spacers sequences that contain
-#'     restriction recognition sites for specific restriction enzymes.
+#' @description Add restriction site enzymes annotation.
 #' 
 #' @param object A \linkS4class{GuideSet} or a 
 #'     \linkS4class{PairedGuideSet} object.
@@ -13,18 +12,15 @@
 #' @param flanking5,flanking3 Character string indicating the 5' or 3' flanking
 #'     sequence, respectively, of the spacer sequence in the lentivial vector.
 #' 
-#' @return \code{\link{getRestrictionEnzymes}} returns a DataFrame indicating
+#' @return Adds a DataFrame indicating
 #'     whether cutting sites for the specified enzymes are found in the gRNA
 #'     cassette (flanking sequences + spacer sequences).
-#'     
-#'     \code{\link{addRestrictionEnzymes}} adds the annotation from
-#'     \code{getRestrictionEnzymes} to \code{object}.
 #' 
 #' @details Restriction enzymes are often used for cloning purpose during the
 #'     oligonucleotide synthesis of gRNA lentiviral constructs. Consequently,
 #'     it is often necessary to avoid restriction sites of the used restriction
-#'     enzymes in and around the spacer sequences. The functions
-#'     \code{addRestrictionEnzymes} and \code{getRestrictionEnzymes} allows for
+#'     enzymes in and around the spacer sequences. 
+#'     \code{addRestrictionEnzymes} allows for
 #'     flagging problematic spacer sequences by searching for restriction sites
 #'     in the [flanking5][spacer][flanking3] sequence.
 #'     

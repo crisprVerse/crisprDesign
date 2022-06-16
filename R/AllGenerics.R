@@ -242,6 +242,24 @@ setGeneric("removeRepeats",
            function(object, ...) standardGeneric("removeRepeats"))
 
 
+#' @description Add gene context annotation
+#' @rdname GuideSet-class
+#' @export
+setGeneric("addGeneAnnotation",
+           function(object, ...) standardGeneric("addGeneAnnotation"))
+
+
+#' @description Add TSS context annotation
+#' @rdname GuideSet-class
+#' @export
+setGeneric("addTssAnnotation",
+           function(object, ...) standardGeneric("addTssAnnotation"))
+
+
+
+
+
+
 
 
 
