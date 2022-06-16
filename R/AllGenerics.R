@@ -185,6 +185,15 @@ setGeneric("addOnTargetScores",
            function(object, ...) standardGeneric("addOnTargetScores"))
 
 
+#' @description Add off-target scores.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("addOffTargetScores",
+           function(object, ...) standardGeneric("addOffTargetScores"))
+
+
+
+
 #' @description Add PAM scores.
 #' @rdname GuideSet-class
 #' @export

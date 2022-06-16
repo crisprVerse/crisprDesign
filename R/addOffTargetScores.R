@@ -4,8 +4,9 @@
 #'     Both CFD and MIT methods are available to SpCas9.
 #'     CFD method is available for CasRx.  
 #' 
-#' @param guideSet A \linkS4class{GuideSet} object.
-#'     \code{crisprNuclease(GuideSet)} must be either using SpCas9 or CasRx.
+#' @param object A \linkS4class{GuideSet} object or a 
+#'     \linkS4class{PairedGuideSet} object.
+#'     \code{crisprNuclease(object)} must be either using SpCas9 or CasRx.
 #' @param max_mm The maximimum number of mismatches between a spacer and
 #'     an off-target. Used to select which off-target scores to
 #'     include in calculating the aggregated score.
@@ -34,26 +35,60 @@
 #' @seealso \code{link{addOnTargetScores}} to add on-target scores.
 #' 
 #' @export
-addOffTargetScores <- function(guideSet,
-                               max_mm=2,
-                               includeDistance=TRUE,
-                               offset=0
+#' @rdname addOffTargetScores
+#' @importFrom S4Vectors split mcols<-
+setMethod("addOffTargetScores",
+          "GuideSet",
+          function(object,
+                   max_mm=2,
+                   includeDistance=TRUE,
+                   offset=0
 ){
     
-    guideSet <- .validateGuideSet(guideSet)
-    .checkOffTargetScoresParameters(guideSet=guideSet,
+    object <- .validateGuideSet(object)
+    .checkOffTargetScoresParameters(guideSet=object,
                                     max_mm=max_mm,
                                     includeDistance=includeDistance,
                                     offset=offset)
     
-    guideSet <- .addOffTargetScoresToAlignments(guideSet=guideSet,
+    object <- .addOffTargetScoresToAlignments(guideSet=object,
                                                 includeDistance=includeDistance)
-    guideSet <- .addOffTargetScoresToGuideSet(guideSet=guideSet,
+    object <- .addOffTargetScoresToGuideSet(guideSet=object,
                                               max_mm=max_mm,
                                               offset=offset)
-    return(guideSet)
-}
+    return(object)
+})
 
+#' @rdname addOffTargetScores
+#' @export
+setMethod("addOffTargetScores",
+          "PairedGuideSet", 
+          function(object,
+                   max_mm=2,
+                   includeDistance=TRUE,
+                   offset=0
+){
+    object <- .validatePairedGuideSet(object)
+    unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
+    unifiedGuideSet <- addOffTargetScores(unifiedGuideSet,
+                                          max_mm=2,
+                                          includeDistance=TRUE,
+                                          offset=0)
+    out <- .addColumnsFromUnifiedGuideSet(object,
+                                          unifiedGuideSet)
+    
+    return(out)
+})
+
+
+
+
+
+#' @rdname addOffTargetScores
+#' @export
+setMethod("addOffTargetScores", "NULL", function(object){
+    return(NULL)
+})
 
 
 #' @importFrom S4Vectors mcols isTRUEorFALSE

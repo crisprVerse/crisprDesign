@@ -18,10 +18,9 @@ addSequenceFeatures.R
 addRepeats.R
 addGeneAnnotation.R
 addTssAnnotation.R    
-
+addOffTargetScores.R
 
 # Not done       
 addSpacerAlignments.R
-addOffTargetScores.R
 
 

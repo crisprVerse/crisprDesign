@@ -23,6 +23,7 @@
 \alias{snps<-}
 \alias{alignments<-}
 \alias{addOnTargetScores}
+\alias{addOffTargetScores}
 \alias{addPamScores}
 \alias{addCrispraiScores}
 \alias{addSNPAnnotation}
@@ -103,6 +104,8 @@ snps(object) <- value
 alignments(object) <- value
 
 addOnTargetScores(object, ...)
+
+addOffTargetScores(object, ...)
 
 addPamScores(object, ...)
 
@@ -330,6 +333,8 @@ Store SNP annotation.
 Store genomic alignments of spacer sequences.
 
 Add on-target scores.
+
+Add off-target scores.
 
 Add PAM scores.
 
