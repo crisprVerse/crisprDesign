@@ -33,6 +33,8 @@
 \alias{removeRepeats}
 \alias{addGeneAnnotation}
 \alias{addTssAnnotation}
+\alias{addSpacerAlignments}
+\alias{addSpacerAlignmentsIterative}
 \alias{GuideSet-class}
 \alias{GuideSet}
 \alias{targetOrigin,GuideSet-method}
@@ -126,6 +128,10 @@ removeRepeats(object, ...)
 addGeneAnnotation(object, ...)
 
 addTssAnnotation(object, ...)
+
+addSpacerAlignments(object, ...)
+
+addSpacerAlignmentsIterative(object, ...)
 
 GuideSet(
   protospacers = NA_character_,
@@ -355,6 +361,10 @@ Remove rows overlaping repeat elements
 Add gene context annotation
 
 Add TSS context annotation
+
+Add spacer on- and off-target alignments
+
+Add spacer on- and off-target alignments (iterative mode)
 }
 \section{Functions}{
 \itemize{

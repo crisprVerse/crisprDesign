@@ -265,6 +265,23 @@ setGeneric("addTssAnnotation",
            function(object, ...) standardGeneric("addTssAnnotation"))
 
 
+#' @description Add spacer on- and off-target alignments
+#' @rdname GuideSet-class
+#' @export
+setGeneric("addSpacerAlignments",
+           function(object, ...) standardGeneric("addSpacerAlignments"))
+
+
+#' @description Add spacer on- and off-target alignments (iterative mode)
+#' @rdname GuideSet-class
+#' @export
+setGeneric("addSpacerAlignmentsIterative",
+           function(object, ...) standardGeneric("addSpacerAlignmentsIterative"))
+
+
+
+
+
 
 
 

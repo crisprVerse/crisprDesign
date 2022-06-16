@@ -4,7 +4,8 @@
 #' @description Functions for finding and characterizing on- and off-targets of
 #'     spacer sequences.
 #' 
-#' @param guideSet A \linkS4class{GuideSet} object.
+#' @param object A \linkS4class{GuideSet} object or a 
+#'     \linkS4class{PairedGuideSet} object.
 #' @param aligner Which genomic alignment method should be used?
 #'     Must be one of "bowtie", "bwa", and "biostrings".
 #'    "bowtie" by default. Note that "bwa" is not availble for 
@@ -149,45 +150,42 @@
 #' 
 #' @author Jean-Philippe Fortin, Luke Hoberecht
 #' 
-#' @name addSpacerAlignments
-NULL
-
-
-
 #' @rdname addSpacerAlignments
 #' @export
 #' @importFrom S4Vectors mcols mcols<-
-addSpacerAlignmentsIterative <- function(guideSet,
-                                         aligner=c("bowtie",
-                                                   "bwa",
-                                                   "biostrings"),
-                                         colname="alignments",
-                                         addSummary=TRUE,
-                                         txObject=NULL,
-                                         tssObject=NULL,
-                                         custom_seq=NULL,
-                                         aligner_index=NULL,
-                                         bsgenome=NULL,
-                                         n_mismatches=0,
-                                         all_alignments=FALSE,
-                                         canonical=TRUE,
-                                         standard_chr_only=TRUE,
-                                         both_strands=TRUE,
-                                         anchor=c("cut_site", "pam_site"),
-                                         annotationType=c("gene_symbol",
-                                                          "gene_id"),
-                                         tss_window=NULL,
-                                         alignmentThresholds=c(n0=5,
-                                                               n1=100,
-                                                               n2=100,
-                                                               n3=1000,
-                                                               n4=1000)
+setMethod("addSpacerAlignmentsIterative",
+          "GuideSet", 
+          function(object,
+                   aligner=c("bowtie",
+                             "bwa",
+                             "biostrings"),
+                   colname="alignments",
+                   addSummary=TRUE,
+                   txObject=NULL,
+                   tssObject=NULL,
+                   custom_seq=NULL,
+                   aligner_index=NULL,
+                   bsgenome=NULL,
+                   n_mismatches=0,
+                   all_alignments=FALSE,
+                   canonical=TRUE,
+                   standard_chr_only=TRUE,
+                   both_strands=TRUE,
+                   anchor=c("cut_site", "pam_site"),
+                   annotationType=c("gene_symbol",
+                                    "gene_id"),
+                   tss_window=NULL,
+                   alignmentThresholds=c(n0=5,
+                                         n1=100,
+                                         n2=100,
+                                         n3=1000,
+                                         n4=1000)
 ){
     aligner <- match.arg(aligner)
     if (aligner=="bowtie" & n_mismatches>3){
         stop("For bowtie aligner, n_mismatches must be either 0,1,2 or 3.")
     }
-    guideSet    <- .validateGuideSet(guideSet)
+    object    <- .validateGuideSet(object)
     aligner <- match.arg(aligner)
     n_mismatches <- .validateNumberOfMismatches(n_mismatches, aligner)
     maxAlignments <- .validateAlignmentThresholds(alignmentThresholds)
@@ -215,43 +213,107 @@ addSpacerAlignmentsIterative <- function(guideSet,
                                 tss_window=tss_window)
         )
     }
-    guideSet <- .iterateAddSpacerAlignments(guideSet, 0)
+    object <- .iterateAddSpacerAlignments(object, 0)
     good <- TRUE
     for (i in seq_len(n_mismatches)){
         mismatch_col <- paste0("n", i-1)
         good <- good &
-            S4Vectors::mcols(guideSet)[[mismatch_col]] <= maxAlignments[i]
+            S4Vectors::mcols(object)[[mismatch_col]] <= maxAlignments[i]
         if (any(good)){
-            updatedGuideSet <- .iterateAddSpacerAlignments(guideSet[good], i)
+            updatedGuideSet <- .iterateAddSpacerAlignments(object[good], i)
             newCols <- setdiff(colnames(S4Vectors::mcols(updatedGuideSet)),
-                               colnames(S4Vectors::mcols(guideSet)))
+                               colnames(S4Vectors::mcols(object)))
             for (ii in newCols){
-                S4Vectors::mcols(guideSet)[[ii]] <- as.numeric(NA)
+                S4Vectors::mcols(object)[[ii]] <- as.numeric(NA)
             }
-            guideSet[good] <- updatedGuideSet
+            object[good] <- updatedGuideSet
         } else {
             na_col <- paste0("n", i)
-            S4Vectors::mcols(guideSet)[[na_col]] <- as.numeric(NA)
+            S4Vectors::mcols(object)[[na_col]] <- as.numeric(NA)
             ## fix to add any coding/promoter-targeting alignments ############
             mismatch_c_col <- paste0(mismatch_col, "_c")
-            if (mismatch_c_col %in% colnames(S4Vectors::mcols(guideSet))){
+            if (mismatch_c_col %in% colnames(S4Vectors::mcols(object))){
                 na_c_col <- paste0(na_col, "_c")
-                S4Vectors::mcols(guideSet)[[na_c_col]] <- as.numeric(NA)
+                S4Vectors::mcols(object)[[na_c_col]] <- as.numeric(NA)
             }
             mismatch_p_col <- paste0(mismatch_col, "_p")
-            if (mismatch_p_col %in% colnames(S4Vectors::mcols(guideSet))){
+            if (mismatch_p_col %in% colnames(S4Vectors::mcols(object))){
                 na_p_col <- paste0(na_col, "_p")
-                S4Vectors::mcols(guideSet)[[na_p_col]] <- as.numeric(NA)
+                S4Vectors::mcols(object)[[na_p_col]] <- as.numeric(NA)
             }
             ###################################################################
         }
     }
-    aln <- S4Vectors::mcols(guideSet)[[colname]]
-    S4Vectors::mcols(guideSet)[[colname]] <- NULL
-    S4Vectors::mcols(guideSet)[[colname]] <- aln
-    return(guideSet)
-}
+    aln <- S4Vectors::mcols(object)[[colname]]
+    S4Vectors::mcols(object)[[colname]] <- NULL
+    S4Vectors::mcols(object)[[colname]] <- aln
+    return(object)
+})
 
+
+
+#' @rdname addSpacerAlignments
+#' @export
+setMethod("addSpacerAlignmentsIterative",
+          "PairedGuideSet", 
+          function(object,
+                   aligner=c("bowtie",
+                             "bwa",
+                             "biostrings"),
+                   colname="alignments",
+                   addSummary=TRUE,
+                   txObject=NULL,
+                   tssObject=NULL,
+                   custom_seq=NULL,
+                   aligner_index=NULL,
+                   bsgenome=NULL,
+                   n_mismatches=0,
+                   all_alignments=FALSE,
+                   canonical=TRUE,
+                   standard_chr_only=TRUE,
+                   both_strands=TRUE,
+                   anchor=c("cut_site", "pam_site"),
+                   annotationType=c("gene_symbol",
+                                    "gene_id"),
+                   tss_window=NULL,
+                   alignmentThresholds=c(n0=5,
+                                         n1=100,
+                                         n2=100,
+                                         n3=1000,
+                                         n4=1000)
+){
+    object <- .validatePairedGuideSet(object)
+    unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
+    unifiedGuideSet <- addSpacerAlignmentsIterative(unifiedGuideSet,
+                                                    aligner=aligner,
+                                                    colname=colname,
+                                                    addSummary=addSummary,
+                                                    txObject=txObject,
+                                                    tssObject=tssObject,
+                                                    custom_seq=custom_seq,
+                                                    aligner_index=aligner_index,
+                                                    bsgenome=bsgenome,
+                                                    n_mismatches=n_mismatches,
+                                                    all_alignments=all_alignments,
+                                                    canonical=canonical,
+                                                    standard_chr_only=standard_chr_only,
+                                                    both_strands=both_strands,
+                                                    anchor=anchor,
+                                                    annotationType=annotationType,
+                                                    tss_window=tss_window,
+                                                    alignmentThresholds=alignmentThresholds)
+    out <- .addColumnsFromUnifiedGuideSet(object,
+                                          unifiedGuideSet)
+    
+    return(out)
+})
+
+
+#' @rdname addSpacerAlignments
+#' @export
+setMethod("addSpacerAlignmentsIterative", "NULL", function(object){
+    return(NULL)
+})
 
 
 
@@ -294,31 +356,33 @@ addSpacerAlignmentsIterative <- function(guideSet,
 #' @export
 #' @importFrom S4Vectors split mcols mcols<-
 #' @importFrom BiocGenerics unlist
-addSpacerAlignments <- function(guideSet,
-                                aligner=c("bowtie", "bwa", "biostrings"),
-                                colname="alignments",
-                                addSummary=TRUE,
-                                txObject=NULL,
-                                tssObject=NULL,
-                                custom_seq=NULL,
-                                aligner_index=NULL,
-                                bsgenome=NULL,
-                                n_mismatches=0,
-                                n_max_alignments=1000,
-                                all_alignments=TRUE,
-                                canonical=TRUE,
-                                standard_chr_only=TRUE,
-                                both_strands=TRUE,
-                                anchor=c("cut_site", "pam_site"),
-                                annotationType=c("gene_symbol", "gene_id"),
-                                tss_window=NULL
+setMethod("addSpacerAlignments",
+          "GuideSet", 
+          function(object,
+                   aligner=c("bowtie", "bwa", "biostrings"),
+                   colname="alignments",
+                   addSummary=TRUE,
+                   txObject=NULL,
+                   tssObject=NULL,
+                   custom_seq=NULL,
+                   aligner_index=NULL,
+                   bsgenome=NULL,
+                   n_mismatches=0,
+                   n_max_alignments=1000,
+                   all_alignments=TRUE,
+                   canonical=TRUE,
+                   standard_chr_only=TRUE,
+                   both_strands=TRUE,
+                   anchor=c("cut_site", "pam_site"),
+                   annotationType=c("gene_symbol", "gene_id"),
+                   tss_window=NULL
 ){
-    guideSet  <- .validateGuideSet(guideSet)
+    object  <- .validateGuideSet(object)
     aligner <- match.arg(aligner)
     .checkString("colname", colname)
     n_mismatches <- .validateNumberOfMismatches(n_mismatches, aligner)
     anchor <- match.arg(anchor)
-    spacers <- spacers(guideSet, as.character=TRUE)
+    spacers <- spacers(object, as.character=TRUE)
     uniqueSpacers <- unique(spacers)
     
     aln <- getSpacerAlignments(spacers=uniqueSpacers,
@@ -329,11 +393,11 @@ addSpacerAlignments <- function(guideSet,
                                bsgenome=bsgenome,
                                n_max_alignments=n_max_alignments,
                                all_alignments=all_alignments,
-                               crisprNuclease=crisprNuclease(guideSet),
+                               crisprNuclease=crisprNuclease(object),
                                canonical=canonical,
                                standard_chr_only=standard_chr_only,
                                both_strands=both_strands)
-    crisprNuclease <- crisprNuclease(guideSet)
+    crisprNuclease <- crisprNuclease(object)
     if (aligner != "biostrings" & isDnase(crisprNuclease)){
         annotationType <- match.arg(annotationType)
         #cat("Adding gene annotation")
@@ -353,22 +417,88 @@ addSpacerAlignments <- function(guideSet,
     }
     
     #cat("Adding alignment summary")
-    guideSet <- .addAlignmentsSummary(guideSet=guideSet,
-                                      aln=aln,
-                                      addSummary=addSummary,
-                                      n_mismatches=n_mismatches,
-                                      spacers=spacers)
+    object <- .addAlignmentsSummary(guideSet=object,
+                                    aln=aln,
+                                    addSummary=addSummary,
+                                    n_mismatches=n_mismatches,
+                                    spacers=spacers)
     names(aln) <- NULL
     aln <- S4Vectors::split(aln,
                             f=factor(S4Vectors::mcols(aln)$spacer,
                                      levels=uniqueSpacers))
     aln <- aln[spacers]
-    names(aln) <- names(guideSet)
+    names(aln) <- names(object)
     aln <- BiocGenerics::unlist(aln, use.names=TRUE)
-    aln <- S4Vectors::split(aln, f=names(guideSet))
-    S4Vectors::mcols(guideSet)[[colname]] <- aln
-    return(guideSet)
-}
+    aln <- S4Vectors::split(aln, f=names(object))
+    S4Vectors::mcols(object)[[colname]] <- aln
+    return(object)
+})
+
+
+
+#' @rdname addSpacerAlignments
+#' @export
+setMethod("addSpacerAlignments",
+          "PairedGuideSet", 
+          function(object,
+                   aligner=c("bowtie",
+                             "bwa",
+                             "biostrings"),
+                   colname="alignments",
+                   addSummary=TRUE,
+                   txObject=NULL,
+                   tssObject=NULL,
+                   custom_seq=NULL,
+                   aligner_index=NULL,
+                   bsgenome=NULL,
+                   n_mismatches=0,
+                   n_max_alignments=1000,
+                   all_alignments=FALSE,
+                   canonical=TRUE,
+                   standard_chr_only=TRUE,
+                   both_strands=TRUE,
+                   anchor=c("cut_site", "pam_site"),
+                   annotationType=c("gene_symbol",
+                                    "gene_id"),
+                   tss_window=NULL
+){
+    object <- .validatePairedGuideSet(object)
+    unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
+    unifiedGuideSet <- addSpacerAlignments(unifiedGuideSet,
+                                           aligner=aligner,
+                                           colname=colname,
+                                           addSummary=addSummary,
+                                           txObject=txObject,
+                                           tssObject=tssObject,
+                                           custom_seq=custom_seq,
+                                           aligner_index=aligner_index,
+                                           bsgenome=bsgenome,
+                                           n_mismatches=n_mismatches,
+                                           n_max_alignments=n_max_alignments,
+                                           all_alignments=all_alignments,
+                                           canonical=canonical,
+                                           standard_chr_only=standard_chr_only,
+                                           both_strands=both_strands,
+                                           anchor=anchor,
+                                           annotationType=annotationType,
+                                           tss_window=tss_window)
+    out <- .addColumnsFromUnifiedGuideSet(object,
+                                          unifiedGuideSet)
+    
+    return(out)
+})
+
+
+#' @rdname addSpacerAlignments
+#' @export
+setMethod("addSpacerAlignments", "NULL", function(object){
+    return(NULL)
+})
+
+
+
+
+
 
 
 

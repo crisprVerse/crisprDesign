@@ -3,7 +3,6 @@ Misc:
 - Check crisprbe for all strand configuration
 
 PairedGuideSet
-- Modify addXYZ functions
 - Modify getter functions
 - Create a findPairedSpacers function.
 
