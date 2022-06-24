@@ -118,7 +118,7 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
     if (is.null(min_dist_edit) & binnarize){
             stop("min_dist_edit must be specified when binnarize=TRUE.")
     }
-    if (!splitByChunks | length(queryBarcodes<=200)){
+    if (!splitByChunks | length(queryBarcodes)<=200){
         out <- .getChunkDistanceMatrix(queryBarcodes=queryBarcodes,
                                        targetBarcodes=targetBarcodes,
                                        min_dist_edit=min_dist_edit,
