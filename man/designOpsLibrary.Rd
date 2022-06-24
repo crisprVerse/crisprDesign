@@ -9,7 +9,8 @@ designOpsLibrary(
   n_guides = 4,
   gene_field = "gene",
   min_dist_edit = 2,
-  dist_method = c("hamming", "levenstein")
+  dist_method = c("hamming", "levenstein"),
+  splitByChunks = FALSE
 )
 }
 \arguments{
@@ -29,6 +30,10 @@ included in the library. 2 by default.}
 
 \item{dist_method}{String specifying distance method. 
 Must be either "hamming" (default) or "levenstein".}
+
+\item{splitByChunks}{Should distances be calculated in a chunk-wise
+manner? FALSE by default. Highly recommended when the set of query
+barcodes is large to reduce memory footprint.}
 }
 \value{
 A subset of the \code{df} containing the gRNAs

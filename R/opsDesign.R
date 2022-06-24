@@ -71,7 +71,7 @@ addOpsBarcodes <- function(guideSet,
 #'     diagonal distances be set to 0 to ignore self distances?
 #'     TRUE by default. 
 #' @param splitByChunks Should distances be calculated in a chunk-wise
-#'     manner? TRUE by default. Highly recommended when the set of query
+#'     manner? FALSE by default. Highly recommended when the set of query
 #'     barcodes is large to reduce memory footprint. 
 #' @param n_chunks Integer specifying the number of chunks to be used
 #'     when \code{splitByChunks=TRUE}. If NULL (default), number of chunks
@@ -118,7 +118,7 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
     if (is.null(min_dist_edit) & binnarize){
             stop("min_dist_edit must be specified when binnarize=TRUE.")
     }
-    if (!splitByChunks){
+    if (!splitByChunks | length(queryBarcodes<=200)){
         out <- .getChunkDistanceMatrix(queryBarcodes=queryBarcodes,
                                        targetBarcodes=targetBarcodes,
                                        min_dist_edit=min_dist_edit,
@@ -202,7 +202,10 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 #'     have edit distances less than the min_dist_edit will not be
 #'     included in the library. 2 by default. 
 #' @param dist_method String specifying distance method. 
-#'     Must be either "hamming" (default) or "levenstein". 
+#'     Must be either "hamming" (default) or "levenstein".
+#' @param splitByChunks Should distances be calculated in a chunk-wise
+#'     manner? FALSE by default. Highly recommended when the set of query
+#'     barcodes is large to reduce memory footprint. 
 #' 
 #' @return A subset of the \code{df} containing the gRNAs
 #'     selected for the OPS library. 
@@ -229,7 +232,8 @@ designOpsLibrary <- function(df,
                              n_guides=4,
                              gene_field="gene",
                              min_dist_edit=2,
-                             dist_method=c("hamming","levenstein")
+                             dist_method=c("hamming","levenstein"),
+                             splitByChunks=FALSE
 ){
     dist_method <- match.arg(dist_method)
     df <- .validateOpsGrnaInput(df, gene_field)
@@ -243,12 +247,14 @@ designOpsLibrary <- function(df,
                      genes=genes)
     grnaList <- .initiateOpsLibrary(grnaList,
                                     dist_method=dist_method,
-                                    min_dist_edit=min_dist_edit)
+                                    min_dist_edit=min_dist_edit,
+                                    splitByChunks=splitByChunks)
     grnaList <- .updateOpsLibrary(grnaList,
                                   gene_field=gene_field,
                                   n_guides=n_guides,
                                   dist_method=dist_method,
-                                  min_dist_edit=min_dist_edit)
+                                  min_dist_edit=min_dist_edit,
+                                  splitByChunks=splitByChunks)
     out <- .getFinalOpsLibrary(grnaList)
     out <- out[order(out[[gene_field]], out[["rank"]]),,drop=FALSE]
     return(out)
@@ -273,6 +279,9 @@ designOpsLibrary <- function(df,
 #'     included in the library. 2 by default. 
 #' @param dist_method String specifying distance method. 
 #'     Must be either "hamming" (default) or "levenstein". 
+#' @param splitByChunks Should distances be calculated in a chunk-wise
+#'     manner? FALSE by default. Highly recommended when the set of query
+#'     barcodes is large to reduce memory footprint.
 #' 
 #' @author Jean-Philippe Fortin
 #'
@@ -308,7 +317,8 @@ updateOpsLibrary <- function(opsLibrary,
                              n_guides=4,
                              gene_field="gene",
                              min_dist_edit=2,
-                             dist_method=c("hamming","levenstein")
+                             dist_method=c("hamming","levenstein"),
+                             splitByChunks=FALSE
 ){
     dist_method <- match.arg(dist_method)
     df <- .validateOpsGrnaInput(df, gene_field)
@@ -321,7 +331,8 @@ updateOpsLibrary <- function(opsLibrary,
                                   gene_field=gene_field,
                                   n_guides=n_guides,
                                   dist_method=dist_method,
-                                  min_dist_edit=min_dist_edit)
+                                  min_dist_edit=min_dist_edit,
+                                  splitByChunks=splitByChunks)
     out <- .getFinalOpsLibrary(grnaList)
     out <- out[order(out[[gene_field]], out[["rank"]]),,drop=FALSE]
     return(out)
@@ -365,13 +376,15 @@ updateOpsLibrary <- function(opsLibrary,
 #' @importFrom Matrix rowSums
 .initiateOpsLibrary <- function(grnaList,
                                 dist_method,
-                                min_dist_edit
+                                min_dist_edit,
+                                splitByChunks
 ){
     selected <- grnaList[["selected"]]
     mat <- getBarcodeDistanceMatrix(queryBarcodes=selected[["opsBarcode"]],
                                     binnarize=TRUE,
                                     dist_method=dist_method,
-                                    min_dist_edit=min_dist_edit)
+                                    min_dist_edit=min_dist_edit,
+                                    splitByChunks=splitByChunks)
     good <- Matrix::rowSums(mat>0)==0
     # In case all guides are "bad", add first one only:
     if (sum(good)==0){
@@ -390,7 +403,8 @@ updateOpsLibrary <- function(opsLibrary,
                               gene_field,
                               n_guides,
                               dist_method,
-                              min_dist_edit
+                              min_dist_edit,
+                              splitByChunks
 ){
     shouldWeContinue <- TRUE
     while (shouldWeContinue){
@@ -399,7 +413,8 @@ updateOpsLibrary <- function(opsLibrary,
                                           gene_field=gene_field,
                                           n_guides=n_guides,
                                           dist_method=dist_method,
-                                          min_dist_edit=min_dist_edit)
+                                          min_dist_edit=min_dist_edit,
+                                          splitByChunks=splitByChunks)
         counts <- table(factor(grnaList[["selected"]][[gene_field]],
                           levels=grnaList[["genes"]]))
         incomplete <- names(which(counts<n_guides))
@@ -425,7 +440,8 @@ updateOpsLibrary <- function(opsLibrary,
                                   gene_field,
                                   n_guides,
                                   dist_method,
-                                  min_dist_edit
+                                  min_dist_edit,
+                                  splitByChunks
 ){
   
     .getCandidates <- function(genes, n){
@@ -451,7 +467,8 @@ updateOpsLibrary <- function(opsLibrary,
         # most divergent:
         dist <- getBarcodeDistanceMatrix(cands[["opsBarcode"]],
                                          dist_method=dist_method,
-                                         min_dist_edit=min_dist_edit)
+                                         min_dist_edit=min_dist_edit,
+                                         splitByChunks=splitByChunks)
         score <- Matrix::rowSums(dist>0)
         cands <- cands[order(score),,drop=FALSE]
 
@@ -494,7 +511,8 @@ updateOpsLibrary <- function(opsLibrary,
         dist <- getBarcodeDistanceMatrix(cands[["opsBarcode"]],
                                          lib[["opsBarcode"]],
                                          dist_method=dist_method,
-                                         min_dist_edit=min_dist_edit)
+                                         min_dist_edit=min_dist_edit,
+                                         splitByChunks=splitByChunks)
         cands <- cands[Matrix::rowSums(dist)==0,,drop=FALSE]
         grnaList <- .incrementalUpdate(grnaList, cands)
     }

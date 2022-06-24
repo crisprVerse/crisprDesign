@@ -37,7 +37,7 @@ diagonal distances be set to 0 to ignore self distances?
 TRUE by default.}
 
 \item{splitByChunks}{Should distances be calculated in a chunk-wise
-manner? TRUE by default. Highly recommended when the set of query
+manner? FALSE by default. Highly recommended when the set of query
 barcodes is large to reduce memory footprint.}
 
 \item{n_chunks}{Integer specifying the number of chunks to be used
