@@ -37,12 +37,12 @@ for DeepHF scoring. Wildtype Cas9 (WT) by default. See details below.}
 sgRNAs for wildtype Cas9 (must be either "U6" or "T7") for DeepHF
 scoring. "U6" by default.}
 
-\item{methods}{Character vector specifying method names for on-target
-efficiency prediction algorithms.}
-
-\item{tracRNA}{String specifying which tracrRNA is used for SpCas9
+\item{tracrRNA}{String specifying which tracrRNA is used for SpCas9
 Must be either "Hsu2013" (default) or "Chen2013". Only used for
 the RuleSet3 method.}
+
+\item{methods}{Character vector specifying method names for on-target
+efficiency prediction algorithms.}
 }
 \value{
 \code{guideSet} with columns of on-target scores appended in

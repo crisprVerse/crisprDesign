@@ -10,7 +10,7 @@
 #' @param promoter Character string speciyfing promoter used for expressing 
 #'     sgRNAs for wildtype Cas9 (must be either "U6" or "T7") for DeepHF
 #'     scoring. "U6" by default. 
-#' @param tracRNA String specifying which tracrRNA is used for SpCas9
+#' @param tracrRNA String specifying which tracrRNA is used for SpCas9
 #'     Must be either "Hsu2013" (default) or "Chen2013". Only used for
 #'     the RuleSet3 method.
 #' @param methods Character vector specifying method names for on-target
