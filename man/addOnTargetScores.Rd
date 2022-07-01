@@ -10,16 +10,18 @@
   object,
   enzyme = c("WT", "ESP", "HF"),
   promoter = c("U6", "T7"),
-  methods = c("azimuth", "deephf", "ruleset1", "lindel", "deepcpf1", "enpamgb",
-    "crisprscan", "casrxrf")
+  tracrRNA = c("Hsu2013", "Chen2013"),
+  methods = c("azimuth", "ruleset1", "ruleset3", "lindel", "deepcpf1", "deephf",
+    "deepspcas9", "enpamgb", "casrxrf", "crisprater", "crisprscan")
 )
 
 \S4method{addOnTargetScores}{PairedGuideSet}(
   object,
   enzyme = c("WT", "ESP", "HF"),
   promoter = c("U6", "T7"),
-  methods = c("azimuth", "deephf", "ruleset1", "lindel", "deepcpf1", "enpamgb",
-    "crisprscan", "casrxrf")
+  tracrRNA = c("Hsu2013", "Chen2013"),
+  methods = c("azimuth", "ruleset1", "ruleset3", "lindel", "deepcpf1", "deephf",
+    "deepspcas9", "enpamgb", "crisprater", "crisprscan", "casrxrf")
 )
 
 \S4method{addOnTargetScores}{`NULL`}(object)
@@ -37,6 +39,10 @@ scoring. "U6" by default.}
 
 \item{methods}{Character vector specifying method names for on-target
 efficiency prediction algorithms.}
+
+\item{tracRNA}{String specifying which tracrRNA is used for SpCas9
+Must be either "Hsu2013" (default) or "Chen2013". Only used for
+the RuleSet3 method.}
 }
 \value{
 \code{guideSet} with columns of on-target scores appended in

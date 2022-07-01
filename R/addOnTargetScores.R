@@ -10,6 +10,9 @@
 #' @param promoter Character string speciyfing promoter used for expressing 
 #'     sgRNAs for wildtype Cas9 (must be either "U6" or "T7") for DeepHF
 #'     scoring. "U6" by default. 
+#' @param tracRNA String specifying which tracrRNA is used for SpCas9
+#'     Must be either "Hsu2013" (default) or "Chen2013". Only used for
+#'     the RuleSet3 method.
 #' @param methods Character vector specifying method names for on-target
 #'     efficiency prediction algorithms.
 #' 
@@ -34,18 +37,23 @@ setMethod("addOnTargetScores", "GuideSet",
     function(object,
              enzyme=c("WT", "ESP", "HF"),
              promoter=c("U6", "T7"),
+             tracrRNA=c("Hsu2013","Chen2013"),
              methods=c("azimuth",
-                       "deephf",
                        "ruleset1",
+                       "ruleset3",
                        "lindel",
                        "deepcpf1",
+                       "deephf",
+                       "deepspcas9",
                        "enpamgb",
-                       "crisprscan",
-                       "casrxrf")
+                       "casrxrf",
+                       "crisprater",
+                       "crisprscan")
 ){
     object <- .validateGuideSet(object)
     enzyme <- match.arg(enzyme)
     promoter <- match.arg(promoter)
+    tracrRNA <- match.arg(tracrRNA)
     crisprNuclease <- crisprNuclease(object)
     
     methods <- .validateOnTargetScoreMethods(methods=methods,
@@ -67,6 +75,7 @@ setMethod("addOnTargetScores", "GuideSet",
         scores <- .getOnTargetScores(guideSet=object[valid],
                                      method=i,
                                      promoter=promoter,
+                                     tracrRNA=tracrRNA,
                                      enzyme=enzyme)
         scoreColname <- paste0("score_", i)
         S4Vectors::mcols(object)[[scoreColname]] <- rep(NA,
@@ -85,12 +94,16 @@ setMethod("addOnTargetScores", "PairedGuideSet",
           function(object,
                    enzyme=c("WT", "ESP", "HF"),
                    promoter=c("U6", "T7"),
+                   tracrRNA=c("Hsu2013","Chen2013"),
                    methods=c("azimuth",
-                             "deephf",
                              "ruleset1",
+                             "ruleset3",
                              "lindel",
                              "deepcpf1",
+                             "deephf",
+                             "deepspcas9",
                              "enpamgb",
+                             "crisprater",
                              "crisprscan",
                              "casrxrf")
 ){
@@ -99,6 +112,7 @@ setMethod("addOnTargetScores", "PairedGuideSet",
     unifiedGuideSet <- addOnTargetScores(unifiedGuideSet,
                                          enzyme=enzyme,
                                          promoter=promoter,
+                                         tracrRNA=tracrRNA,
                                          methods=methods)
     out <- .addColumnsFromUnifiedGuideSet(object,
                                           unifiedGuideSet)
@@ -131,8 +145,11 @@ setMethod("addOnTargetScores", "NULL", function(object){
     if (.identicalNucleases(crisprNuclease, SpCas9)){
         choices <- c("azimuth",
                      "deephf",
+                     "deepspcas9",
                      "lindel",
                      "ruleset1",
+                     "ruleset3",
+                     "crisprater",
                      "crisprscan")
     } else if (.identicalNucleases(crisprNuclease, AsCas12a)){
         choices <- c("deepcpf1")
@@ -184,16 +201,20 @@ setMethod("addOnTargetScores", "NULL", function(object){
 #' 
 #' @importFrom utils data
 #' @importFrom crisprScore getDeepHFScores
+#' @importFrom crisprScore getDeepSpCas9Scores 
 #' @importFrom crisprScore getAzimuthScores
 #' @importFrom crisprScore getRuleSet1Scores
+#' @importFrom crisprScore getRuleSet3Scores
 #' @importFrom crisprScore getDeepCpf1Scores
 #' @importFrom crisprScore getLindelScores
 #' @importFrom crisprScore getEnPAMGBScores
 #' @importFrom crisprScore getCRISPRscanScores
+#' @importFrom crisprScore getCRISPRaterScores
 .getOnTargetScores <- function(guideSet,
                                method,
                                enzyme,
-                               promoter
+                               promoter,
+                               tracrRNA
 ){
     if (method=="casrxrf"){
         scores <- .getCasRxRFScores(guideSet)
@@ -216,13 +237,18 @@ setMethod("addOnTargetScores", "NULL", function(object){
                 results <- crisprScore::getDeepHFScores(seqs,
                                                         enzyme=enzyme,
                                                         promoter=promoter)
+            } else if (method == "ruleset3"){
+                results <- crisprScore::getRuleSet3Scores(seqs,
+                                                          tracrRNA=tracrRNA)
             } else {
               scoreFun <- switch(method,
                                  "azimuth"=crisprScore::getAzimuthScores,
                                  "ruleset1"=crisprScore::getRuleSet1Scores,
                                  "deepcpf1"=crisprScore::getDeepCpf1Scores,
+                                 "deepspcas9"=crisprScore::getDeepSpCas9Scores,
                                  "lindel"=crisprScore::getLindelScores,
                                  "enpamgb"=crisprScore::getEnPAMGBScores,
+                                 "crisprater"=crisprScore::getCRISPRaterScores,
                                  "crisprscan"=crisprScore::getCRISPRscanScores)
               results <- scoreFun(seqs)
             }
