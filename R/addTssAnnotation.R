@@ -114,7 +114,7 @@ setMethod("addTssAnnotation", "NULL", function(object){
 })
 
 
-
+# Core function to get TSS annotation
 #' @importFrom S4Vectors DataFrame
 #' @importFrom BiocGenerics rownames
 .getTssAnnotation <- function(guideSet,
@@ -134,7 +134,7 @@ setMethod("addTssAnnotation", "NULL", function(object){
 }
 
 
-
+# Add annotation whether or not a gRNA overlaps a known TSS region
 #' @importFrom GenomicRanges GPos promoters findOverlaps
 #' @importFrom GenomeInfoDb seqnames seqlevels seqlevels<-
 #' @importFrom S4Vectors mcols isTRUEorFALSE queryHits subjectHits
@@ -207,7 +207,7 @@ setMethod("addTssAnnotation", "NULL", function(object){
 }
 
 
-
+# Add a column for distance (in nucleotides) between TSS and gRNA PAm site.
 #' @importFrom GenomicRanges pos
 #' @importFrom S4Vectors mcols mcols<-
 .addDistToTss <- function(tssAnn

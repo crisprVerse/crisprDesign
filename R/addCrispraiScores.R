@@ -102,7 +102,10 @@ setMethod("addCrispraiScores", "NULL", function(object){
 
 
 
-
+# Prepare a data.frame containing TSS information necessary
+# to the CRISPRai algorithm
+# The following columns are necessary:
+# ID, gene_symbol, promoter, tx_id
 .prepareTssFrame <- function(tssObject){
     tssObject <- as.data.frame(tssObject)
 
@@ -144,8 +147,9 @@ setMethod("addCrispraiScores", "NULL", function(object){
 }
 
 
-
-
+# Prepare a data.frame containing gRNA information necessary
+# to the CRISPRai algorithm from a guideSet object and a GRanges
+# object that was used as input to create the GuideSet object.
 .prepareGrnaFrame <-function(guideSet, gr){
 
     len <- spacerLength(guideSet)

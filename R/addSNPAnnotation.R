@@ -108,7 +108,7 @@ setMethod("addSNPAnnotation", "NULL", function(object){
 })
 
 
-
+# Core function to get SNP annotation
 #' @importFrom S4Vectors metadata metadata<- DataFrame mcols nchar
 #' @importFrom VariantAnnotation info 
 #' @importFrom MatrixGenerics rowRanges
@@ -205,7 +205,9 @@ setMethod("addSNPAnnotation", "NULL", function(object){
 
 
 
-
+# Make sure VCF is either a path to a VCF file, or a VCF object
+# If a path to a VCF file, it will load part of the VCF that overlaps
+# the GuideSet. This avoids loading too much data into memory.
 #' @importFrom GenomeInfoDb seqlevels seqlevelsStyle<- seqinfo genome
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
@@ -252,6 +254,7 @@ setMethod("addSNPAnnotation", "NULL", function(object){
     return(vcf)
 }
 
+# Create empty SNP annotation data.frame when no SNPs overlap
 #' @importFrom S4Vectors DataFrame
 .createEmptySnps <- function(foo){
     cols <- c("rs", "rs_site", "rs_site_rel",

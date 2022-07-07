@@ -164,7 +164,8 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 
 
 
-
+# Obtain a data.frame containing gene annotation from 
+# a GuideSet object
 #' @importFrom S4Vectors isTRUEorFALSE DataFrame mcols
 #' @importFrom BiocGenerics strand rownames<-
 #' @importFrom GenomeInfoDb seqnames seqlevelsStyle seqlevelsStyle<-
@@ -217,7 +218,8 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 
 
 
-
+# Add annotation re. whether or not 
+# the gRNAs cuts overlap a known gene
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom BiocGenerics strand
 #' @importFrom GenomicRanges GPos findOverlaps
@@ -258,7 +260,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 
 
 
-
+# Add annotation re. where in a gene the gRNA is cutting 
 #' @importFrom S4Vectors mcols<-
 .addCutRegions <- function(geneAnn,
                            txObject,
@@ -277,6 +279,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 }
 
 
+# Helper function for .addCutRegions
 #' @importFrom GenomicRanges findOverlaps
 #' @importFrom S4Vectors queryHits subjectHits
 .spacersCutInRegion <- function(geneAnn,
@@ -295,7 +298,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
     return(spacersCutInRegion)
 }
 
-
+# Add relative position within CDS where a gRNA cuts
 #' @importFrom S4Vectors split mcols<-
 .addCdsPositionAnnotation <- function(geneAnn,
                                       txObject,
@@ -317,6 +320,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 }
 
 
+# Add relative position within full mRNA where a gRNA cuts
 #' @importFrom S4Vectors mcols mcols<-
 #' @importFrom IRanges pos
 .addTxPositionAnnotation <- function(geneAnn,
@@ -344,6 +348,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 }
 
 
+# Get transcript annotation 
 #' @importFrom S4Vectors split
 .getTxAnnotationList <- function(geneAnn,
                                  txObject,
@@ -362,6 +367,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 }
 
 
+# Get genomic coordinates of transcripts
 #' @importFrom BiocGenerics strand start end
 .getTxCoordinateSequences <- function(txAnn
 ){
@@ -381,6 +387,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 }
 
 
+# Get amino sequences information
 #' @importFrom BSgenome getSeq
 #' @importFrom Biostrings translate
 .getAminoAcidSequences <- function(txAnn,
@@ -394,6 +401,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 }
 
 
+# Get amino sequences information
 #' @importFrom S4Vectors mcols
 #' @importFrom IRanges pos
 #' @importFrom Biostrings matchPattern
@@ -449,6 +457,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 }
 
 
+# Get a summary of how many protein-coding isoforms are targeted by a gRNA
 #' @importFrom S4Vectors mcols<-
 .addCodingIsoformSummary <- function(geneAnn,
                                      txObject
@@ -467,6 +476,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 }
 
 
+# Helper function for .addCodingIsoformSummary
 #' @importFrom S4Vectors mcols
 .getIsoformAnnotation <- function(geneAnn,
                                   txObject,
@@ -504,7 +514,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 }
 
 
-
+# Add Pfam domain annotation (whether or not a gRNA cuts in a known Pfam domain)
 #' @importFrom S4Vectors isTRUEorFALSE mcols mcols<-
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom IRanges pos

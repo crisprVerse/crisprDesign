@@ -146,18 +146,22 @@ getTxInfoDataFrame <- function(tx_id,
 
 
 
+# Make sure a given CDS is really coding by checking
+# that the length is greater than 0
 .isProteinCoding <- function(gr.cds){
     len <- sum(BiocGenerics::width(gr.cds))
     len>0
 }
 
+# Make sure the CDS has the proper length
+# to produce a valid protein
 .hasValidProteinCodingLength <- function(gr.cds){
     len <- sum(BiocGenerics::width(gr.cds))
     (len %% 3)==0   
 }
 
 
-
+# Get CDS annotation and genomic coordinates
 .getCdsLongDataFrame <- function(gr.cds,
                                  gr.exons,
                                  chr,
@@ -220,6 +224,7 @@ getTxInfoDataFrame <- function(tx_id,
     return(out)
 }
 
+# Get full mRNA (coding and not coding) annotation and genomic coordinates
 .getExonLongDataFrame <- function(gr.exons,
                                   chr,
                                   strand,
@@ -260,7 +265,8 @@ getTxInfoDataFrame <- function(tx_id,
     return(out)
 }
 
-
+# Get full mRNA (coding and not coding) annotation and genomic coordinates
+# with an extended windown
 .getExonLongDataFrameExtended <- function(gr.exons,
                                           chr,
                                           strand,

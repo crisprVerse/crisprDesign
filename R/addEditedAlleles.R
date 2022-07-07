@@ -102,6 +102,10 @@ addEditedAlleles <- function(guideSet,
     return(guideSet)
 }
 
+
+# Create a gRNA-level classification of the dominant
+# predicted allele consequence.
+# Either missense, nonsense, silent, or not_targeting.
 .addSummaryFromEditingAlleles <- function(guideSet){
     alleles <- mcols(guideSet)[["editedAlleles"]]
     choices <- c("missense",
@@ -130,7 +134,8 @@ addEditedAlleles <- function(guideSet,
 
 
 
-
+# Choose the variant with the highest probability
+# for each row (gRNA)
 .voteVariant <- function(scores){
     classes <- colnames(scores)
     classes <- gsub("score_", "", classes)
@@ -148,9 +153,7 @@ addEditedAlleles <- function(guideSet,
 
 
 
-
-
-
+# Get the set of predicted edited alleles for each gRNA
 #' @importFrom crisprBase editingStrand
 .getEditedAllelesPerGuide <- function(gs,
                                       baseEditor,
@@ -249,7 +252,8 @@ addEditedAlleles <- function(guideSet,
 
 
 
-
+# Predict variant functional consequence (missense, nonsense, silent)
+# by comparing edited alleles to wildtype alleles 
 #' @importFrom Biostrings complement reverse
 .addFunctionalConsequences <- function(editedAlleles,
                                        txTable
@@ -342,7 +346,8 @@ addEditedAlleles <- function(guideSet,
 
 
 
-
+# Get base editing weights from a BaseEditor object
+# for a given editing window
 #' @importFrom crisprBase editingWeights
 .getEditingWeights <- function(baseEditor,
                                editingWindow
@@ -357,6 +362,7 @@ addEditedAlleles <- function(guideSet,
 }
 
 
+# Rescale weights between 0 and 1
 .rescaleWeights <- function(ws){
     ws <- ws/max(ws, na.rm=TRUE)
     nucStart <- crisprBase:::.getOriginBaseFromRownames(rownames(ws))
@@ -371,6 +377,8 @@ addEditedAlleles <- function(guideSet,
 }
 
 
+# Calculate relative event probabilities
+# when there is no editing for a given base
 .addWildtypeWeights <- function(ws){
     nucStart <- crisprBase:::.getOriginBaseFromRownames(rownames(ws))
     nucEnd   <- crisprBase:::.getTargetBaseFromRownames(rownames(ws))
@@ -392,9 +400,8 @@ addEditedAlleles <- function(guideSet,
 
 
 
-
-
-
+# Get possible nucleotide changes based on a set
+# of base editing weights
 .getPossibleNucChanges <- function(ws){
     ws_start <- crisprBase:::.getOriginBaseFromRownames(rownames(ws))
     ws_end   <- crisprBase:::.getTargetBaseFromRownames(rownames(ws))
@@ -408,9 +415,8 @@ addEditedAlleles <- function(guideSet,
 }
 
 
-
-
-
+# Calculate a relative editing probability
+# for each edited allele
 .scoreEditedAlleles <- function(sequences,
                                 nucsReduced,
                                 ws

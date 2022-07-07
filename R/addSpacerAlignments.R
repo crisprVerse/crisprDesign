@@ -317,6 +317,8 @@ setMethod("addSpacerAlignmentsIterative", "NULL", function(object){
 
 
 
+# Make sure the mismatch threshold for the iterative alignment algorithm
+# are valid
 .validateAlignmentThresholds <- function(alignmentThresholds
 ){
     maxAlignments <- c(n0=5, n1=100, n2=100, n3=1000, n4=1000)
@@ -501,7 +503,7 @@ setMethod("addSpacerAlignments", "NULL", function(object){
 
 
 
-
+# Core function to get spacer alignments annotation
 #' @rdname addSpacerAlignments
 #' @export
 #' @importFrom methods is
@@ -568,6 +570,9 @@ getSpacerAlignments <- function(spacers,
 
 
 
+
+# Make sure that the number of mismatches specified by the user
+# is compatible with the alignment method
 .validateNumberOfMismatches <- function(n_mismatches,
                                         aligner
 ){
@@ -591,6 +596,7 @@ getSpacerAlignments <- function(spacers,
 
 
 
+# Core function for index-based alignment methods
 #' @importFrom crisprBowtie runCrisprBowtie
 #' @importFrom S4Vectors nchar
 .getSpacerAlignments_indexed <- function(spacers,
@@ -669,6 +675,7 @@ getSpacerAlignments <- function(spacers,
 
 
 
+# Convert alignment output data.frame to a GRanges object
 #' @importClassesFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
 #' @importFrom S4Vectors mcols mcols<-
@@ -699,6 +706,8 @@ getSpacerAlignments <- function(spacers,
 
 
 
+
+# Add genome info to the alignments output object
 #' @importFrom GenomeInfoDb seqnames seqlevels seqlevels<-
 #' @importFrom GenomeInfoDb seqinfo seqinfo<- keepStandardChromosomes
 .setAlignmentSeqInfo <- function(alignments,
@@ -740,6 +749,7 @@ getSpacerAlignments <- function(spacers,
 
 
 
+# Core function for Biostrings-based alignment
 #' @importFrom BiocGenerics rbind
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
@@ -838,7 +848,7 @@ getSpacerAlignments <- function(spacers,
 }
 
 
-
+# Helper function for Biostrings-based alignment method
 .setCustomSeqNames <- function(custom_seq
 ){
     custom_seq_names <- names(custom_seq)
@@ -857,7 +867,7 @@ getSpacerAlignments <- function(spacers,
 }
 
 
-
+# Helper function for Biostrings-based alignment method
 #' @importFrom BiocGenerics rbind
 .getCustomSeqAlignments <- function(spacer,
                                     custom_seq,
@@ -885,7 +895,7 @@ getSpacerAlignments <- function(spacers,
 }
 
 
-
+# Helper function for Biostrings-based alignment method
 #' @importFrom Biostrings matchPattern
 #' @importFrom S4Vectors nchar
 #' @importFrom BiocGenerics as.data.frame
@@ -974,8 +984,7 @@ getSpacerAlignments <- function(spacers,
 
 
 
-# Function to add transcript annotation
-# for RNases
+# Function to add transcript annotation for RNases such as CasRx
 .addTranscriptAnnotationColumns <- function(aln,
                                             txObject=txObject
 ){  
@@ -996,7 +1005,7 @@ getSpacerAlignments <- function(spacers,
 
 
 
-
+# Function to add gene annotation to the alignments object
 #' @importFrom GenomeInfoDb checkCompatibleSeqinfo
 #' @importFrom S4Vectors mcols<-
 .addGeneAnnotationColumns <- function(aln,
@@ -1025,7 +1034,7 @@ getSpacerAlignments <- function(spacers,
 }
 
 
-
+# Helper function to .addGeneAnnotationColumns
 #' @importFrom IRanges IRanges ranges<-
 #' @importFrom GenomicRanges findOverlaps
 #' @importFrom S4Vectors queryHits subjectHits mcols

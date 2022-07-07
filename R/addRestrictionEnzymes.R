@@ -122,7 +122,7 @@ setMethod("addRestrictionEnzymes", "NULL", function(object){
 
 
 
-
+# Core engine to get restriction enzymes annotation
 #' @importFrom S4Vectors DataFrame
 getRestrictionEnzymes <- function(guideSet,
                                   enzymeNames=NULL,
@@ -148,7 +148,7 @@ getRestrictionEnzymes <- function(guideSet,
 
 
 
-
+# Generate a final list of enzyme motifs from different user inputs
 .enzymeMotifs <- function(includeDefault,
                           enzymeNames,
                           patterns
@@ -173,6 +173,7 @@ getRestrictionEnzymes <- function(guideSet,
                          "BsaI", "BbsI", "PacI","MluI")
 
 
+# Get enzyme motifs from a vector of enzyme names
 #' @importFrom crisprBase motifs
 .getEnzymeMotifs <- function(enzymeNames){
     data("restrictionEnzymes",
@@ -186,7 +187,8 @@ getRestrictionEnzymes <- function(guideSet,
     return(motifs)
 }
 
-
+# Make sure the enzyme names are available in a pre-calculated set of
+# restriction enzymes
 .checkEnzymeNames <- function(enzymeNames,
                               restrictionEnzymes){
     if (length(enzymeNames) > 0){
@@ -235,7 +237,7 @@ getRestrictionEnzymes <- function(guideSet,
 }
 
 
-
+# Transform string to a regex motif for sequence search
 .enzymeMotif2RegexPattern <- function(motif
 ){
     revMotif <- .revCompBs(motif)
@@ -263,7 +265,7 @@ getRestrictionEnzymes <- function(guideSet,
 
 
 
-
+# Add flanking sequences to spacer sequences
 .spacersWithFlankingRegions <- function(guideSet,
                                         flanking5,
                                         flanking3

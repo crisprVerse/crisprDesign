@@ -166,7 +166,7 @@ TxDb2GRangesList <- function(txdb,
 
 
 
-
+# Get comprehensive gene annotation from Biomart
 .getBiomartData <- function(txdb,
                             organism
 ){
@@ -204,7 +204,7 @@ TxDb2GRangesList <- function(txdb,
 
 
 
-
+# Extract an transcript GRanges from a TxDb object
 .getTranscriptsFromTxDB <- function(txdb, bm=NULL){
 
     transcripts <- GenomicFeatures::tidyTranscripts(txdb)
@@ -231,7 +231,7 @@ TxDb2GRangesList <- function(txdb,
 }
 
 
-
+# Extract exon annotation from a TxDb object
 .getExonInfo <- function(txdb){
     exons <- GenomicFeatures::tidyExons(txdb)
     exon_cols <- c('EXONID', 'CDSSTART', 'CDSEND', 'CDSNAME', 
@@ -245,6 +245,7 @@ TxDb2GRangesList <- function(txdb,
 }
 
 
+# Extract an exon GRanges from TxDb object
 .getExonsFromTxDB <- function(txdb, bm, exonInfo){
     exons <- GenomicFeatures::tidyExons(txdb)
     exons_exonId_txId <- paste0(exons$exon_id, "_", exons$tx_name)
@@ -277,6 +278,7 @@ TxDb2GRangesList <- function(txdb,
 }
 
 
+# Extract CDS from exons GRanges object
 .getCdsFromExons <- function(exons){
     cds <- exons
     cds <- cds[!is.na(cds$cds_start) & !is.na(cds$cds_end)]
@@ -290,6 +292,8 @@ TxDb2GRangesList <- function(txdb,
 }  
 
 
+
+# Extract chromosome information from TxDb object
 #' @importFrom GenomicFeatures as.list
 #' @importFrom GenomeInfoDb seqlevels
 .getChromInfoFromTxDb <- function(txdb){
@@ -305,6 +309,7 @@ TxDb2GRangesList <- function(txdb,
 }
 
 
+# Extract 5' UTRs from TxDb object
 .getFiveUtrsFromTxdb <- function(txdb, bm=NULL, exonInfo){
     fiveUTRs <- GenomicFeatures::fiveUTRsByTranscript(txdb)
     fiveUTRs <- unlist(methods::as(fiveUTRs, 'GRangesList'))
@@ -322,6 +327,8 @@ TxDb2GRangesList <- function(txdb,
     return(fiveUTRs)
 }
 
+
+# Extract 3' UTRs from TxDb object
 .getThreeUtrsFromTxdb <- function(txdb, bm=NULL, exonInfo){
     threeUTRs <- GenomicFeatures::threeUTRsByTranscript(txdb)
     threeUTRs <- unlist(methods::as(threeUTRs, 'GRangesList'))
@@ -340,7 +347,7 @@ TxDb2GRangesList <- function(txdb,
 }
 
 
-
+# Extract Introns TxDb object
 .getIntronsFromTxDb <- function(txdb, bm){
     introns <- tidyIntrons(txdb)
     introns$tx_id <- introns$tx_name
@@ -356,7 +363,7 @@ TxDb2GRangesList <- function(txdb,
 
 
 
-
+# Extract TSS information from a TxDb object
 .getTssFromTxDb <- function(txdb, bm, exonInfo){
     promoters <- promoters(txdb,
                            downstream=1,

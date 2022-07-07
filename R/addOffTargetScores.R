@@ -91,6 +91,7 @@ setMethod("addOffTargetScores", "NULL", function(object){
 })
 
 
+
 #' @importFrom S4Vectors mcols isTRUEorFALSE
 .checkOffTargetScoresParameters <- function(guideSet,
                                             max_mm,
@@ -119,6 +120,7 @@ setMethod("addOffTargetScores", "NULL", function(object){
 }
 
 
+# Add off-target scores for each off-target stored in the alignments data.frame
 #' @importFrom utils data
 #' @importFrom S4Vectors split mcols<-
 #' @importFrom crisprScore getCFDScores
@@ -202,6 +204,7 @@ setMethod("addOffTargetScores", "NULL", function(object){
 }
 
 
+# Add aggregated off-target scores to the GuideSet
 #' @importFrom S4Vectors mcols mcols<-
 .addOffTargetScoresToGuideSet <- function(guideSet,
                                           max_mm,

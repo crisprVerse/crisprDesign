@@ -128,7 +128,7 @@ getPAMSequence <- function(chr,
 }
 
 
-
+# Get PAM sequence from a custom sequence input
 #' @importFrom crisprBase pamLength
 getPAMSequence_customSeq <- function(custom_seq,
                                      pam_site,
@@ -215,7 +215,7 @@ getSpacerSequence <- function(chr,
 
 
 
-
+# Convert original GuideSet coordinates (pam_site) to protospacer coordinates
 #' @importFrom S4Vectors metadata DataFrame
 #' @importFrom BiocGenerics start end start<- end<- strand
 #' @importFrom crisprBase pamSide pamLength spacerLength
@@ -250,7 +250,9 @@ convertToProtospacerGRanges <- function(guideSet){
 
 
 
-
+# Utility function to get nucleotide sequences based on a start 
+# and end positions relative to the genomic coordinates stored in a 
+# GuideSet object
 #' @importFrom IRanges trim
 #' @importFrom BSgenome getSeq
 .getExtendedSequences <- function(guideSet,
@@ -294,7 +296,7 @@ convertToProtospacerGRanges <- function(guideSet){
 
 
 
-
+# Make sure PAM site is within chromosome coordinates
 .validatePamSite <- function(pam_site){
     stopifnot(is.numeric(unlist(pam_site)))
     if (sum(pam_site < 1) > 0 || sum(pam_site %% 1 != 0) > 0){
@@ -303,6 +305,7 @@ convertToProtospacerGRanges <- function(guideSet){
     return(pam_site)
 }
 
+# Make sure strand is either + or -
 .validateStrand <- function(strand){
     stopifnot(is.character(strand))
     if (sum(!strand %in% c('+', '-')) > 0){
@@ -311,6 +314,7 @@ convertToProtospacerGRanges <- function(guideSet){
     return(strand)
 }
 
+# Make sure the length is a positive integer and of length 1
 .validateSpacerLength <- function(len){
     stopifnot(is.numeric(len))
     if (length(len) > 1){
@@ -323,7 +327,8 @@ convertToProtospacerGRanges <- function(guideSet){
 }
 
 
-
+# Get default cut offset from a CrisprNuclase object
+# Cut offset is a distance with respect to the PAM site.
 #' @importFrom crisprBase cutSites
 .getDefaultCutOffset <- function(crisprNuclease){
     crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
@@ -333,6 +338,8 @@ convertToProtospacerGRanges <- function(guideSet){
 }
 
 
+# Get PAM site coordinate based on start and end coordinates 
+# of a spacer sequence
 #' @rdname completeSpacers
 #' @export
 #' @importFrom crisprBase pamLength

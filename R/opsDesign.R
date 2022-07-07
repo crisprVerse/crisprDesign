@@ -151,7 +151,7 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 
 
 
-# Core function 
+# Core function  for getBarcodeDistanceMatrix
 #' @importFrom utils adist
 #' @importFrom Matrix Matrix
 .getChunkDistanceMatrix <- function(queryBarcodes,
@@ -373,6 +373,7 @@ updateOpsLibrary <- function(opsLibrary,
 }
 
 
+# Start OPS design with a set of candidate gRNAs
 #' @importFrom Matrix rowSums
 .initiateOpsLibrary <- function(grnaList,
                                 dist_method,
@@ -399,6 +400,8 @@ updateOpsLibrary <- function(opsLibrary,
 
 
 
+# Attemps to add gRNAs to an initial set of chosen gRNAs
+# based on the OPS rules
 .updateOpsLibrary <- function(grnaList,
                               gene_field,
                               n_guides,
@@ -435,7 +438,8 @@ updateOpsLibrary <- function(opsLibrary,
 }
 
 
-
+# Helper function for .updateOpsLibrary
+# Attemps to add one gRNA at a time
 .updateOpsLibraryOnce <- function(grnaList,
                                   gene_field,
                                   n_guides,
@@ -574,7 +578,8 @@ validateOpsLibrary <- function(df,
 }
 
 
-
+# Make sure the number of in situ sequencing (ISS) cycles
+# is less than the full spacer length
 .validateNCycles <- function(n_cycles, spacer_len){
     if (n_cycles>spacer_len){
         stop("n_cycles must be an integer smaller or equal ",
@@ -584,7 +589,7 @@ validateOpsLibrary <- function(df,
 }
 
 
-
+# Get distance costs 
 .getCosts <- function(dist_method=c("hamming","levenstein")
 ){
     dist_method <- match.arg(dist_method)
@@ -610,18 +615,6 @@ validateOpsLibrary <- function(df,
     rownames(df) <- rows
     return(df)
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

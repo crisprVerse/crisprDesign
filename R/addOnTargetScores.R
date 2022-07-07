@@ -130,7 +130,8 @@ setMethod("addOnTargetScores", "NULL", function(object){
 
 
 
-
+# Function to make sure scoring methods and nucleases are compatible
+# and available in the crisprScore package.
 #' @importFrom utils data
 .validateOnTargetScoreMethods <- function(methods,
                                           crisprNuclease
@@ -176,6 +177,7 @@ setMethod("addOnTargetScores", "NULL", function(object){
 
 
 
+# Make sure the spacer sequences are compatible with the CrisprNuclease
 #' @importFrom stats complete.cases
 .validSpacersForOnTargetScores <- function(guideSet,
                                            crisprNuclease
@@ -196,7 +198,7 @@ setMethod("addOnTargetScores", "NULL", function(object){
 
 
 
-
+# Core funciton to get the on-target scores
 #' @author Jean-Philippe Fortin
 #' 
 #' @importFrom utils data

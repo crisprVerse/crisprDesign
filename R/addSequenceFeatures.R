@@ -87,7 +87,7 @@ setMethod("addSequenceFeatures", "NULL", function(object){
 
 
 
-
+# Add percent GC content
 #' @importFrom S4Vectors mcols<-
 .addPercentGC <- function(guideSet,
                           seqs
@@ -97,6 +97,7 @@ setMethod("addSequenceFeatures", "NULL", function(object){
 }
 
 
+# Calculate percent GC content from a set of sequences (strings)
 #' @importFrom Biostrings DNAStringSet letterFrequency
 .calculatePercentGC <- function(seqs
 ){
@@ -107,7 +108,7 @@ setMethod("addSequenceFeatures", "NULL", function(object){
     return(percentGC)
 }
 
-
+# Add annotation for polymer (more or equal to 4 consecutive nucleotides)
 #' @importFrom Biostrings DNA_BASES
 #' @importFrom S4Vectors mcols<-
 .addHomopolymers <- function(guideSet,
@@ -124,6 +125,7 @@ setMethod("addSequenceFeatures", "NULL", function(object){
 }
 
 
+# Add Hairpin self-complementarity annotation
 #' @importFrom Biostrings DNAStringSet
 #' @importFrom S4Vectors mcols<-
 .addHairpins <- function(guideSet,

@@ -759,16 +759,17 @@ setMethod("enzymeAnnotation", "GuideSet",
 
 
 
-
+# Add data.frame rownames to a column 
 #' @importFrom BiocGenerics rownames rownames<- cbind
-.namesAsColumn_df <- function(out
-){
+.namesAsColumn_df <- function(out){
     spacer_id <- BiocGenerics::rownames(out)
     out <- BiocGenerics::cbind(spacer_id, out)
     BiocGenerics::rownames(out) <- NULL
     return(out)
 }
 
+
+# Add GRanges names to a metadata column 
 #' @importFrom S4Vectors DataFrame mcols mcols<-
 .namesAsColumn_gr <- function(out
 ){

@@ -124,6 +124,7 @@ findSpacers <- function(x,
 
 
 
+
 #' @importFrom crisprBase spacerLength<-
 .setupCrisprNucleaseForFindSpacers <- function(crisprNuclease,
                                                spacer_len
@@ -138,7 +139,10 @@ findSpacers <- function(x,
 }
 
 
-# update when features are supported
+
+
+# Make sure the provided CrisprNuclease is currently supported
+# by our software.
 #' @importFrom crisprBase hasSpacerGap isRnase isCutting
 .checkCrisprNucleaseForSupportedFeatures <- function(crisprNuclease
 ){
@@ -158,6 +162,7 @@ findSpacers <- function(x,
 }
 
 
+# Extract a DNAStringSet object from a (bsgenome,granges) pair
 #' @importFrom methods is
 .asDNAStringSet <- function(x,
                             bsgenome,
@@ -187,6 +192,9 @@ findSpacers <- function(x,
 }
 
 
+
+
+# Helper function for .asDNAStringSet
 #' @importFrom GenomeInfoDb genome seqlevels seqlevels<- seqinfo seqinfo<-
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom BSgenome getSeq
@@ -219,6 +227,10 @@ findSpacers <- function(x,
 }
 
 
+
+
+# Make sure provided BSgenome object is compatible
+# with the genome stored in the input GRanges object
 #' @importFrom GenomeInfoDb genome
 .bsgenome4GrangesInput <- function(bsgenome,
                                    genome
@@ -238,6 +250,8 @@ findSpacers <- function(x,
 }
 
 
+
+# Add region names if missing in the input GRanges object
 .assignRegionNames <- function(x){
     regionNames <- names(x)
     if (is.null(regionNames) ||
@@ -250,6 +264,7 @@ findSpacers <- function(x,
 }
 
 
+# Deal with strands that are *
 #' @importFrom BiocGenerics strand strand<- invertStrand
 .resolveRegionStrands <- function(x,
                                   both_strands
@@ -270,6 +285,9 @@ findSpacers <- function(x,
 }
 
 
+
+# Expand input GRanges object a little bit further to allow spacer
+# sequences overlapping the boundaries
 #' @importFrom crisprBase spacerLength
 #' @importFrom BiocGenerics width
 #' @importFrom GenomicRanges resize trim
@@ -286,6 +304,8 @@ findSpacers <- function(x,
 }
 
 
+
+# Convenience function to transform a string into a DNAStringSet
 #' @importFrom Biostrings DNAStringSet reverseComplement
 #' @importFrom S4Vectors mcols mcols<- DataFrame metadata<-
 #' @importFrom BiocGenerics width invertStrand
@@ -310,6 +330,8 @@ findSpacers <- function(x,
 }
 
 
+
+# Find spacer sequences from a DNAStringSet object
 #' @importFrom crisprBase pams
 #' @importFrom S4Vectors mcols<- metadata metadata<- bindROWS
 #' @importFrom GenomeInfoDb genome<-
@@ -415,6 +437,7 @@ findSpacers <- function(x,
 }
 
 
+
 #' @importFrom BiocGenerics width
 #' @importFrom S4Vectors mcols
 .applyHitsCoordinates <- function(hits,
@@ -435,7 +458,7 @@ findSpacers <- function(x,
 
 
 
-
+# Make sure gRNA cuts are within the input genomic region
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom GenomicRanges GRanges findOverlaps
 #' @importFrom IRanges IRanges
@@ -459,6 +482,7 @@ findSpacers <- function(x,
 }
 
 
+# Remove bases that are not DNA nucleotides
 #' @importFrom crisprBase isDnase isRnase
 #' @importFrom Biostrings DNA_BASES RNA_BASES
 .removeAmbiguities <- function(guideSet,
