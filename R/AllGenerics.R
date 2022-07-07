@@ -279,26 +279,3 @@ setGeneric("addSpacerAlignmentsIterative",
            function(object, ...) standardGeneric("addSpacerAlignmentsIterative"))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

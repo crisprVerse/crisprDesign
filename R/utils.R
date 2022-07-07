@@ -359,7 +359,6 @@ S4Vectors::mcols
 # Those functions are faster than
 # their Biostrings counterpart
 # for short sequences; useful for alignment.
-
 .complement <- function(x){
     ## paste(grep("[A-Z]", Biostrings::DNA_ALPHABET, value=TRUE), collapse="")
     chartr("ACGTMRWSYKVHDBN", "TGCAKYWSRMBDHVN", x)

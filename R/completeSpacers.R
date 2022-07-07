@@ -54,14 +54,6 @@ NULL
 
 
 
-
-
-
-
-
-
-
-
 #' @rdname completeSpacers
 #' @export
 getCutSiteFromPamSite <- function(pam_site,

@@ -243,10 +243,9 @@ setMethod("addOffTargetScores", "NULL", function(object){
                                    checkSpacerLength=FALSE)
 
 
-    #if (isCas9|isCasRx){
-    # Not ready to aggregate for CasRx
-    # has multiple isoforms create repeat number
-    # of on-targets
+    if (isCasRx){
+        stop("Aggregation is not implemented yet for CasRx")
+    }
     if (isCas9){
         cfd <- .getAggregateScore("score_cfd")
         cfdIndices <- match(spacers, names(cfd))
