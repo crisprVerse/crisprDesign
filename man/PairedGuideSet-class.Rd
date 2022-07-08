@@ -10,6 +10,7 @@
 \alias{PairedGuideSet}
 \alias{pamOrientation,PairedGuideSet-method}
 \alias{pamDistance,PairedGuideSet-method}
+\alias{spacerDistance,PairedGuideSet-method}
 \alias{cutLength,PairedGuideSet-method}
 \alias{crisprNuclease,PairedGuideSet-method}
 \alias{spacers,PairedGuideSet-method}
@@ -36,7 +37,7 @@ PairedGuideSet(GuideSet1 = NULL, GuideSet2 = NULL)
 
 \S4method{pamDistance}{PairedGuideSet}(object)
 
-\S4method{pamDistance}{PairedGuideSet}(object)
+\S4method{spacerDistance}{PairedGuideSet}(object)
 
 \S4method{cutLength}{PairedGuideSet}(object)
 

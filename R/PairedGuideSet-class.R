@@ -99,8 +99,14 @@ setValidity("PairedGuideSet", function(object){
     s2 <- as.character(strand(gs2))
     out[s1=="-" & s2=="-"] <- "rev"
     out[s1=="+" & s2=="+"] <- "fwd"
-    out[s1=="-" & s2=="+"] <- "out"
-    out[s1=="+" & s2=="-"] <- "in"
+    pamSide <- pamSide(gs1)
+    if (pamSide=="3prime"){ #Cas9-like:
+        out[s1=="-" & s2=="+"] <- "out"
+        out[s1=="+" & s2=="-"] <- "in"
+    } else { #Cas12a-like:
+        out[s1=="-" & s2=="+"] <- "in"
+        out[s1=="+" & s2=="-"] <- "out"
+    }
     names(out) <- NULL
     return(out)
 }
@@ -172,9 +178,9 @@ setMethod("pamDistance", "PairedGuideSet",
 
 
 #' @rdname PairedGuideSet-class
-setMethod("pamDistance", "PairedGuideSet",
+setMethod("spacerDistance", "PairedGuideSet",
     function(object){
-    out <- mcols(object)[["pamDistance"]]
+    out <- mcols(object)[["spacerDistance"]]
     return(out)
 })
 
