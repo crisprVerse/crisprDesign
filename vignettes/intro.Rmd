@@ -793,7 +793,54 @@ The `designOpsLibrary` allows users to perform a complete end-to-end library des
 
 # Design of gRNA pairs with the \code{PairedGuideSet} object
 
-TBD
+The `findSpacerPairs` function in `crisprDesign` enables the design of pairs of gRNAs and works similar to `findSpacers`. As an example, we will design candidate pairs of gRNAs that target a small locus located on chr12 in the human genome:
+
+```{r}
+library(GenomicRanges)
+library(BSgenome.Hsapiens.UCSC.hg38)
+library(crisprBase)
+bsgenome <- BSgenome.Hsapiens.UCSC.hg38
+```
+
+
+We first specify the genomic locus:
+```{r}
+gr <- GRanges(c("chr12"),
+              IRanges(start=22224014, end=22225007))
+```
+
+and find all pairs using the function `findSpacerPairs`:
+
+```{r}
+pairs <- findSpacerPairs(gr, gr, bsgenome=bsgenome)
+```
+
+The first and second arguments of the function specify the which genomic region the first and second gRNA should target, respectively. In our case, we are targeting the same region with both gRNAs. The other arguments of the function are similar to the `findSpacers` function described below. 
+
+The output object is a `PairedGuideSet`, which can be though of a list of two `GuideSet`:
+
+```{r}
+pairs
+```
+
+The first and second `GuideSet` store information about gRNAs at position 1 and position 2, respectively. They can be accessed using the `first` and `second` functions:
+
+```{r}
+grnas1 <- first(pairs)
+grnas2 <- second(pairs)
+grnas1
+grnas2
+```
+
+The `pamOrientation` function returns the PAM orientation of the pairs:
+
+```{r}
+head(pamOrientation(pairs))
+```
+
+and takes 4 different values: `in` (for PAM-in configuration) `out` (for PAM-out configuration), `fwd` (both gRNAs target the forward strnad) and `rev` (both gRNAs target the reverse strand). 
+
+The function `pamDistance` returns the distance between the PAM sites of the two gRNAs. The function `cutDistance` returns the distance between the cut sites of the two gRNAs. The function `spacerDistance` returns the distance between the two spacer sequences of the gRNAs.
 
 # Miscellaneous design use cases
 
