@@ -18,6 +18,14 @@
 #' @param pamOrientation String specifying a constraint on the PAM orientation  
 #'     of the pairs. Should be either "all" (default), "out" (for the so-called
 #'     PAM-out orientation) or "in" (for PAM-in orientation). 
+#' @param minCutLength Integer specifying the minimum cut length allowed
+#'     (distance between the two cuts) induced by the gRNA pair.
+#'     If NULL (default), the argument is ignored. Note that this parameter
+#'     is only applicable for pairs of gRNAs targeting the same chromosome.
+#' @param maxCutLength Integer specifying the maximum cut length allowed
+#'     (distance between the two cuts) induced by the gRNA pair.
+#'     If NULL (default), the argument is ignored. Note that this parameter
+#'     is only applicable for pairs of gRNAs targeting the same chromosome.
 #' @param bsgenome A \linkS4class{BSgenome} object from which to extract
 #'     sequences if \code{x} is a \linkS4class{GRanges} object.
 #' @param crisprNuclease A \linkS4class{CrisprNuclease} object.
@@ -69,7 +77,7 @@
 #'                IRanges(start=22224014, end=22225007))
 #' 
 #' # Region 2:
-#' gr2 <- GRanges(c("chr12"),
+#' gr2 <- GRanges(c("chr13"),
 #'                IRanges(start=23224014, end=23225007))
 #' 
 #' # Pairs targeting the same region:
@@ -90,6 +98,8 @@ findSpacerPairs <- function(x1,
                             x2,
                             sortWithinPair=TRUE,
                             pamOrientation=c("all", "out", "in"),
+                            minCutLength=NULL,
+                            maxCutLength=NULL,
                             crisprNuclease=NULL,
                             bsgenome=NULL,
                             canonical=TRUE,
@@ -127,8 +137,25 @@ findSpacerPairs <- function(x1,
     } else if (pamOrientation=="out"){
         pgs <- pgs[pamOrientation(pgs)=="out"]
     }
+    if (!is.null(minCutLength) | !is.null(maxCutLength)){
+        chr1 <- as.character(seqnames(first(pgs)))
+        chr2 <- as.character(seqnames(second(pgs)))
+        lens <- cutLength(pgs)
+        interChr <- chr1!=chr2
+        intraChr <- chr1==chr2
+        
+        good <- rep(TRUE, length(pgs))
+        if (!is.null(minCutLength)){
+            good <- good & ((intraChr & lens>=minCutLength) | interChr)
+        } 
+        if (!is.null(maxCutLength)){
+            good <- good & ((intraChr & lens<=maxCutLength) | interChr)
+        } 
+        pgs <- pgs[good]
+    }
     return(pgs)
 }
+
 
 
 .orderingByCutSite <- function(gs){

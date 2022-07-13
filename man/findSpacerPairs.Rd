@@ -9,6 +9,8 @@ findSpacerPairs(
   x2,
   sortWithinPair = TRUE,
   pamOrientation = c("all", "out", "in"),
+  minCutLength = NULL,
+  maxCutLength = NULL,
   crisprNuclease = NULL,
   bsgenome = NULL,
   canonical = TRUE,
@@ -35,6 +37,16 @@ within a pair? TRUE by default.}
 \item{pamOrientation}{String specifying a constraint on the PAM orientation
 of the pairs. Should be either "all" (default), "out" (for the so-called
 PAM-out orientation) or "in" (for PAM-in orientation).}
+
+\item{minCutLength}{Integer specifying the minimum cut length allowed
+(distance between the two cuts) induced by the gRNA pair.
+If NULL (default), the argument is ignored. Note that this parameter
+is only applicable for pairs of gRNAs targeting the same chromosome.}
+
+\item{maxCutLength}{Integer specifying the maximum cut length allowed
+(distance between the two cuts) induced by the gRNA pair.
+If NULL (default), the argument is ignored. Note that this parameter
+is only applicable for pairs of gRNAs targeting the same chromosome.}
 
 \item{crisprNuclease}{A \linkS4class{CrisprNuclease} object.}
 
@@ -99,7 +111,7 @@ gr1 <- GRanges(c("chr12"),
                IRanges(start=22224014, end=22225007))
 
 # Region 2:
-gr2 <- GRanges(c("chr12"),
+gr2 <- GRanges(c("chr13"),
                IRanges(start=23224014, end=23225007))
 
 # Pairs targeting the same region:
