@@ -24,12 +24,12 @@ flattenGuideSet <- function(guideSet){
     tab2 <- .getMcolsTable_flat(guideSet)
     tab <- cbind(tab1, tab2)
     tab <- .safeFormatColumns(tab)
-    if (!"spacerID" %in% colnames(tab)){
-        tab$spacerID <- rownames(tab)
+    if (!"ID" %in% colnames(tab)){
+        tab$ID <- rownames(tab)
     }
     rownames(tab) <- NULL
     tab <- .putColumnFirst("chr", tab)
-    tab <- .putColumnFirst("spacerID", tab)
+    tab <- .putColumnFirst("ID", tab)
     return(tab)
 }
 
@@ -91,10 +91,10 @@ flattenGuideSet <- function(guideSet){
         stop("colname not found in colnames(mcols(guideset)).")
     }
     if (is(out, "GRanges")){
-        out$spacerID <- names(out)
+        out$ID <- names(out)
         out <- .getPrimaryTable(out)
     } else {
-        out$spacerID <- rownames(out)
+        out$ID <- rownames(out)
         rownames(out) <- NULL
         out <- as.data.frame(out)
         if ("seqnames" %in% colnames(out)){
@@ -106,8 +106,8 @@ flattenGuideSet <- function(guideSet){
     if ("chr" %in% colnames(out)){
         out <- .putColumnFirst("chr", out)    
     }
-    if ("spacerID" %in% colnames(out)){
-        out <- .putColumnFirst("spacerID", out)    
+    if ("ID" %in% colnames(out)){
+        out <- .putColumnFirst("ID", out)    
     }
     return(out)
 }
