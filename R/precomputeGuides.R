@@ -88,6 +88,10 @@ precomputeGuides <- function(geneid,
                        strict_overlap=FALSE,
                        bsgenome=bsgenome)
     out <- unique(out)
+     # Renaming spacers:
+    if (length(out)>0){
+        names(out) <- paste0(geneid, "_", seq_along(out))
+    }
     if (is.null(out)){
         out <- NA
         return(out)
@@ -189,10 +193,6 @@ precomputeGuides <- function(geneid,
             cat("[precomputeGuides] Adding SNP annotation \n")
         }
         out <- addSNPAnnotation(out, vcf=vcf)
-    }
-    # Renaming spacers:
-    if (length(out)>0){
-        names(out) <- paste0("gRNA_", seq_along(out))
     }
     return(out)
 }
