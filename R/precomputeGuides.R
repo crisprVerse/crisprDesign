@@ -163,7 +163,8 @@ precomputeGuides <- function(geneid,
     out <- addOnTargetScores(out,
                              methods=scoring_methods)
 
-    isCas9 <- .identicalNucleases(crisprNuclease, "SpCas9")
+    data(SpCas9, package="crisprBase", envir=environment())
+    isCas9 <- .identicalNucleases(crisprNuclease, SpCas9)
     if (!is.null(fastaFile) & !is.null(chromatinFiles) & modality %in% c("CRISPRi", "CRISPRi") & isCas9){
         if (verbose){
             cat("[precomputeGuides] Adding CRISPRai scores \n")
@@ -188,6 +189,10 @@ precomputeGuides <- function(geneid,
             cat("[precomputeGuides] Adding SNP annotation \n")
         }
         out <- addSNPAnnotation(out, vcf=vcf)
+    }
+    # Renaming spacers:
+    if (length(out)>0){
+        names(out) <- paste0("gRNA_", seq_along(out))
     }
     return(out)
 }
