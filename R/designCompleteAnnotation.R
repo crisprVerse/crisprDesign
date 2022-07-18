@@ -35,7 +35,7 @@
 #' @importFrom GenomicRanges GRanges
 #' @importFrom GenomeInfoDb seqnames
 #' @export
-precomputeGuides <- function(geneid,
+designCompleteAnnotation <- function(geneid,
                              modality=c("CRISPRko","CRISPRa", "CRISPRi"),
                              bsgenome=NULL,
                              bowtie_index=NULL,
