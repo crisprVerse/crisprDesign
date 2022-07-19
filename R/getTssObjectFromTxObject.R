@@ -1,13 +1,19 @@
-#data(tssObjectExample)
-#data(grListExample)
-#txObject = grListExample
+#' @title Extract TSS coordinates from a gene model object
+#' 
+#' @description Extract TSS coordinates from a gene model object.
+#' 
+#' @param txObject A \linkS4class{TxDb} object or a \linkS4class{GRangesList}
+#'     object obtained using \code{\link{TxDb2GRangesList}} for annotating
+#'     on-target and off-target alignments using gene annotation.
+#' 
+#' @return A GRanges object containing TSS coordinates
+#' 
 #' @author Jean-Philippe Fortin
 #' 
 #' @examples
 #' 
 #' data(grListExample, package="crisprDesign")
 #' tss <- getTssObjectFromTxObject(grListExample)
-#' 
 #' 
 #' @export
 getTssObjectFromTxObject <- function(txObject){
