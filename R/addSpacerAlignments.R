@@ -34,7 +34,7 @@
 #'     for each spacer. Effectively set to \code{Inf} when \code{allPossible}
 #'     is \code{TRUE}.
 #' @param all_alignments Should all all possible alignments be returned?
-#'     FALSE by defaule.
+#'     FALSE by default.
 #' @param crisprNuclease A \linkS4class{CrisprNuclease} object.
 #' @param canonical \code{TRUE} returns only those alignments having canonical
 #'     PAM sequences; \code{FALSE} returns alignments having canonical or

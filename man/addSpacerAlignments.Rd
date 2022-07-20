@@ -150,7 +150,7 @@ sequences if a \linkS4class{GRanges} object is provided as input.}
 and genomic DNA.}
 
 \item{all_alignments}{Should all all possible alignments be returned?
-FALSE by defaule.}
+FALSE by default.}
 
 \item{canonical}{\code{TRUE} returns only those alignments having canonical
 PAM sequences; \code{FALSE} returns alignments having canonical or

@@ -36,6 +36,69 @@
 # all_alignments=TRUE 
 # n_mismatches=1
 
+
+
+#' @title One-step gRNA design and annotation function
+#' 
+#' @description One-step gRNA design and annotation function
+#'    to faciliate the design and generation of genome-wide
+#'    gRNA databases for a combination of parameters such 
+#'    as nuclease, organism, and CRISPR modality.
+#' 
+#' @param queryValue Vector specifying the value(s) to search for in
+#'     \code{txObject[[featureType]][[queryColumn]]}.
+#' @param queryColumn Character string specifying the column in 
+#'     \code{txObject[[featureType]]} to search for \code{queryValue}(s).
+#' @param featureType For CRISPRko, string specifying the type of genomic
+#'     feature to use to design gRNAs. Must be of the following:
+#'     "transcripts", "exons", "cds", "fiveUTRs", "threeUTRs" or "introns".
+#'     The default is "cds".
+#' @param modality String specifying the CRISPR modality. Must be one of
+#'     the following: "CRISPRko", "CRISPRa", "CRISPRi" or "CRISPRkd".
+#'     CRISPRkd is reserved for DNA-targeting nucleases only such as CasRx.
+#' @param bsgenome A \linkS4class{BSgenome} object from which to extract
+#'     sequences if a \linkS4class{GRanges} object is provided as input. 
+#' @param bowtie_index String specifying path to a bowtie index.
+#' @param vcf Either a character string specfying a path to a VCF file
+#'     or connection, or a \linkS4class{VCF} object.
+#' @param crisprNuclease A \linkS4class{CrisprNuclease} object.
+#' @param txObject A \linkS4class{TxDb} object or a \linkS4class{GRangesList}
+#'     object obtained using \code{\link{TxDb2GRangesList}} for annotating
+#'     on-target and off-target alignments using gene annotation.
+#' @param tssObject A \linkS4class{GRanges} object specifying TSS coordinates.
+#' @param gr.repeats A \linkS4class{GRanges} object containing repeat
+#'     elements regions.
+#' @param scoring_methods Character vector to specify which on-target scoring
+#'     methods should be calculated. See crisprScore package to obtain
+#'     available methods. 
+#' @param tss_window Vector of length 2 specifying the start and coordinates
+#'     of the CRISPRa/CRISPRi target region with respect to the TSS position.
+#' @param n_mismatches Maximum number of mismatches permitted between guide RNA
+#'     and genomic DNA.
+#' @param max_mm The maximimum number of mismatches between a spacer and
+#'     an off-target to be accepted when calculating aggregate off-target
+#'     scores. 2 by default. 
+#' @param canonical_ontarget Should only canonical PAM sequences be searched
+#'     for designing gRNAs? TRUE by default.
+#' @param canonical_offtarget Should only canonical PAM sequences by searched
+#'     during the off-target search? TRUE by default.
+#' @param all_alignments Should all all possible alignments be returned?
+#'     TRUE by default.
+#' @param fastaFile String specifying fasta file of the hg38 genome. Only 
+#'     used for CRISPRa/i modality with hg38 genome and SpCas9 nuclease.
+#'     This is needed to generate the CRISPRai scores. See the function
+#'     \code{addCrispraiScores} for more details. 
+#' @param chromatinFiles Named character vector of length 3 specifying
+#'     BigWig files containing chromatin accessibility data. Only 
+#'     used for CRISPRa/i modality with hg38 genome and SpCas9 nuclease.
+#'     This is needed to generate the CRISPRai scores. See the function
+#'     \code{addCrispraiScores} for more details. 
+#' @param verbose Should messages be printed?
+#' 
+#' @return A \code{GuideSet} object.
+#' 
+#' @author Jean-Philippe Fortin
+#' 
 #' @importFrom crisprBase spacerLength
 #' @importFrom utils data
 #' @importFrom IRanges IRanges findOverlaps
@@ -56,9 +119,7 @@ designCompleteAnnotation <- function(queryValue=NULL,
                                      tssObject=NULL,
                                      txObject=NULL,
                                      grRepeats=NULL,
-                                     mrnas=NULL,
                                      scoring_methods=NULL,
-                                     verbose=TRUE,
                                      tss_window=NULL,
                                      n_mismatches=3,
                                      max_mm=2,
@@ -66,7 +127,8 @@ designCompleteAnnotation <- function(queryValue=NULL,
                                      canonical_offtarget=FALSE,
                                      all_alignments=TRUE,
                                      fastaFile=NULL,
-                                     chromatinFiles=NULL
+                                     chromatinFiles=NULL,
+                                     verbose=TRUE
 ){
     modality <- match.arg(modality)
     
@@ -84,7 +146,7 @@ designCompleteAnnotation <- function(queryValue=NULL,
 
 
 
-    if (isKO){
+    if (isA | isI){
         if (is.null(tss_window)){
             stop("tss_window must be specified for CRISPRa/i.")
         }
