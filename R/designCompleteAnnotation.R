@@ -104,7 +104,7 @@ designCompleteAnnotation <- function(queryValue=NULL,
                        queryColumn=queryColumn,
                        tss_window=tss_window)
     } else if (isKD){
-        mrna <- getMrnaSequences(txid=queryValue,
+        mrna <- getMrnaSequences(txids=queryValue,
                                  bsgenome=bsgenome,
                                  txObject=txObject)
         gr <- mrna
