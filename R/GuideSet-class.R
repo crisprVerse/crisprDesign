@@ -645,6 +645,7 @@ setMethod("geneAnnotation", "GuideSet",
             gene_symbol <- unique(out$gene_symbol)
         }
         cols <- c("gene_id", "tx_id", "gene_symbol")
+        cols <- intersect(cols, colnames(out))
         whs <- lapply(cols, function(col){
             out[[col]] %in% get(col)
         })

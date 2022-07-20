@@ -60,7 +60,7 @@ Add gene context annotation to spacer sequence stored
     in a \linkS4class{GuideSet} object
 }
 \details{
-The different columns stored in
+For DNA-targeting nucleases, the different columns stored in
 \code{mcols(guideSet)[["geneAnnotation"]]} are:
 
 \itemize{

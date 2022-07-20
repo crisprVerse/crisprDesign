@@ -26,7 +26,7 @@
 #' 
 #' @details 
 #' 
-#' The different columns stored in
+#' For DNA-targeting nucleases, the different columns stored in
 #' \code{mcols(guideSet)[["geneAnnotation"]]} are:
 #' 
 #' \itemize{
@@ -170,6 +170,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 #' @importFrom BiocGenerics strand rownames<-
 #' @importFrom GenomeInfoDb seqnames seqlevelsStyle seqlevelsStyle<-
 #' @importFrom GenomicRanges pos
+#' @importFrom crisprBase isRnase
 .getGeneAnnotation <- function(guideSet,
                                txObject,
                                anchor,
@@ -177,6 +178,102 @@ setMethod("addGeneAnnotation", "NULL", function(object){
                                ignore.strand,
                                addPfam,
                                mart_dataset
+){
+
+    nuc <- crisprNuclease(guideSet)
+    if (crisprBase::isRnase(nuc)){
+        geneAnn <- .getGeneAnnotation_rna_nuclease(guideSet=guideSet,
+                                                   txObject=txObject)
+    } else {
+        geneAnn <- .getGeneAnnotation_dna_nuclease(guideSet=guideSet,
+                                                   txObject=txObject,
+                                                   anchor=anchor,
+                                                   ignore_introns=ignore_introns,
+                                                   ignore.strand=ignore.strand,
+                                                   addPfam=addPfam,
+                                                   mart_dataset=mart_dataset)
+    }
+    return(geneAnn)
+} 
+
+
+
+
+# To add gene annotation for RNA-targeting nucleases (e.g. CasRx)
+.getGeneAnnotation_rna_nuclease <- function(guideSet,
+                                            txObject
+){ 
+    hasAlignments <- "alignments" %in% colnames(mcols(guideSet))
+    if (!hasAlignments){
+        stop("For RNA-targeting nucleases, addSpacerAlignments has to be",
+             " called before addGeneAnnotation.")
+    }
+    roster <- data.frame(tx=as.character(seqnames(guideSet)))
+    key <- .getTx2GeneTable(txObject)
+    if (any(!roster$tx %in% key$tx_id)){
+        stop("Some transcripts stored in seqnames(guideSet) are not found in ",
+             "the txObject.")
+    }
+    roster$gene_id <- key$gene_id[match(roster$tx, key$tx_id)]
+    roster$ID <- names(guideSet)
+    geneids <- unique(roster$gene_id)
+    dfs <- split(roster, f=roster$gene_id)[geneids]
+    aln <- onTargets(guideSet, unlist=TRUE)
+    txTables <- lapply(dfs, function(df){
+        geneid <- df$gene_id[1]
+        txs <- unique(key$tx_id)[key$gene_id==geneid]
+        guideSetSubset <- guideSet[df$ID]
+        alnSubset <- aln[as.character(seqnames(aln)) %in% txs] 
+        alnSubset <- cbind(ID=names(alnSubset),
+                           tx=as.character(seqnames(alnSubset)))
+        alnSubset <- as.data.frame(alnSubset)
+        alns <- split(alnSubset, f=alnSubset$ID)
+        ns <- vapply(alns,function(x){
+            length(unique(x$tx))
+        }, FUN.VALUE=0)
+        txs <- vapply(alns, function(x) {
+            paste0(unique(x$tx), collapse=",")
+        }, FUN.VALUE="a")
+        out <- data.frame(ID=names(txs),
+                          targetedTxs=txs,
+                          nTargetedTxs=ns)
+        return(out)
+        #ns <- table(data.frame(alnSubset)$ID)
+        #return(ns)
+    })
+    names(txTables) <- NULL
+    txTable <- do.call(rbind, txTables)
+    txTable <- txTable[names(guideSet),]
+
+    # Building the final data.frame
+    txTable$tx_id <- roster$tx
+    txTable$gene_id <- roster$gene_id
+    
+    dfs <- split(key, f=key$gene_id)
+    txTable$nTotalTxs <- vapply(dfs, nrow, FUN.VALUE=0)[txTable$gene_id]
+    txTable$percentTargetedTxs <- txTable$nTargetedTxs/txTable$nTotalTxs*100
+    
+    # OK ready to add summary:
+    cols <- c("ID", "tx_id", "gene_id",
+              "targetedTxs", "nTargetedTxs", 
+               "nTotalTxs", 
+               "percentTargetedTxs")
+    txTable <- txTable[,cols]
+    txTable <- DataFrame(txTable)
+    return(txTable)
+}
+
+
+
+
+# To add gene annotation for DNA-targeting nucleases (SpCas9, enAsCas12a, etc)
+.getGeneAnnotation_dna_nuclease <- function(guideSet,
+                                            txObject,
+                                            anchor,
+                                            ignore_introns,
+                                            ignore.strand,
+                                            addPfam,
+                                            mart_dataset
 ){
     txObject <- .validateGRangesList(txObject)
     GenomeInfoDb::seqlevelsStyle(txObject) <-
@@ -186,7 +283,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
     })
 
     if (targetOrigin(guideSet)=="customSequences"){
-        stop("gene annotation is not available for custom genomes")
+        stop("addGeneAnnotation is not available for custom sequences.")
     }
     bsgenome <- bsgenome(guideSet)
     
@@ -214,7 +311,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
                                mart_dataset=mart_dataset)
     geneAnn <- .asDataFrame(geneAnn)
     return(geneAnn)
-} 
+}
 
 
 
