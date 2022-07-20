@@ -1,14 +1,22 @@
-
-
+# library(crisprDesign)
+# library(crisprDesignGne)
+# library(crisprBase)
+# library(crisprDesignData)
+# species="human"
 # bowtie_index <- getBowtieIndex(species=species)
 # bsgenome  <- getGenomePackage(species=species)
 # snpFile <- getSNPFile() 
-# library(crisprBase)
-# library(crisprDesignData)
 # data(SpCas9, package="crisprBase")
+# data(CasRx, package="crisprBase")
 # data(txdb_human, package="crisprDesignData")
 # data(tss_human, package="crisprDesignData")
-# repeats <- readRDS(file.path(geneDir, "repeats.rds"))
+# data(mrnasHuman, package="crisprDesignData")
+# mrnas <- mrnasHuman
+# txObject = txdb_human
+# queryValue <- c("ENST00000538872")
+# bowtie_index <- getBowtieIndex(species=species, what="rna")
+
+
 # gs <- precomputeGuides("ENSG00000133703",
 #                        modality="crisprko",
 #                        bsgenome=bsgenome,
@@ -21,13 +29,12 @@
 # chromatinFiles <- getChromatinFiles()
 # fastaFile <- getGenomeFasta()
 
-
-
-
-    
-
-
-
+# modality="CRISPRkd"
+# crisprNuclease=CasRx
+# canonical_ontarget=TRUE
+# canonical_offtarget=FALSE
+# all_alignments=TRUE 
+# n_mismatches=1
 
 #' @importFrom crisprBase spacerLength
 #' @importFrom utils data
@@ -35,47 +42,72 @@
 #' @importFrom GenomicRanges GRanges
 #' @importFrom GenomeInfoDb seqnames
 #' @export
-designCompleteAnnotation <- function(geneid,
-                             modality=c("CRISPRko","CRISPRa", "CRISPRi"),
-                             bsgenome=NULL,
-                             bowtie_index=NULL,
-                             vcf=NULL,
-                             crisprNuclease=NULL,
-                             tssObject=NULL,
-                             txObject=NULL,
-                             grRepeats=NULL,
-                             scoring_methods=NULL,
-                             verbose=TRUE,
-                             tss_window=NULL,
-                             n_mismatches=3,
-                             max_mm=2,
-                             canonical_ontarget=TRUE,
-                             canonical_offtarget=FALSE,
-                             all_alignments=TRUE,
-                             remove_repeats=TRUE,
-                             fastaFile=NULL,
-                             chromatinFiles=NULL
+designCompleteAnnotation <- function(queryValue=NULL,
+                                     queryColumn="gene_id",
+                                     featureType="cds",
+                                     modality=c("CRISPRko",
+                                                "CRISPRa",
+                                                "CRISPRi",
+                                                "CRISPRkd"),
+                                     bsgenome=NULL,
+                                     bowtie_index=NULL,
+                                     vcf=NULL,
+                                     crisprNuclease=NULL,
+                                     tssObject=NULL,
+                                     txObject=NULL,
+                                     grRepeats=NULL,
+                                     mrnas=NULL,
+                                     scoring_methods=NULL,
+                                     verbose=TRUE,
+                                     tss_window=NULL,
+                                     n_mismatches=3,
+                                     max_mm=2,
+                                     canonical_ontarget=TRUE,
+                                     canonical_offtarget=FALSE,
+                                     all_alignments=TRUE,
+                                     fastaFile=NULL,
+                                     chromatinFiles=NULL
 ){
-    library(crisprScore)
     modality <- match.arg(modality)
     
-    if (modality!="CRISPRko"){
+    # Checking nucleases:
+    data(SpCas9,     package="crisprBase", envir=environment())
+    data(enAsCas12a, package="crisprBase", envir=environment())
+    data(CasRx,      package="crisprBase", envir=environment())
+    isCas9   <- .identicalNucleases(crisprNuclease, SpCas9)
+    isCas12a <- .identicalNucleases(crisprNuclease, enAsCas12a)
+    isCas13d <- .identicalNucleases(crisprNuclease, CasRx)
+    isKD <- modality=="CRISPRkd"
+    isKO <- modality=="CRISPRko"
+    isA  <- modality=="CRISPRa"
+    isI  <- modality=="CRISPRi"
+
+
+
+    if (isKO){
         if (is.null(tss_window)){
             stop("tss_window must be specified for CRISPRa/i.")
         }
     }
-    
+    if (sum(c(isKD, isCas13d))==1){
+        stop("Modality must be CRISPRkd when nuclease is set to CasRx, and vice versa.")        
+    }
 
-    if (modality=='CRISPRko'){
+    if (isKO){
         gr <- queryTxObject(txObject,
-                            featureType="cds",
-                            queryValue=geneid,
-                            queryColumn="gene_id")
-    } else if (modality=='CRISPRa' | modality=='CRISPRi'){
+                            featureType=featureType,
+                            queryValue=queryValue,
+                            queryColumn=queryColumn)
+    } else if (isA | isI){
         gr <- queryTss(tssObject,
-                       queryValue=geneid,
-                       queryColumn="gene_id",
+                       queryValue=queryValue,
+                       queryColumn=queryColumn,
                        tss_window=tss_window)
+    } else if (isKD){
+        mrna <- getMrnaSequences(txid=queryValue,
+                                 bsgenome=bsgenome,
+                                 txObject=txObject)
+        gr <- mrna
     }
     if (is.null(gr)){
         out <- NA
@@ -90,13 +122,14 @@ designCompleteAnnotation <- function(geneid,
     out <- unique(out)
      # Renaming spacers:
     if (length(out)>0){
-        names(out) <- paste0(geneid, "_", seq_along(out))
+        names(out) <- paste0(queryValue, "_", seq_along(out))
     }
     if (is.null(out)){
         out <- NA
         return(out)
-    } else if (remove_repeats){
-        out <- removeRepeats(out, gr.repeats=grRepeats)
+    } else if (!is.null(grRepeats) & !isKD){
+        out <- removeRepeats(out,
+                             gr.repeats=grRepeats)
         if (length(out)==0){
             out <- NULL
         }
@@ -106,28 +139,30 @@ designCompleteAnnotation <- function(geneid,
         out <- NA
         return(out)
     }
-    # Cases where no guides are found in CDS:
-    chr <- as.character(seqnames(out))
-    if (modality=="CRISPRko"){
-        gr_grna <- GRanges(chr,IRanges(start=out$cut_site,
-                                       end=out$cut_site))
-    } else if (modality=="CRISPRa" | modality=="CRISPRi"){
-        gr_grna  <- GRanges(chr, IRanges(start=out$pam_site,
-                                         end=out$pam_site))
-    }
-    overlaps <- findOverlaps(gr_grna, gr)
-    if (length(overlaps)==0){
-        out <- NA
-        return(out)
-    }
 
+    # Cases where no guides are found in CDS:
+    if (!isKD){
+        chr <- as.character(seqnames(out))
+        if (isKO){
+            gr_grna <- GRanges(chr,IRanges(start=out$cut_site,
+                                           end=out$cut_site))
+        } else if (isA | isI){
+            gr_grna  <- GRanges(chr, IRanges(start=out$pam_site,
+                                             end=out$pam_site))
+        } 
+        overlaps <- findOverlaps(gr_grna, gr)
+        if (length(overlaps)==0){
+            out <- NA
+            return(out)
+        }
+    }
 
     if (verbose){
-        cat("[precomputeGuides] Adding sequence statistics \n")
+        cat("[designCompleteAnnotation] Adding sequence statistics \n")
     }
     out <- addSequenceFeatures(out, addHairpin=FALSE)
     if (verbose){
-        cat("[precomputeGuides] Adding spacer alignments \n")
+        cat("[designCompleteAnnotation] Adding spacer alignments \n")
     }
     spacer_len <- spacerLength(crisprNuclease)
     good <- nchar(spacers(out, as.character=TRUE))==spacer_len
@@ -136,25 +171,41 @@ designCompleteAnnotation <- function(geneid,
         out <- NA
         return(out)
     }
-    out <- addSpacerAlignmentsIterative(out,
-                                        aligner="bowtie",
-                                        aligner_index=bowtie_index,
-                                        n_mismatches=n_mismatches,
-                                        canonical=canonical_offtarget,
-                                        all_alignments=all_alignments,
-                                        bsgenome=bsgenome,
-                                        txObject=txObject,
-                                        tssObject=tssObject)
+
+
+ 
+    if (!isKD){
+        out <- addSpacerAlignmentsIterative(out,
+                                            aligner="bowtie",
+                                            aligner_index=bowtie_index,
+                                            n_mismatches=n_mismatches,
+                                            canonical=canonical_offtarget,
+                                            all_alignments=all_alignments,
+                                            bsgenome=bsgenome,
+                                            txObject=txObject,
+                                            tssObject=tssObject)
+    } else {
+        out <- addSpacerAlignments(out,
+                                   aligner="bowtie",
+                                   aligner_index=bowtie_index,
+                                   n_mismatches=n_mismatches,
+                                   canonical=canonical_offtarget,
+                                   all_alignments=all_alignments,
+                                   bsgenome=NULL,
+                                   txObject=txObject,
+                                   tssObject=tssObject)
+    }
+   
     if (verbose){
-        cat("[precomputeGuides] Adding gene annotation \n")
+        cat("[designCompleteAnnotation] Adding gene annotation \n")
     } 
-    out <- addGeneAnnotation(out, 
+    out <- addGeneAnnotation(out,
                              txObject=txObject)
     out <- addRestrictionEnzymes(out)
 
-    if (modality=='CRISPRa' | modality=='CRISPRi'){
+    if (isA | isI){
         if (verbose){
-            cat("[precomputeGuides] Adding TSS annotation \n")
+            cat("[designCompleteAnnotation] Adding TSS annotation \n")
         } 
         out <- addTssAnnotation(out,
                                 tssObject=tssObject,
@@ -162,16 +213,15 @@ designCompleteAnnotation <- function(geneid,
     }
 
     if (verbose){
-        cat("[precomputeGuides] Adding on-target scores \n")
+        cat("[designCompleteAnnotation] Adding on-target scores \n")
     } 
     out <- addOnTargetScores(out,
                              methods=scoring_methods)
 
-    data(SpCas9, package="crisprBase", envir=environment())
-    isCas9 <- .identicalNucleases(crisprNuclease, SpCas9)
+
     if (!is.null(fastaFile) & !is.null(chromatinFiles) & modality %in% c("CRISPRi", "CRISPRi") & isCas9){
         if (verbose){
-            cat("[precomputeGuides] Adding CRISPRai scores \n")
+            cat("[designCompleteAnnotation] Adding CRISPRai scores \n")
         }
         out <- addCrispraiScores(out,
                                  gr=gr,
@@ -181,16 +231,16 @@ designCompleteAnnotation <- function(geneid,
                                  fastaFile=fastaFile)
     }
 
-    if (modality=='CRISPRko' & isCas9){
+    if (isKO & isCas9){
         if (verbose){
-            cat("[precomputeGuides] Adding CFD scores annotation \n")
+            cat("[designCompleteAnnotation] Adding CFD scores annotation \n")
             out <- addOffTargetScores(out, max_mm=max_mm)
         }
     }
- 
-    if (!is.null(vcf)){
+
+    if (!is.null(vcf) & !isKD){
         if (verbose){
-            cat("[precomputeGuides] Adding SNP annotation \n")
+            cat("[designCompleteAnnotation] Adding SNP annotation \n")
         }
         out <- addSNPAnnotation(out, vcf=vcf)
     }
