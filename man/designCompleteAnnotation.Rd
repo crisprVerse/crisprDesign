@@ -60,6 +60,9 @@ or connection, or a \linkS4class{VCF} object.}
 object obtained using \code{\link{TxDb2GRangesList}} for annotating
 on-target and off-target alignments using gene annotation.}
 
+\item{grRepeats}{A \linkS4class{GRanges} object containing repeat
+elements regions.}
+
 \item{scoring_methods}{Character vector to specify which on-target scoring
 methods should be calculated. See crisprScore package to obtain
 available methods.}
@@ -95,9 +98,6 @@ This is needed to generate the CRISPRai scores. See the function
 \code{addCrispraiScores} for more details.}
 
 \item{verbose}{Should messages be printed?}
-
-\item{gr.repeats}{A \linkS4class{GRanges} object containing repeat
-elements regions.}
 }
 \value{
 A \code{GuideSet} object.

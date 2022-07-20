@@ -66,7 +66,7 @@
 #'     object obtained using \code{\link{TxDb2GRangesList}} for annotating
 #'     on-target and off-target alignments using gene annotation.
 #' @param tssObject A \linkS4class{GRanges} object specifying TSS coordinates.
-#' @param gr.repeats A \linkS4class{GRanges} object containing repeat
+#' @param grRepeats A \linkS4class{GRanges} object containing repeat
 #'     elements regions.
 #' @param scoring_methods Character vector to specify which on-target scoring
 #'     methods should be calculated. See crisprScore package to obtain
