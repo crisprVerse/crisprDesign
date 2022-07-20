@@ -12,6 +12,12 @@ out <- getMrnaSequences(txids,
                         bsgenome=bsgenome,
                         txObject=txObject)
 guides <- findSpacers(out[1], crisprNuclease=CasRx)
+a=flattenGuideSet(guides)
+
+
+
+
+
 guides <- addOnTargetScores(guides)
 
 

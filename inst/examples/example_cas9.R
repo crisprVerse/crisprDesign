@@ -1,10 +1,13 @@
 library(crisprDesign)
+library(crisprDesignGne)
+library(crisprDesignData)
 library(crisprBase)
 library(BSgenome.Hsapiens.UCSC.hg38)
-txObject  <- crisprDesign::grListExample
-tssObject <- crisprDesign::tssObjectExample
+txObject  <- txdb_human
+tssObject <- tss_human
 bsgenome  <- BSgenome.Hsapiens.UCSC.hg38
 crisprNuclease <- crisprBase::SpCas9
+bowtieIndex <- getBowtieIndex()
 vcf <- system.file("extdata",
                    file="common_snps_dbsnp151_example.vcf.gz",
                    package="crisprDesign")
@@ -23,6 +26,8 @@ guides <- findSpacers(gr,
 guides <- addSequenceFeatures(guides)
 guides <- addRestrictionEnzymes(guides)
 guides <- addSpacerAlignments(guides,
+                              bsgenome=bsgenome,
+                              aligner_index=bowtieIndex,
                               txObject=txObject,
                               tssObject=tssObject)
 guides <- addOffTargetScores(guides)

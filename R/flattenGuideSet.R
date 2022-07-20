@@ -38,7 +38,8 @@ flattenGuideSet <- function(guideSet,
                             useSpacerCoordinates=TRUE
 ){
     primaryTable <- .getPrimaryTable(guideSet,
-                                     useSpacerCoordinates=useSpacerCoordinates)
+                                     useSpacerCoordinates=useSpacerCoordinates,
+                                     addSpacer=TRUE)
     cols <- c("alignments",
               "geneAnnotation",
               "tssAnnotation",
@@ -59,7 +60,8 @@ flattenGuideSet <- function(guideSet,
 
 .getPrimaryTable <- function(guideSet,
                              useSpacerCoordinates=TRUE,
-                             nuclease=NULL
+                             nuclease=NULL,
+                             addSpacer=TRUE
 ){
     if (is.null(nuclease)){
         nuclease <- crisprNuclease(guideSet)
@@ -74,7 +76,20 @@ flattenGuideSet <- function(guideSet,
         tab[["ID"]] <- rownames(tab)
     }
     rownames(tab) <- NULL
+   
+    
     tab <- .putColumnFirst("chr", tab)
+    if (is(guideSet, "GuideSet")){
+        if (isRnase(crisprNuclease(guideSet)) & addSpacer){
+            tab <- .putColumnFirst("protospacer", tab)        
+        } else {
+            tab[["protospacer"]] <- NULL
+        }
+        if (addSpacer){
+            tab[["spacer"]] <- as.character(spacers(guideSet))
+            tab <- .putColumnFirst("spacer", tab)
+        }
+    }
     tab <- .putColumnFirst("ID", tab)
     return(tab)
 }
@@ -151,7 +166,8 @@ flattenGuideSet <- function(guideSet,
         out$ID <- names(out)
         out <- .getPrimaryTable(out,
                                 useSpacerCoordinates=useSpacerCoordinates,
-                                nuclease=nuclease)
+                                nuclease=nuclease,
+                                addSpacer=FALSE)
     } else {
         out$ID <- rownames(out)
         rownames(out) <- NULL
