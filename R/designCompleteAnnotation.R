@@ -281,7 +281,7 @@ designCompleteAnnotation <- function(queryValue=NULL,
                              methods=scoring_methods)
 
 
-    if (!is.null(fastaFile) & !is.null(chromatinFiles) & modality %in% c("CRISPRi", "CRISPRi") & isCas9){
+    if (!is.null(fastaFile) & !is.null(chromatinFiles) & (isA | isI) & isCas9){
         if (verbose){
             cat("[designCompleteAnnotation] Adding CRISPRai scores \n")
         }
