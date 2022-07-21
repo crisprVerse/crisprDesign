@@ -80,11 +80,7 @@ flattenGuideSet <- function(guideSet,
     
     tab <- .putColumnFirst("chr", tab)
     if (is(guideSet, "GuideSet")){
-        if (isRnase(crisprNuclease(guideSet)) & addSpacer){
-            tab <- .putColumnFirst("protospacer", tab)        
-        } else {
-            tab[["protospacer"]] <- NULL
-        }
+        tab <- .putColumnFirst("protospacer", tab)        
         if (addSpacer){
             tab[["spacer"]] <- as.character(spacers(guideSet))
             tab <- .putColumnFirst("spacer", tab)
