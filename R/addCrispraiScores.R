@@ -11,7 +11,8 @@
 #' @param tssObject  A \linkS4class{GRanges} object containing TSS coordinates
 #'     and annotation. The following columns must be present:
 #'     "ID", promoter", "tx_id" and "gene_symbol".
-#'     
+#' @param geneCol String specifying which column of the \code{tssObject} should
+#'     be used for a unique gene identified. "gene_id" by default.     
 #' @param modality String specifying which modality is used.
 #'     Must be either "CRISPRi" or "CRISPRa". 
 #' @param chromatinFiles Named character vector of length 3 specifying
@@ -32,6 +33,7 @@ setMethod("addCrispraiScores", "GuideSet",
           function(object,
                    gr,
                    tssObject,
+                   geneCol="gene_id",
                    modality=c("CRISPRi", "CRISPRa"),
                    chromatinFiles=NULL,
                    fastaFile=NULL
@@ -48,7 +50,8 @@ setMethod("addCrispraiScores", "GuideSet",
         stop("addCrispraiScores] Only hg38 genome supported at the moment.")
     }
     modality <- match.arg(modality)
-    tssFrame  <- .prepareTssFrame(tssObject)
+    tssFrame  <- .prepareTssFrame(tssObject,
+                                  geneCol=geneCol)
     grnaFrame <- .prepareGrnaFrame(object, gr)
     scores <- crisprScore::getCrispraiScores(sgrna_df=grnaFrame,
                                              tss_df=tssFrame,
@@ -73,6 +76,7 @@ setMethod("addCrispraiScores", "PairedGuideSet",
           function(object,
                    gr,
                    tssObject,
+                   geneCol="gene_id",
                    modality=c("CRISPRi", "CRISPRa"),
                    chromatinFiles=NULL,
                    fastaFile=NULL
@@ -82,6 +86,7 @@ setMethod("addCrispraiScores", "PairedGuideSet",
     unifiedGuideSet <- addCrispraiScores(unifiedGuideSet,
                                          gr=gr,
                                          tssObject=tssObject,
+                                         geneCol=geneCol,
                                          modality=modality,
                                          chromatinFiles=chromatinFiles,
                                          fastaFile=fastaFile)
@@ -106,10 +111,12 @@ setMethod("addCrispraiScores", "NULL", function(object){
 # to the CRISPRai algorithm
 # The following columns are necessary:
 # ID, gene_symbol, promoter, tx_id
-.prepareTssFrame <- function(tssObject){
+.prepareTssFrame <- function(tssObject,
+                             geneCol="gene_id"
+){
     tssObject <- as.data.frame(tssObject)
 
-    cols <- c("ID", "gene_symbol", "promoter","tx_id")
+    cols <- c("ID", "promoter","tx_id", geneCol)
     if (!all(cols %in% colnames(tssObject))){
         choices <- setdiff(cols, colnames(tssObject))
         stop("The following columns are missing in the tssObject: \n \t",
@@ -117,7 +124,7 @@ setMethod("addCrispraiScores", "NULL", function(object){
     }
 
     out <- data.frame(tss_id=tssObject$ID,
-                      gene_symbol=tssObject$gene_symbol,
+                      gene_symbol=tssObject[[geneCol]],
                       promoter=tssObject$promoter,
                       transcripts=tssObject$tx_id,
                       position=tssObject$start,
@@ -128,8 +135,14 @@ setMethod("addCrispraiScores", "NULL", function(object){
     if (sum(is.na(out$gene_symbol))>0){
         stop("gene_symbol has some missing values.")
     }
+    if (sum(out$gene_symbol=="")>0){
+        stop("gene_symbol has some empty values.")
+    }
     if (sum(is.na(out$promoter))>0){
         stop("promoter has some missing values.")
+    }
+    if (sum(out$promoter=="")>0){
+        stop("promoter has some empty values.")
     }
     #if (sum(is.na(out$transcripts))>0){
     #    stop("tx_id has some missing values.")

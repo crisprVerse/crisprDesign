@@ -11,6 +11,7 @@
   object,
   gr,
   tssObject,
+  geneCol = "gene_id",
   modality = c("CRISPRi", "CRISPRa"),
   chromatinFiles = NULL,
   fastaFile = NULL
@@ -20,6 +21,7 @@
   object,
   gr,
   tssObject,
+  geneCol = "gene_id",
   modality = c("CRISPRi", "CRISPRa"),
   chromatinFiles = NULL,
   fastaFile = NULL
@@ -37,6 +39,9 @@ to produce the \code{guideSet} object.}
 \item{tssObject}{A \linkS4class{GRanges} object containing TSS coordinates
 and annotation. The following columns must be present:
 "ID", promoter", "tx_id" and "gene_symbol".}
+
+\item{geneCol}{String specifying which column of the \code{tssObject} should
+be used for a unique gene identified. "gene_id" by default.}
 
 \item{modality}{String specifying which modality is used.
 Must be either "CRISPRi" or "CRISPRa".}
