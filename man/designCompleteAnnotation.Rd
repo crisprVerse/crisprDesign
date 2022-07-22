@@ -25,6 +25,7 @@ designCompleteAnnotation(
   all_alignments = TRUE,
   fastaFile = NULL,
   chromatinFiles = NULL,
+  binaries = NULL,
   verbose = TRUE
 )
 }
@@ -96,6 +97,12 @@ BigWig files containing chromatin accessibility data. Only
 used for CRISPRa/i modality with hg38 genome and SpCas9 nuclease.
 This is needed to generate the CRISPRai scores. See the function
 \code{addCrispraiScores} for more details.}
+
+\item{binaries}{Named list of paths for binaries needed for 
+CasRx-RF. Names of the list must be "RNAfold", "RNAhybrid",
+and "RNAplfold". Each list element is a string specifying
+the path of the binary. If NULL (default), binaries must be
+available on the PATH.}
 
 \item{verbose}{Should messages be printed?}
 }

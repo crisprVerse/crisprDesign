@@ -92,7 +92,12 @@
 #'     BigWig files containing chromatin accessibility data. Only 
 #'     used for CRISPRa/i modality with hg38 genome and SpCas9 nuclease.
 #'     This is needed to generate the CRISPRai scores. See the function
-#'     \code{addCrispraiScores} for more details. 
+#'     \code{addCrispraiScores} for more details.
+#' @param binaries Named list of paths for binaries needed for 
+#'     CasRx-RF. Names of the list must be "RNAfold", "RNAhybrid",
+#'     and "RNAplfold". Each list element is a string specifying
+#'     the path of the binary. If NULL (default), binaries must be
+#'     available on the PATH.
 #' @param verbose Should messages be printed?
 #' 
 #' @return A \code{GuideSet} object.
@@ -128,6 +133,7 @@ designCompleteAnnotation <- function(queryValue=NULL,
                                      all_alignments=TRUE,
                                      fastaFile=NULL,
                                      chromatinFiles=NULL,
+                                     binaries=NULL,
                                      verbose=TRUE
 ){
     modality <- match.arg(modality)
@@ -278,7 +284,8 @@ designCompleteAnnotation <- function(queryValue=NULL,
         cat("[designCompleteAnnotation] Adding on-target scores \n")
     } 
     out <- addOnTargetScores(out,
-                             methods=scoring_methods)
+                             methods=scoring_methods,
+                             binaries=binaries)
 
 
     if (!is.null(fastaFile) & !is.null(chromatinFiles) & (isA | isI) & isCas9){
