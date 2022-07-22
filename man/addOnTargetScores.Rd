@@ -11,6 +11,8 @@
   enzyme = c("WT", "ESP", "HF"),
   promoter = c("U6", "T7"),
   tracrRNA = c("Hsu2013", "Chen2013"),
+  directRepeat = "aacccctaccaactggtcggggtttgaaac",
+  binaries = NULL,
   methods = c("azimuth", "ruleset1", "ruleset3", "lindel", "deepcpf1", "deephf",
     "deepspcas9", "enpamgb", "casrxrf", "crisprater", "crisprscan")
 )
@@ -20,6 +22,8 @@
   enzyme = c("WT", "ESP", "HF"),
   promoter = c("U6", "T7"),
   tracrRNA = c("Hsu2013", "Chen2013"),
+  directRepeat = "aacccctaccaactggtcggggtttgaaac",
+  binaries = NULL,
   methods = c("azimuth", "ruleset1", "ruleset3", "lindel", "deepcpf1", "deephf",
     "deepspcas9", "enpamgb", "crisprater", "crisprscan", "casrxrf")
 )
@@ -40,6 +44,15 @@ scoring. "U6" by default.}
 \item{tracrRNA}{String specifying which tracrRNA is used for SpCas9
 Must be either "Hsu2013" (default) or "Chen2013". Only used for
 the RuleSet3 method.}
+
+\item{directRepeat}{String specifying the direct repeat used in the 
+CasRx construct.}
+
+\item{binaries}{Named list of paths for binaries needed for 
+CasRx-RF. Names of the list must be "RNAfold", "RNAhybrid",
+and "RNAplfold". Each list element is a string specifying
+the path of the binary. If NULL (default), binaries must be
+available on the PATH.}
 
 \item{methods}{Character vector specifying method names for on-target
 efficiency prediction algorithms.}

@@ -15,6 +15,13 @@
 #'     the RuleSet3 method.
 #' @param methods Character vector specifying method names for on-target
 #'     efficiency prediction algorithms.
+#' @param directRepeat String specifying the direct repeat used in the 
+#'     CasRx construct.
+#' @param binaries Named list of paths for binaries needed for 
+#'     CasRx-RF. Names of the list must be "RNAfold", "RNAhybrid",
+#'     and "RNAplfold". Each list element is a string specifying
+#'     the path of the binary. If NULL (default), binaries must be
+#'     available on the PATH.
 #' 
 #' @return \code{guideSet} with columns of on-target scores appended in
 #'     \code{mcols(guideSet)}.
@@ -38,6 +45,8 @@ setMethod("addOnTargetScores", "GuideSet",
              enzyme=c("WT", "ESP", "HF"),
              promoter=c("U6", "T7"),
              tracrRNA=c("Hsu2013","Chen2013"),
+             directRepeat="aacccctaccaactggtcggggtttgaaac",
+             binaries=NULL,
              methods=c("azimuth",
                        "ruleset1",
                        "ruleset3",
@@ -76,7 +85,9 @@ setMethod("addOnTargetScores", "GuideSet",
                                      method=i,
                                      promoter=promoter,
                                      tracrRNA=tracrRNA,
-                                     enzyme=enzyme)
+                                     enzyme=enzyme,
+                                     directRepeat=directRepeat,
+                                     binaries=binaries)
         scoreColname <- paste0("score_", i)
         S4Vectors::mcols(object)[[scoreColname]] <- rep(NA,
                                                           length(object))
@@ -95,6 +106,8 @@ setMethod("addOnTargetScores", "PairedGuideSet",
                    enzyme=c("WT", "ESP", "HF"),
                    promoter=c("U6", "T7"),
                    tracrRNA=c("Hsu2013","Chen2013"),
+                   directRepeat="aacccctaccaactggtcggggtttgaaac",
+                   binaries=NULL,
                    methods=c("azimuth",
                              "ruleset1",
                              "ruleset3",
@@ -113,7 +126,9 @@ setMethod("addOnTargetScores", "PairedGuideSet",
                                          enzyme=enzyme,
                                          promoter=promoter,
                                          tracrRNA=tracrRNA,
-                                         methods=methods)
+                                         methods=methods,
+                                         directRepeat=directRepeat,
+                                         binaries=binaries)
     out <- .addColumnsFromUnifiedGuideSet(object,
                                           unifiedGuideSet)
     return(out)
@@ -216,10 +231,14 @@ setMethod("addOnTargetScores", "NULL", function(object){
                                method,
                                enzyme,
                                promoter,
-                               tracrRNA
+                               tracrRNA,
+                               directRepeat,
+                               binaries
 ){
     if (method=="casrxrf"){
-        scores <- .getCasRxRFScores(guideSet)
+        scores <- .getCasRxRFScores(guideSet,
+                                    directRepeat=directRepeat,
+                                    binaries=binaries)
     } else {
         utils::data("scoringMethodsInfo",
                     package="crisprScore",
@@ -263,7 +282,10 @@ setMethod("addOnTargetScores", "NULL", function(object){
 
 
 #' @importFrom crisprScore getCasRxRFScores
-.getCasRxRFScores <- function(guideSet){
+.getCasRxRFScores <- function(guideSet,
+                              directRepeat,
+                              binaries
+){
     spacerLen <- spacerLength(guideSet)
     mrnaSequence <- metadata(guideSet)$customSequences
     if (length(mrnaSequence)>1){
@@ -272,7 +294,9 @@ setMethod("addOnTargetScores", "NULL", function(object){
     if (spacerLen != 23){
         stop("Spacer length must be 23 to use CasRxRF")
     }
-    scores <- crisprScore::getCasRxRFScores(mrnaSequence=mrnaSequence)
+    scores <- crisprScore::getCasRxRFScores(mrnaSequence=mrnaSequence,
+                                            directRepeat=directRepeat,
+                                            binaries=binaries)
     wh <- match(spacers(guideSet, as.character=TRUE), scores$spacer)
     scores <- scores[wh,,drop=FALSE]
     out <- scores[["standardizedScore"]]
