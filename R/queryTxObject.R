@@ -164,6 +164,7 @@ queryTss <- function(tssObject,
 
 #' @importFrom BiocGenerics strand
 #' @importFrom GenomicRanges promoters
+#' @importFrom IRanges shift
 .applyTssWindow <- function(results,
                             tss_window
 ){
@@ -177,7 +178,7 @@ queryTss <- function(tssObject,
         shift <- rep(shift, length(results))
         minusStrand <- as.character(BiocGenerics::strand(results)) == "-"
         shift[minusStrand] <- -1 * shift[minusStrand]
-        results <- shift(results, shift=shift)
+        results <- IRanges::shift(results, shift=shift)
     }
     results <- GenomicRanges::promoters(results,
                                         upstream=abs(tss_window[1]),

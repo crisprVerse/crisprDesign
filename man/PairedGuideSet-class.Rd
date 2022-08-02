@@ -104,9 +104,9 @@ Return cut length resulting from paired gRNAs
 }
 \section{Functions}{
 \itemize{
-\item \code{PairedGuideSet}: Create a \linkS4class{PairedGuideSet} object
-}}
+\item \code{PairedGuideSet()}: Create a \linkS4class{PairedGuideSet} object
 
+}}
 \section{Constructors}{
 
     Use the constructor \code{link{PairedGuideSet}} to create a

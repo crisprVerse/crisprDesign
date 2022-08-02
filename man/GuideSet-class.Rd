@@ -368,9 +368,9 @@ Add spacer on- and off-target alignments (iterative mode)
 }
 \section{Functions}{
 \itemize{
-\item \code{GuideSet}: Create a \linkS4class{GuideSet} object
-}}
+\item \code{GuideSet()}: Create a \linkS4class{GuideSet} object
 
+}}
 \section{Constructors}{
 
     Use the constructor \code{link{GuideSet}} to create a GuideSet object.
