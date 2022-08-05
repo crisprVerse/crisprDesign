@@ -1,11 +1,10 @@
 library(crisprDesign)
 library(crisprDesignData)
-library(crisprDesignGne)
 library(crisprScore)
 library(biomaRt)
 library(devtools)
 library(BSgenome.Hsapiens.UCSC.hg38)
-data(tss_human, package="crisprDesignGne")
+data(tss_human, package="crisprDesignData")
 
 txObject  <- txdb_human
 tssObject <- tss_human
@@ -32,12 +31,12 @@ gs <- addSpacerAlignmentsIterative(gs,
                                    n_mismatches=3,
                                    aligner_index=bwa_index,
                                    bsgenome=bsgenome)
-guideSetExampleWithAlignments <- gs
-use_data(guideSetExampleWithAlignments,
-         compress="xz",
-         overwrite=TRUE)
+#guideSetExampleWithAlignments <- gs
+#use_data(guideSetExampleWithAlignments,
+#         compress="xz",
+#         overwrite=TRUE)
 
-         
+
 gs <- addOffTargetScores(gs)
 gs <- addOnTargetScores(gs)
 gs <- addPamScores(gs)
