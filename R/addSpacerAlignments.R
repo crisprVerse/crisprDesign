@@ -431,7 +431,7 @@ setMethod("addSpacerAlignments",
     aln <- aln[spacers]
     names(aln) <- names(object)
     aln <- BiocGenerics::unlist(aln, use.names=TRUE)
-    aln <- S4Vectors::split(aln, f=names(object))
+    aln <- S4Vectors::split(aln, f=names(aln))[names(object)]
     S4Vectors::mcols(object)[[colname]] <- aln
     return(object)
 })
