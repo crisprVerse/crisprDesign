@@ -217,6 +217,14 @@ setGeneric("addCompositeScores",
 
 
 
+#' @description Add conservation scores.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("addConservationScores",
+           function(object, ...) standardGeneric("addConservationScores"))
+
+
+
 
 
 #' @description Add SNP annotation.

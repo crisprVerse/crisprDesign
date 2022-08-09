@@ -27,6 +27,7 @@
 \alias{addPamScores}
 \alias{addCrispraiScores}
 \alias{addCompositeScores}
+\alias{addConservationScores}
 \alias{addSNPAnnotation}
 \alias{addRestrictionEnzymes}
 \alias{addSequenceFeatures}
@@ -115,6 +116,8 @@ addPamScores(object, ...)
 addCrispraiScores(object, ...)
 
 addCompositeScores(object, ...)
+
+addConservationScores(object, ...)
 
 addSNPAnnotation(object, ...)
 
@@ -350,6 +353,8 @@ Add PAM scores.
 Add CRISPRai scores.
 
 Add composite scores.
+
+Add conservation scores.
 
 Add SNP annotation.
 
