@@ -26,6 +26,7 @@
 \alias{addOffTargetScores}
 \alias{addPamScores}
 \alias{addCrispraiScores}
+\alias{addCompositeScores}
 \alias{addSNPAnnotation}
 \alias{addRestrictionEnzymes}
 \alias{addSequenceFeatures}
@@ -112,6 +113,8 @@ addOffTargetScores(object, ...)
 addPamScores(object, ...)
 
 addCrispraiScores(object, ...)
+
+addCompositeScores(object, ...)
 
 addSNPAnnotation(object, ...)
 
@@ -345,6 +348,8 @@ Add off-target scores.
 Add PAM scores.
 
 Add CRISPRai scores.
+
+Add composite scores.
 
 Add SNP annotation.
 

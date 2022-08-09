@@ -209,6 +209,16 @@ setGeneric("addCrispraiScores",
 
 
 
+#' @description Add composite scores.
+#' @rdname GuideSet-class
+#' @export
+setGeneric("addCompositeScores",
+           function(object, ...) standardGeneric("addCompositeScores"))
+
+
+
+
+
 #' @description Add SNP annotation.
 #' @rdname GuideSet-class
 #' @export
