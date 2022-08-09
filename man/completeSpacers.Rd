@@ -2,14 +2,11 @@
 % Please edit documentation in R/completeSpacers.R
 \name{completeSpacers}
 \alias{completeSpacers}
-\alias{getCutSiteFromPamSite}
 \alias{getPAMSequence}
 \alias{getSpacerSequence}
 \alias{getPAMSiteFromStartAndEnd}
 \title{Get complete spacer information}
 \usage{
-getCutSiteFromPamSite(pam_site, strand, crisprNuclease = NULL)
-
 getPAMSequence(chr, pam_site, strand, crisprNuclease = NULL, bsgenome = NULL)
 
 getSpacerSequence(
@@ -30,13 +27,13 @@ getPAMSiteFromStartAndEnd(
 )
 }
 \arguments{
+\item{chr}{The chromosome in which the protospacer sequence is located.}
+
 \item{pam_site}{Coordinate of the first nucleotide of the PAM sequence.}
 
 \item{strand}{Either "+" or "-".}
 
 \item{crisprNuclease}{A \linkS4class{CrisprNuclease} object.}
-
-\item{chr}{The chromosome in which the protospacer sequence is located.}
 
 \item{bsgenome}{A \linkS4class{BSgenome} object.}
 
@@ -51,9 +48,6 @@ Must be always greater than \code{start}.}
 }
 \value{
 A numeric or character vector, depending on the function.
-
-\code{getCutSiteFromPamSite} returns a numeric vector of coordinate
-    of the cut site.
 
 \code{getPAMSequence} returns a character vector of PAM sequences.
 
@@ -79,8 +73,6 @@ bsgenome <- BSgenome.Hsapiens.UCSC.hg38
 dat <- data.frame(chr='chr4', start=1642343, strand='+')
 dat$pam_site <- getPAMSiteFromStartAndEnd(start=dat$start,
                                           strand=dat$strand)
-dat$cut_site <- getCutSiteFromPamSite(pam_site=dat$pam_site,
-                                      strand=dat$strand)
 dat$pam <- getPAMSequence(chr=dat$chr,
                           pam_site=dat$pam_site,
                           strand=dat$strand,

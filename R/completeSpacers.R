@@ -16,8 +16,6 @@
 #' 
 #' @return A numeric or character vector, depending on the function.
 #' 
-#' @return \code{getCutSiteFromPamSite} returns a numeric vector of coordinate
-#'     of the cut site.
 #' @return \code{getPAMSequence} returns a character vector of PAM sequences.
 #' @return \code{getSpacerSequence} returns a character vector of
 #'     spacer sequences.
@@ -35,8 +33,6 @@
 #' dat <- data.frame(chr='chr4', start=1642343, strand='+')
 #' dat$pam_site <- getPAMSiteFromStartAndEnd(start=dat$start,
 #'                                           strand=dat$strand)
-#' dat$cut_site <- getCutSiteFromPamSite(pam_site=dat$pam_site,
-#'                                       strand=dat$strand)
 #' dat$pam <- getPAMSequence(chr=dat$chr,
 #'                           pam_site=dat$pam_site,
 #'                           strand=dat$strand,
@@ -49,27 +45,6 @@
 #' @name completeSpacers
 NULL
 
-
-
-
-
-
-#' @rdname completeSpacers
-#' @export
-getCutSiteFromPamSite <- function(pam_site,
-                                  strand,
-                                  crisprNuclease=NULL
-){
-    crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
-    # pam_site <- .validatePamSite(pam_site)
-    strand <- .validateStrand(strand)
-    stopifnot(length(pam_site)==length(strand))
-    cut_offset <- .getDefaultCutOffset(crisprNuclease)
-    cut_site <- pam_site
-    cut_site[strand=='+'] <- pam_site[strand=='+'] + cut_offset
-    cut_site[strand=='-'] <- pam_site[strand=='-'] - cut_offset
-    return(cut_site)
-}
 
 
 

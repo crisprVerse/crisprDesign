@@ -332,6 +332,7 @@ setMethod("pamSites", "GuideSet",
 #' @export
 #' @importFrom crisprBase cutSites
 #' @importFrom BiocGenerics strand
+#' @importFrom crisprBase getCutSiteFromPamSite
 setMethod("cutSites", "GuideSet", 
     function(object){
     pamSites <- mcols(object)[["pam_site"]]
@@ -339,7 +340,7 @@ setMethod("cutSites", "GuideSet",
     strand <- as.character(strand(object))
     out <- getCutSiteFromPamSite(pam_site=pamSites,
                                  strand=strand,
-                                 crisprNuclease=nuc)
+                                 nuclease=nuc)
     names(out) <- names(object)
     return(out)
 })

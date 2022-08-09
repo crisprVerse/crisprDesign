@@ -681,6 +681,7 @@ getSpacerAlignments <- function(spacers,
 #' @importFrom S4Vectors mcols mcols<-
 #' @importFrom Biostrings DNAStringSet
 #' @importFrom BiocGenerics strand
+#' @importFrom crisprBase getCutSiteFromPamSite
 .alignmentOutput2GRanges <- function(alignments,
                                      crisprNuclease
 ){
@@ -700,7 +701,7 @@ getSpacerAlignments <- function(spacers,
     strandChar <- as.character(BiocGenerics::strand(alignments))
     alignments$cut_site <- getCutSiteFromPamSite(pam_site=alignments$pam_site,
                                                  strand=strandChar,
-                                                 crisprNuclease=crisprNuclease)
+                                                 nuclease=crisprNuclease)
     return(alignments)
 }
 
@@ -815,7 +816,7 @@ getSpacerAlignments <- function(spacers,
     S4Vectors::mcols(results)$cut_site <- getCutSiteFromPamSite(
         pam_site=results$pam_site,
         strand=as.character(strand(results)),
-        crisprNuclease=crisprNuclease)
+        nuclease=crisprNuclease)
     
     GenomeInfoDb::seqlevels(results) <- names(custom_seq)
     GenomeInfoDb::seqinfo(results) <- GenomeInfoDb::Seqinfo(

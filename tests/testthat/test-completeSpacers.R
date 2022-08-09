@@ -68,13 +68,6 @@ test_that("getPAMSiteFromStartAndEnd returns correct PAM site(s)", { # break int
 
 
 
-# getCutSiteFromPamSite <- function(pam_site,
-#                                   strand,
-#                                   crisprNuclease=NULL,
-#                                   cut_offset=NULL
-
-
-## tests for getCutSiteFromPamSite()
 
 
 test_that("pam_site arg must be vector of positive integer(s", {
@@ -102,14 +95,6 @@ test_that("pam_site and strand args must have same lengths", {
 })
 
 
-test_that("getCutSiteFromPamSite returns correct cut site(s)", { # break into multiple tests varying 1 thing
-    # tests with single pam_site/strand values
-    # tests with vector of pam_site/strand values
-    # tests with SpCas9
-    # tests with AsCas12a
-    # tests with +/- strands
-})
-
 
 
 
@@ -122,7 +107,7 @@ test_that("getCutSiteFromPamSite returns correct cut site(s)", { # break into mu
 #                            genome=NULL
 
 
-## tests for getCutSiteFromPamSite()
+
 
 
 test_that("chr arg must be a character vector", {
@@ -161,19 +146,9 @@ test_that("chr, pam_site, strand args must have the same length", {
 })
 
 
-test_that("getCutSiteFromPamSite requires pam_site coordinate to exist", {
-    
-})
 
 
-test_that("getCutSiteFromPamSite returns correct PAM sequences", { # break into multiple tests varying 1 thing
-    # tests with single chr/pam_site/strand values
-    # tests with vector of chr/pam_site/strand values
-    # tests with SpCas9
-    # tests with AsCas12a
-    # tests with +/- strands
-    # test with human/mouse/other genomes
-})
+
 
 
 

@@ -336,6 +336,7 @@ findSpacers <- function(x,
 #' @importFrom S4Vectors mcols<- metadata metadata<- bindROWS
 #' @importFrom GenomeInfoDb genome<-
 #' @importFrom BiocGenerics strand
+#' @importFrom crisprBase getCutSiteFromPamSite
 .findSpacersFromDNAStringSet <- function(dna,
                                          bsgenome,
                                          customSequences,
@@ -365,7 +366,7 @@ findSpacers <- function(x,
                    customSequences=customSequences)
     cut_site <- getCutSiteFromPamSite(pam_site=pamSites(gs),
                                       strand=as.character(BiocGenerics::strand(gs)),
-                                      crisprNuclease=crisprNuclease(gs))
+                                      nuclease=crisprNuclease(gs))
     S4Vectors::mcols(gs)[["cut_site"]] <- cut_site
     S4Vectors::mcols(gs)[['region']] <- hits$region
     S4Vectors::metadata(gs)[["CrisprNuclease"]] <- crisprNuclease
