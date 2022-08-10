@@ -93,6 +93,11 @@
 #'     used for CRISPRa/i modality with hg38 genome and SpCas9 nuclease.
 #'     This is needed to generate the CRISPRai scores. See the function
 #'     \code{addCrispraiScores} for more details.
+#' @param conservationFile String specifing the BigWig file containing
+#'     conservation scores.
+#' @param nucExtension Number of nucleotides to include on each side of the 
+#'     cut site to calculate the conservation score. 2 by default. 
+#'     The region will have (2*nucExtension + 1) nucleotides in total.
 #' @param binaries Named list of paths for binaries needed for 
 #'     CasRx-RF. Names of the list must be "RNAfold", "RNAhybrid",
 #'     and "RNAplfold". Each list element is a string specifying
@@ -133,6 +138,8 @@ designCompleteAnnotation <- function(queryValue=NULL,
                                      all_alignments=TRUE,
                                      fastaFile=NULL,
                                      chromatinFiles=NULL,
+                                     conservationFile=NULL,
+                                     nucExtension=2,
                                      binaries=NULL,
                                      verbose=TRUE
 ){
@@ -312,6 +319,24 @@ designCompleteAnnotation <- function(queryValue=NULL,
             cat("[designCompleteAnnotation] Adding SNP annotation \n")
         }
         out <- addSNPAnnotation(out, vcf=vcf)
+    }
+
+    if (!is.null(conservationFile) & isKO){
+        if (verbose){
+            cat("[designCompleteAnnotation] Adding conservation scores \n")
+        }
+        out <- addConservationScores(out, 
+                                     conservationFile=conservationFile,
+                                     nucExtension=nucExtension,
+                                     scoreName="score_conservation")
+    }
+    if (isKO & isCas9){
+        if (verbose){
+            cat("[designCompleteAnnotation] Adding composite scores \n")
+        }
+        out <- addCompositeScores(out,
+                                  methods=c("deephf", "deepspcas9"),
+                                  scoreName="score_composite")
     }
     return(out)
 }
