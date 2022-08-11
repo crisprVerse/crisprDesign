@@ -65,7 +65,7 @@ aligner `BWA`
 algorithms
 - `crisprScoreData`: pre-trained models necessary for `crisprScore`
 
-You can contribute to the package by submitting pull requests to our [GitHub repo](https://github.com/Jfortin1/crisprDesign). 
+You can contribute to the package by submitting pull requests to our [GitHub repo](https://github.com/crisprVerse/crisprDesign). 
 
 
 # Terminology

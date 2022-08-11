@@ -31,22 +31,24 @@ Packages were developed and tested on R version 4.2.
 
 ### R Dependencies 
 
-- crisprBase: https://github.com/Jfortin1/crisprBase
+- crisprBase: https://github.com/crisprVerse/crisprBase
 
-- crisprBowtie: https://github.com/Jfortin1/crisprBowtie
+- crisprBowtie: https://github.com/crisprVerse/crisprBowtie
 
-- crisprScoreData: https://github.com/Jfortin1/crisprScoreData
-
-- crisprScore: https://github.com/Jfortin1/crisprScore
+- crisprScore: https://github.com/crisprVerse/crisprScore
 
 
 ### Optional dependencies 
 
+Data package: 
+
+- crisprScoreData: https://github.com/crisprVerse/crisprScoreData
+
 The following dependencies are needed to run BWA. Note that they are not available for Windows machines.
 
-- Rbwa: https://github.com/Jfortin1/Rbwa
+- Rbwa: https://github.com/crisprVerse/Rbwa
 
-- crisprBwa: https://github.com/Jfortin1/crisprBwa
+- crisprBwa: https://github.com/crisprVerse/crisprBwa
  
 <div id='id-section3'/>
 
@@ -57,12 +59,12 @@ The following dependencies are needed to run BWA. Note that they are not availab
 ```r
 install.packages("devtools")
 library(devtools)
-install_github("Jfortin1/crisprBase")
-install_github("Jfortin1/crisprBowtie")
-install_github("Jfortin1/crisprScoreData")
-install_github("Jfortin1/crisprScore")
-install_github("jfortin1/crisprDesign")
-install_github("jfortin1/crisprDesignData")
+install_github("crisprVerse/crisprBase")
+install_github("crisprVerse/crisprBowtie")
+install_github("crisprVerse/crisprScoreData")
+install_github("crisprVerse/crisprScore")
+install_github("crisprVerse/crisprDesign")
+install_github("crisprVerse/crisprDesignData")
 ```
 
 
@@ -71,7 +73,7 @@ install_github("jfortin1/crisprDesignData")
 ## Demo 
 
 A reproducible and comprehensive workflow can be found here:
-https://github.com/Jfortin1/crisprDesign/blob/master/vignettes/intro.Rmd
+https://github.com/crisprVerse/crisprDesign/blob/master/vignettes/intro.Rmd
 
 
 ## Creating bowtie and BWA indexes
