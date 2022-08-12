@@ -29,7 +29,6 @@ setClass("PairedGuideSet", contains="Pairs")
 #' pgs <- PairedGuideSet(gs1, gs2)
 #' @export
 #' @importFrom S4Vectors Pairs
-#' @export
 PairedGuideSet <- function(GuideSet1=NULL,
                            GuideSet2=NULL
 ){
@@ -160,7 +159,7 @@ setValidity("PairedGuideSet", function(object){
 
 
 #' @rdname PairedGuideSet-class
-#' @param ... Additional arguments
+#' @export
 setMethod("pamOrientation", "PairedGuideSet",
     function(object){
     out <- mcols(object)[["pamOrientation"]]
@@ -169,6 +168,7 @@ setMethod("pamOrientation", "PairedGuideSet",
 
 
 #' @rdname PairedGuideSet-class
+#' @export
 setMethod("pamDistance", "PairedGuideSet",
     function(object){
     out <- mcols(object)[["pamDistance"]]
@@ -178,6 +178,7 @@ setMethod("pamDistance", "PairedGuideSet",
 
 
 #' @rdname PairedGuideSet-class
+#' @export
 setMethod("spacerDistance", "PairedGuideSet",
     function(object){
     out <- mcols(object)[["spacerDistance"]]
@@ -186,6 +187,7 @@ setMethod("spacerDistance", "PairedGuideSet",
 
 
 #' @rdname PairedGuideSet-class
+#' @export
 setMethod("cutLength", "PairedGuideSet",
     function(object){
     out <- mcols(object)[["cutLength"]]

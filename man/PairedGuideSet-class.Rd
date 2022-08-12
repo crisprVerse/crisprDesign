@@ -68,8 +68,6 @@ PairedGuideSet(GuideSet1 = NULL, GuideSet2 = NULL)
 \arguments{
 \item{object}{\linkS4class{PairedGuideSet} object.}
 
-\item{...}{Additional arguments}
-
 \item{GuideSet1}{A \linkS4class{GuideSet} object containing gRNAs at
 the first position of the pairs.}
 
@@ -94,13 +92,7 @@ FALSE by default.}
 A PairedGuideSet object.
 }
 \description{
-Return PAM orientation configuration
-
-Return distance between PAM sites from paired gRNAs
-
-Return distance between spacer sequences from paired gRNAs
-
-Return cut length resulting from paired gRNAs
+An S4 class to store pairs of CRISPR gRNA sequences.
 }
 \section{Functions}{
 \itemize{

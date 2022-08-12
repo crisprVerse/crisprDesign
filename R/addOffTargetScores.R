@@ -15,6 +15,7 @@
 #' @param offset Numeric value specifying an offset to add to the denominator
 #'     when calcuting the aggregated score (inverse summation formula).
 #'     0 by default.
+#' @param ... Additional arguments, currently ignored.
 #' 
 #' @return \code{guideSet} with off-target score columns appended in
 #'     \code{mcols(alignments(guideSet))}. For SpCas9, it

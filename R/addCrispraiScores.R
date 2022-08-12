@@ -19,6 +19,7 @@
 #'     BigWig files containing chromatin accessibility data. See
 #'     crisprScore vignette for more information.
 #' @param fastaFile String specifying fasta file of the hg38 genome.
+#' @param ... Additional arguments, currently ignored.
 #' 
 #' @return \code{guideSet} with an added column for the CRISPRai score.
 #' 

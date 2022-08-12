@@ -8,6 +8,7 @@
 #' 
 #' @param object A \linkS4class{GuideSet} or a 
 #'     \linkS4class{PairedGuideSet} object.
+#' @param ... Additional arguments, currently ignored.
 #' 
 #' @return \code{guideSet} with an appended \code{score_pam} column in
 #'     \code{mcols(guideSet)}.

@@ -18,6 +18,7 @@
 #'     FALSE by default. If set to TRUE, \pkg{biomaRt} must be installed.
 #' @param mart_dataset String specifying dataset to be used by \pkg{biomaRt}
 #'     for Pfam domains annotation . E.g. "hsapiens_gene_ensembl".
+#' @param ... Additional arguments, currently ignored.
 #' 
 #' @return A \linkS4class{GuideSet} object with a "geneAnnotation" list column
 #'     stored in \code{mcols(guideSet)}. See details section for a

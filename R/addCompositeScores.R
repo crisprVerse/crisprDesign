@@ -11,6 +11,7 @@
 #' @param scoreName String specifying the name of the composite score to
 #'     be used as a columm name. Users can choose whatever they like. 
 #'     Default is "score_composite".
+#' @param ... Additional arguments, currently ignored.
 #' 
 #' @return \code{guideSet} with column specified by \code{scoreName} 
 #'     appended in \code{mcols(guideSet)}.

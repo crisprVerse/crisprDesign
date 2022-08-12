@@ -16,6 +16,7 @@
 #' @param scoreName String specifying the name of the conservation score to
 #'     be used as a columm name. Users can choose whatever they like. 
 #'     Default is "score_conservation".
+#' @param ... Additional arguments, currently ignored.
 #' 
 #' @return \code{guideSet} with column specified by \code{scoreName} 
 #'     appended in \code{mcols(guideSet)}.

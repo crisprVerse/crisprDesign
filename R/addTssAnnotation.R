@@ -16,6 +16,7 @@
 #' @param ignore.strand If \code{TRUE} (default), includes annotation for
 #'     gRNAs irrespective of their target strand. Otherwise, only gRNAs
 #'     targeting the gene strand will be annotated.
+#' @param ... Additional arguments, currently ignored.
 #' 
 #' @return A \linkS4class{GuideSet} object with a \code{tssAnnotation} list
 #'     column stored in \code{mcols(guideSet)}. See details section for

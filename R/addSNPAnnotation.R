@@ -9,6 +9,7 @@
 #'     or connection, or a \linkS4class{VCF} object.
 #' @param maf Minimum minor allele frequency to report (for a least one source
 #'     among 1000Genomes and TOPMED). Must be between 0 and 1 (exclusive).
+#' @param ... Additional arguments, currently ignored.
 #' 
 #' @return \code{guideSet} appended with \code{hasSNP} column and \code{snps}
 #'     list-column, both stored in \code{mcols{guideSet}}.

@@ -22,21 +22,6 @@
 \alias{enzymeAnnotation<-}
 \alias{snps<-}
 \alias{alignments<-}
-\alias{addOnTargetScores}
-\alias{addOffTargetScores}
-\alias{addPamScores}
-\alias{addCrispraiScores}
-\alias{addCompositeScores}
-\alias{addConservationScores}
-\alias{addSNPAnnotation}
-\alias{addRestrictionEnzymes}
-\alias{addSequenceFeatures}
-\alias{addRepeats}
-\alias{removeRepeats}
-\alias{addGeneAnnotation}
-\alias{addTssAnnotation}
-\alias{addSpacerAlignments}
-\alias{addSpacerAlignmentsIterative}
 \alias{GuideSet-class}
 \alias{GuideSet}
 \alias{targetOrigin,GuideSet-method}
@@ -106,38 +91,6 @@ enzymeAnnotation(object) <- value
 snps(object) <- value
 
 alignments(object) <- value
-
-addOnTargetScores(object, ...)
-
-addOffTargetScores(object, ...)
-
-addPamScores(object, ...)
-
-addCrispraiScores(object, ...)
-
-addCompositeScores(object, ...)
-
-addConservationScores(object, ...)
-
-addSNPAnnotation(object, ...)
-
-addRestrictionEnzymes(object, ...)
-
-addSequenceFeatures(object, ...)
-
-addSequenceFeatures(object, ...)
-
-addRepeats(object, ...)
-
-removeRepeats(object, ...)
-
-addGeneAnnotation(object, ...)
-
-addTssAnnotation(object, ...)
-
-addSpacerAlignments(object, ...)
-
-addSpacerAlignmentsIterative(object, ...)
 
 GuideSet(
   protospacers = NA_character_,
@@ -303,78 +256,7 @@ annotation data by. If NULL (default), all genes are considered.}
 A GuideSet object.
 }
 \description{
-Return \linkS4class{CrisprNuclease} object.
-
-Return string speecifying origin of DNA target.
-    Either 'bsgenome' or 'customSequence'.
-
-Return custom DNA sequences used for designing gRNAs.
-
-Return BSgenome object used for designing gRNAs.
-
-Return spacer sequences.
-
-Return protospacer sequences.
-
-Return PAM site coordinates.
-
-Return SNP annotation.
-
-Return genomic alignments of spacer sequences.
-
-Return on-target alignments of spacer sequences.
-
-Return off-target alignments of spacer sequences.
-
-Return gene annotation table of spacer sequences.
-
-Return TSS annotation table of spacer sequences.
-
-Return restriction enzymes annotation table.
-
-Return list of edited alleles
-
-Store TSS annotation table of spacer sequences.
-
-Store gene annotation table of spacer sequences.
-
-Store restriction enzymes annotation table.
-
-Store SNP annotation.
-
-Store genomic alignments of spacer sequences.
-
-Add on-target scores.
-
-Add off-target scores.
-
-Add PAM scores.
-
-Add CRISPRai scores.
-
-Add composite scores.
-
-Add conservation scores.
-
-Add SNP annotation.
-
-Add restriction enzymes annotation.
-
-Add spacer sequence features.
-
-Add spacer sequence features.
-
-Annotate with repeat elements
-
-Remove rows overlaping repeat elements
-
-Add gene context annotation
-
-Add TSS context annotation
-
-Add spacer on- and off-target alignments
-
-Add spacer on- and off-target alignments (iterative mode)
+An S4 class to store CRISPR gRNA sequences with modular annotations.
 }
 \section{Functions}{
 \itemize{

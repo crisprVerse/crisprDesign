@@ -11,6 +11,7 @@
 #'     TRUE by default.
 #' @param flanking5,flanking3 Character string indicating the 5' or 3' flanking
 #'     sequence, respectively, of the spacer sequence in the lentivial vector.
+#' @param ... Additional arguments, currently ignored.
 #' 
 #' @return Adds a DataFrame indicating
 #'     whether cutting sites for the specified enzymes are found in the gRNA

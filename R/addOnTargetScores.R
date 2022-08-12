@@ -22,6 +22,7 @@
 #'     and "RNAplfold". Each list element is a string specifying
 #'     the path of the binary. If NULL (default), binaries must be
 #'     available on the PATH.
+#' @param ... Additional arguments, currently ignored.
 #' 
 #' @return \code{guideSet} with columns of on-target scores appended in
 #'     \code{mcols(guideSet)}.

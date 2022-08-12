@@ -10,6 +10,7 @@
 #'     sequence complementarity. FALSE by default. See details.
 #' @param backbone Backbone sequence in the guide RNA that is susceptible
 #'     to hairpin formation with a complementary region in the spacer sequence.
+#' @param ... Additional arguments, currently ignored.
 #'     
 #' @details \code{addSequenceFeatures} predicts spacers to form internal
 #'     hairpins when there is a palindromic sequence within the spacer having
@@ -40,7 +41,8 @@
 #' @importFrom S4Vectors mcols<-
 setMethod("addSequenceFeatures", "GuideSet", function(object,
                                                       addHairpin=FALSE,
-                                                      backbone="AGGCTAGTCCGT"
+                                                      backbone="AGGCTAGTCCGT",
+                                                      ...
 ){
     object <- .validateGuideSet(object)
     
@@ -65,7 +67,8 @@ setMethod("addSequenceFeatures", "GuideSet", function(object,
 setMethod("addSequenceFeatures",
           "PairedGuideSet", function(object,
                                      addHairpin=FALSE,
-                                     backbone="AGGCTAGTCCGT"
+                                     backbone="AGGCTAGTCCGT",
+                                     ...
 ){
     object <- .validateGuideSetOrPairedGuideSet(object)
     unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
@@ -80,7 +83,8 @@ setMethod("addSequenceFeatures",
 
 #' @rdname addSequenceFeatures
 #' @export
-setMethod("addSequenceFeatures", "NULL", function(object){
+setMethod("addSequenceFeatures", "NULL", function(object,
+                                                  ...){
     return(NULL)
 })
 

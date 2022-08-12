@@ -8,6 +8,7 @@
 #'     elements regions.
 #' @param ignore.strand Should gene strand be ignored when annotating?
 #'     TRUE by default. 
+#' @param ... Additional arguments, currently ignored.
 #' 
 #' @return \code{guideSet} with an \code{inRepeats} column appended in
 #'     \code{mcols(guideSet)} that signifies whether the spacer sequence
@@ -81,7 +82,8 @@ setMethod("addRepeats", "NULL", function(object){
 #' @param gr.repeats A \linkS4class{GRanges} object containing
 #'     repeat elements regions.
 #' @param ignore.strand Should gene strand be ignored when annotating?
-#'     TRUE by default. 
+#'     TRUE by default.
+#' @param ... Additional arguments, currently ignored.
 #' 
 #' @return \code{object} filtered for spacer sequences not overlapping
 #'     any repeat elements. An \code{inRepeats} column is also appended in

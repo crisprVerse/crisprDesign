@@ -57,6 +57,7 @@
 #' @param alignmentThresholds Named numeric vector of the maximum on-target
 #'     alignments tolerated for \code{\link{addSpacerAlignmentsIterative}}.
 #'     Thresholds not provided will take default values.
+#' @param ... Additional arguments, currently ignored.
 #'
 #' @return \code{\link{getSpacerAlignments}} returns a \linkS4class{GRanges} 
 #'     object storing spacer alignment data, including genomic coordinates, 
