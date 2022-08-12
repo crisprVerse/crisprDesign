@@ -68,6 +68,8 @@ PairedGuideSet(GuideSet1 = NULL, GuideSet2 = NULL)
 \arguments{
 \item{object}{\linkS4class{PairedGuideSet} object.}
 
+\item{...}{Additional arguments for class-specific methods}
+
 \item{GuideSet1}{A \linkS4class{GuideSet} object containing gRNAs at
 the first position of the pairs.}
 

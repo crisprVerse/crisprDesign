@@ -17,6 +17,7 @@ setClass("PairedGuideSet", contains="Pairs")
 #'     the first position of the pairs.
 #' @param GuideSet2 A \linkS4class{GuideSet} object containing gRNAs at
 #'     the second position of the pairs.
+#' @param ... Additional arguments for class-specific methods
 #' 
 #' @return A PairedGuideSet object.
 #' @examples
