@@ -68,14 +68,20 @@ setMethod("addCompositeScores", "GuideSet",
     }
 
 
-    score_mat <- mcols(object)[,score_columns][valid,,drop=FALSE]
-    score_mat <- apply(score_mat,2, as.numeric)
+    score_mat <- mcols(object)[,score_columns,drop=FALSE][valid,,drop=FALSE]
+    score_mat <- data.matrix(score_mat)
+    
 
     .getRankScores <- function(mat){
         ns <- colSums(!is.na(mat))
         maxN <- max(ns)
         factors <- ns/maxN
-        ranks <- apply(mat,2, rank, na.last=TRUE, ties.method="first")
+        ranks <- apply(mat,2, rank,
+                       na.last=TRUE,
+                       ties.method="first",
+                       simplify=FALSE)
+        ranks <- do.call(cbind, ranks)
+        ranks <- data.matrix(ranks)
         ranks[which(is.na(mat))] <- NA
         ranks <- sweep(ranks,2,factors, "/")
         scores <- rowMeans(ranks, na.rm=TRUE)
