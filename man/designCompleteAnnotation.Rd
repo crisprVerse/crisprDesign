@@ -26,7 +26,7 @@ designCompleteAnnotation(
   fastaFile = NULL,
   chromatinFiles = NULL,
   conservationFile = NULL,
-  nucExtension = 2,
+  nucExtension = 9,
   binaries = NULL,
   verbose = TRUE
 )
@@ -104,7 +104,7 @@ This is needed to generate the CRISPRai scores. See the function
 conservation scores.}
 
 \item{nucExtension}{Number of nucleotides to include on each side of the 
-cut site to calculate the conservation score. 2 by default. 
+cut site to calculate the conservation score. 9 by default. 
 The region will have (2*nucExtension + 1) nucleotides in total.}
 
 \item{binaries}{Named list of paths for binaries needed for 

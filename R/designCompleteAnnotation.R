@@ -96,7 +96,7 @@
 #' @param conservationFile String specifing the BigWig file containing
 #'     conservation scores.
 #' @param nucExtension Number of nucleotides to include on each side of the 
-#'     cut site to calculate the conservation score. 2 by default. 
+#'     cut site to calculate the conservation score. 9 by default. 
 #'     The region will have (2*nucExtension + 1) nucleotides in total.
 #' @param binaries Named list of paths for binaries needed for 
 #'     CasRx-RF. Names of the list must be "RNAfold", "RNAhybrid",
@@ -139,7 +139,7 @@ designCompleteAnnotation <- function(queryValue=NULL,
                                      fastaFile=NULL,
                                      chromatinFiles=NULL,
                                      conservationFile=NULL,
-                                     nucExtension=2,
+                                     nucExtension=9,
                                      binaries=NULL,
                                      verbose=TRUE
 ){

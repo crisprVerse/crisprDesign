@@ -8,7 +8,7 @@
 #' @param conservationFile String specifing the BigWig file containing
 #'     conservation scores.
 #' @param nucExtension Number of nucleotides to include on each side of the 
-#'     cut site to calculate the conservation score. 20 by default. 
+#'     cut site to calculate the conservation score. 9 by default. 
 #'     The region will have (2*nucExtension + 1) nucleotides in total.
 #' @param fun String specifying the function to use to calculate the final
 #'     conservation score in the targeted region. Must be either "mean"
@@ -39,7 +39,7 @@
 setMethod("addConservationScores", "GuideSet",
     function(object,
              conservationFile,
-             nucExtension=20,
+             nucExtension=9,
              fun=c("mean", "max"),
              scoreName="score_conservation"
 ){
@@ -107,7 +107,7 @@ setMethod("addConservationScores", "GuideSet",
 setMethod("addConservationScores", "PairedGuideSet",
           function(object,
                    conservationFile,
-                   nucExtension=20,
+                   nucExtension=9,
                    fun=c("mean", "max"),
                    scoreName="score_conservation"
 ){

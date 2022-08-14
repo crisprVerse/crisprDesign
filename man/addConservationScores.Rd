@@ -12,16 +12,16 @@ addConservationScores(object, ...)
 \S4method{addConservationScores}{GuideSet}(
   object,
   conservationFile,
-  nucExtension = 2,
-  fun = c("max", "mean"),
+  nucExtension = 9,
+  fun = c("mean", "max"),
   scoreName = "score_conservation"
 )
 
 \S4method{addConservationScores}{PairedGuideSet}(
   object,
   conservationFile,
-  nucExtension = 2,
-  fun = c("max", "mean"),
+  nucExtension = 9,
+  fun = c("mean", "max"),
   scoreName = "score_conservation"
 )
 
@@ -37,12 +37,12 @@ addConservationScores(object, ...)
 conservation scores.}
 
 \item{nucExtension}{Number of nucleotides to include on each side of the 
-cut site to calculate the conservation score. 2 by default. 
+cut site to calculate the conservation score. 9 by default. 
 The region will have (2*nucExtension + 1) nucleotides in total.}
 
 \item{fun}{String specifying the function to use to calculate the final
- conservation score in the targeted region. Must be either "max"
-(default) or "mean".}
+ conservation score in the targeted region. Must be either "mean"
+(default) or "max".}
 
 \item{scoreName}{String specifying the name of the conservation score to
 be used as a columm name. Users can choose whatever they like. 
