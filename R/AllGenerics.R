@@ -196,6 +196,12 @@ setGeneric("addSNPAnnotation",
            function(object, ...) standardGeneric("addSNPAnnotation"))
 
 
+#' @rdname addIsoformAnnotation
+#' @export
+setGeneric("addIsoformAnnotation",
+           function(object, ...) standardGeneric("addIsoformAnnotation"))
+
+
 #' @rdname addRestrictionEnzymes
 #' @export
 setGeneric("addRestrictionEnzymes",
