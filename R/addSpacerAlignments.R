@@ -305,7 +305,7 @@ setMethod("addSpacerAlignmentsIterative",
                                                     alignmentThresholds=alignmentThresholds)
     out <- .addColumnsFromUnifiedGuideSet(object,
                                           unifiedGuideSet)
-    
+    out <- .reassignOffTargetRowNames(out)
     return(out)
 })
 
@@ -488,7 +488,7 @@ setMethod("addSpacerAlignments",
                                            tss_window=tss_window)
     out <- .addColumnsFromUnifiedGuideSet(object,
                                           unifiedGuideSet)
-    
+    out <- .reassignOffTargetRowNames(out)
     return(out)
 })
 
@@ -1300,3 +1300,30 @@ filterOutAlnWithGeneRegionAnnotation <- function(aln,
                                   row.names=spacers)
     return(tally)
 }
+
+
+
+.reassignOffTargetRowNames <- function(pgs){
+    gs1 <- first(pgs)
+    gs2 <- second(pgs)
+
+    .renameGuideSet <- function(gs){
+        aln <- alignments(gs, unlist=TRUE)
+        spacers <- spacers(gs, as.character=TRUE)
+        wh <- match(as.character(mcols(aln)$spacer),
+                    spacers(gs, as.character=TRUE))
+        names(aln) <- names(gs)[wh]
+        f <- factor(names(aln), levels=unique(names(gs)))
+        aln <- S4Vectors::split(aln, f=f)[names(gs)]
+        S4Vectors::mcols(gs)[["alignments"]] <- aln
+        return(gs)
+    }
+    
+    gs1 <- .renameGuideSet(gs1)
+    gs2 <- .renameGuideSet(gs2)
+    first(pgs)  <- gs1
+    second(pgs) <- gs2
+    return(pgs)
+}
+
+

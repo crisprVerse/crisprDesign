@@ -11,7 +11,6 @@ setClass("PairedGuideSet", contains="Pairs")
 
 
 
-
 #' @describeIn PairedGuideSet Create a \linkS4class{PairedGuideSet} object
 #' @param GuideSet1 A \linkS4class{GuideSet} object containing gRNAs at
 #'     the first position of the pairs.
@@ -467,7 +466,7 @@ setMethod("pamSide", "PairedGuideSet",
     gs1 <- .addCoordID(first(pairedGuideSet))
     gs2 <- .addCoordID(second(pairedGuideSet))
     gs <- unique(c(gs1,gs2))
-    names(gs) <- NULL
+    names(gs) <- paste0("temporary_", seq_along(gs))
     return(gs)
 }
 
