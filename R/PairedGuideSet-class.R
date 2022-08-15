@@ -452,7 +452,8 @@ setMethod("pamSide", "PairedGuideSet",
 # This merges the two GuideSet objects from a PairedGuideSet object
 # into a unified GuideSet. This is useful to perform time intensive
 # operations when there are a lot of duplicated guides between
-# the two GuideSets.
+# two GuideSets, or when there is an upfront cost for calling 
+# a specific function (such as bowtie)
 .pairedGuideSet2GuideSet <- function(pairedGuideSet){
     nucs <- crisprNuclease(pairedGuideSet)
     nucsOK <- .identicalNucleases(nucs[[1]],
@@ -466,7 +467,7 @@ setMethod("pamSide", "PairedGuideSet",
     gs1 <- .addCoordID(first(pairedGuideSet))
     gs2 <- .addCoordID(second(pairedGuideSet))
     gs <- unique(c(gs1,gs2))
-    rownames(gs) <- NULL
+    names(gs) <- NULL
     return(gs)
 }
 
