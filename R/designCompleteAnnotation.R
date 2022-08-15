@@ -348,7 +348,7 @@ designCompleteAnnotation <- function(queryValue=NULL,
             cat("[designCompleteAnnotation] Adding isoform annotation \n")
         }
         wh <- which(canonicalIsoforms$gene_id==queryValue)
-        if (wh>0){
+        if (length(wh)>0){
             tx_id <- canonicalIsoforms$tx_id[wh]
         } else {
             tx_id <- NA

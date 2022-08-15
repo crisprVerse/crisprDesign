@@ -838,7 +838,7 @@ The `pamOrientation` function returns the PAM orientation of the pairs:
 head(pamOrientation(pairs))
 ```
 
-and takes 4 different values: `in` (for PAM-in configuration) `out` (for PAM-out configuration), `fwd` (both gRNAs target the forward strnad) and `rev` (both gRNAs target the reverse strand). 
+and takes 4 different values: `in` (for PAM-in configuration) `out` (for PAM-out configuration), `fwd` (both gRNAs target the forward strand) and `rev` (both gRNAs target the reverse strand). 
 
 The function `pamDistance` returns the distance between the PAM sites of the two gRNAs. The function `cutDistance` returns the distance between the cut sites of the two gRNAs. The function `spacerDistance` returns the distance between the two spacer sequences of the gRNAs.
 
