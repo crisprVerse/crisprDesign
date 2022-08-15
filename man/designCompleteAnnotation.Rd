@@ -28,6 +28,7 @@ designCompleteAnnotation(
   conservationFile = NULL,
   nucExtension = 9,
   binaries = NULL,
+  canonicalIsoforms = NULL,
   verbose = TRUE
 )
 }
@@ -112,6 +113,11 @@ CasRx-RF. Names of the list must be "RNAfold", "RNAhybrid",
 and "RNAplfold". Each list element is a string specifying
 the path of the binary. If NULL (default), binaries must be
 available on the PATH.}
+
+\item{canonicalIsoforms}{Optional data.frame with 2 columns detailing
+Ensembl canonical isoforms. First column must be named "tx_id",
+and second column must be named "gene_id", corresponding to
+Ensembl transcript and gene ids, respectively.}
 
 \item{verbose}{Should messages be printed?}
 }

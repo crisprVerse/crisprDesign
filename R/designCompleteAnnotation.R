@@ -103,6 +103,10 @@
 #'     and "RNAplfold". Each list element is a string specifying
 #'     the path of the binary. If NULL (default), binaries must be
 #'     available on the PATH.
+#' @param canonicalIsoforms Optional data.frame with 2 columns detailing
+#'     Ensembl canonical isoforms. First column must be named "tx_id",
+#'     and second column must be named "gene_id", corresponding to
+#'     Ensembl transcript and gene ids, respectively. 
 #' @param verbose Should messages be printed?
 #' 
 #' @return A \code{GuideSet} object.
@@ -141,6 +145,7 @@ designCompleteAnnotation <- function(queryValue=NULL,
                                      conservationFile=NULL,
                                      nucExtension=9,
                                      binaries=NULL,
+                                     canonicalIsoforms=NULL,
                                      verbose=TRUE
 ){
     modality <- match.arg(modality)
@@ -337,6 +342,19 @@ designCompleteAnnotation <- function(queryValue=NULL,
         out <- addCompositeScores(out,
                                   methods=c("deephf", "deepspcas9"),
                                   scoreName="score_composite")
+    }
+    if (isKO & !is.null(canonicalIsoforms)){
+        if (verbose){
+            cat("[designCompleteAnnotation] Adding isoform annotation \n")
+        }
+        wh <- which(canonicalIsoforms$gene_id==queryValue)
+        if (wh>0){
+            tx_id <- canonicalIsoforms$tx_id[wh]
+        } else {
+            tx_id <- NA
+        }
+        out <- addIsoformAnnotation(out,
+                                    tx_id=tx_id)
     }
     return(out)
 }

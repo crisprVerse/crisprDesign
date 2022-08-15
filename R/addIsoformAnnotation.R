@@ -45,17 +45,25 @@ setMethod("addIsoformAnnotation",
     cols <- c("percentCDS",
               "percentCodingIsoforms",
               "isCommonCodingExon")
-    ann <- geneAnnotation(object,
-                          tx_id=tx_id,
-                          unlist=TRUE)
-    ann <- ann[, cols, drop=FALSE]
-    
 
-    # Adding to object:
+    # Initializing
     df <- S4Vectors::mcols(object)
-    wh <- match(rownames(df), rownames(ann))
     for (col in cols){
-        df[[col]] <- ann[wh,col]
+        df[[col]] <- NA
+    } 
+    if (!is.na(tx_id)){
+        ann <- geneAnnotation(object,
+                              tx_id=tx_id,
+                              unlist=TRUE)
+        if (nrow(ann)>0){
+            ann <- ann[, cols, drop=FALSE]
+            
+            # Adding to object:
+            wh <- match(rownames(df), rownames(ann))
+            for (col in cols){
+                df[[col]] <- ann[wh,col]
+            }
+        }
     }
     S4Vectors::mcols(object) <- df
     return(object)
