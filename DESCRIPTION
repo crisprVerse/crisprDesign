@@ -1,6 +1,6 @@
 Package: crisprDesign
 Title: Comprehensive design of CRISPR gRNAs for nucleases and base editors
-Version: 0.99.127
+Version: 0.99.128
 Authors@R: c(
     person("Jean-Philippe", "Fortin", email = "fortin946@gmail.com", role = c("aut", "cre")),
     person("Luke", "Hoberecht", email = "lukehob3@gmail.com", role = c("aut"))
@@ -13,7 +13,7 @@ Description:
     CRISPR base editing, and CRISPR knockdown. All types of CRISPR nucleases are supported, including
     DNA- and RNA-target nucleases such as Cas9, Cas12a, and Cas13d. All types of base editors are
     also supported. gRNA design can be performed on reference genomes, transcriptomes,
-    and custom DNA and RNA sequences. 
+    and custom DNA and RNA sequences. Both unpaired and paired gRNA designs are enabled.
 Depends: R (>= 4.2.0),
     crisprBase (>= 1.1.3)
 Imports:

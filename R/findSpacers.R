@@ -355,7 +355,9 @@ findSpacers <- function(x,
     hits <- .applyHitsCoordinates(hits=hits,
                                   dna=dna)
     
-    gs <- GuideSet(protospacers=hits$spacer,
+    ids <- paste0("spacer_", seq_len(nrow(hits)))
+    gs <- GuideSet(ids=ids,
+                   protospacers=hits$spacer,
                    pams=hits$pam,
                    seqnames=hits$chr,
                    pam_site=hits$pam_site,

@@ -93,6 +93,7 @@ snps(object) <- value
 alignments(object) <- value
 
 GuideSet(
+  ids = NA_character_,
   protospacers = NA_character_,
   pams = NULL,
   seqnames = NA_character_,
@@ -189,6 +190,9 @@ GuideSet(
 \item{...}{Additional arguments for class-specific methods}
 
 \item{value}{Object to replace with}
+
+\item{ids}{Character vector of unique gRNA ids. The ids can be anything,
+as long as they are unique.}
 
 \item{protospacers}{Character vector of protospacers sequences.}
 
@@ -304,7 +308,9 @@ seqnames="chr7"
 data(SpCas9, package="crisprBase")
 CrisprNuclease <- SpCas9
 strand=c("+", "-")
-gr <- GuideSet(protospacers=protospacers,
+ids <- paste0("grna_", seq_along(protospacers))
+gr <- GuideSet(ids=ids,
+               protospacers=protospacers,
                pams=pams,
                seqnames=seqnames,
                CrisprNuclease=CrisprNuclease,

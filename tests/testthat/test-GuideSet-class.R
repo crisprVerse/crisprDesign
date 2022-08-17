@@ -7,9 +7,11 @@ test_that("GuideSet constructor requires non-NA seqnames value(s)", {
                       list("chr1", "chr2"))
     lapply(bad_input, function(x){
         protospacers <- rep("ACTG", length(x))
+        ids <- paste0('grna_', seq_along(x))
         customSequences <- protospacers
         pams <- rep("ACTG", length(x))
-        expect_error(GuideSet(protospacers=protospacers,
+        expect_error(GuideSet(ids=ids,
+                              protospacers=protospacers,
                               pams=pams,
                               seqnames=x,
                               CrisprNuclease=crisprNuclease,
@@ -22,9 +24,11 @@ test_that("GuideSet constructor requires non-NA seqnames value(s)", {
                        "custom")
     lapply(good_input, function(x){
         protospacers <- rep("ACTG", length(x))
+        ids <- paste0('grna_', seq_along(x))
         customSequences <- protospacers
         pams <- rep("ACTG", length(x))
-        expect_error(GuideSet(protospacers=protospacers,
+        expect_error(GuideSet(ids=ids,
+                              protospacers=protospacers,
                               pams=pams,
                               seqnames=x,
                               CrisprNuclease=crisprNuclease,
@@ -44,7 +48,9 @@ test_that("GuideSet constructor requires non-NA protospacer value(s)", {
     lapply(bad_input, function(x){
         seqnames <- rep("chr1", length(x))
         pams <- rep("ACTG", length(x))
-        expect_error(GuideSet(protospacers=x,
+        ids <- paste0('grna_', seq_along(x))
+        expect_error(GuideSet(ids=ids,
+                              protospacers=x,
                               customSequences=x,
                               targetOrigin=targetOrigin,
                               pams=pams,
@@ -57,7 +63,9 @@ test_that("GuideSet constructor requires non-NA protospacer value(s)", {
     lapply(good_input, function(x){
         seqnames <- rep("chr1", length(x))
         pams <- rep("ACTG", length(x))
-        expect_error(GuideSet(protospacers=x,
+        ids <- paste0('grna_', seq_along(x))
+        expect_error(GuideSet(ids=ids,
+                              protospacers=x,
                               customSequences=x,
                               targetOrigin=targetOrigin,
                               pams=pams,
@@ -77,7 +85,9 @@ test_that("GuideSet constructor requires non-NA pam value(s)", {
     lapply(bad_input, function(x){
         seqnames <- rep("chr1", length(x))
         protospacers <- rep("ACTG", length(x))
-        expect_error(GuideSet(protospacers=protospacers,
+        ids <- paste0('grna_', seq_along(x))
+        expect_error(GuideSet(ids=ids,
+                              protospacers=protospacers,
                               customSequences=x,
                               targetOrigin=targetOrigin,
                               pams=x,
@@ -90,7 +100,9 @@ test_that("GuideSet constructor requires non-NA pam value(s)", {
     lapply(good_input, function(x){
         seqnames <- rep("chr1", length(x))
         protospacers <- rep("ACTG", length(x))
-        expect_error(GuideSet(protospacers=protospacers,
+        ids <- paste0('grna_', seq_along(x))
+        expect_error(GuideSet(ids=ids,
+                              protospacers=protospacers,
                               customSequences=x,
                               targetOrigin=targetOrigin,
                               pams=x,
@@ -106,14 +118,16 @@ test_that("GuideSet constructor requires a CrisprNuclease object", {
                       NA,
                       "SpCas9")
     lapply(bad_input, function(x){
-        expect_error(GuideSet(protospacers="ACTG",
+        expect_error(GuideSet(ids="grna1",
+                              protospacers="ACTG",
                               pams="ACTG",
                               seqnames="chr1",
                               CrisprNuclease=x,
                               customSequences="ACTG",
                               targetOrigin=targetOrigin))
     })
-    expect_error(GuideSet(protospacers="ACTG",
+    expect_error(GuideSet(ids="grna1",
+                          protospacers="ACTG",
                           pams="ACTG",
                           seqnames="chr1",
                           CrisprNuclease=SpCas9,
@@ -128,7 +142,8 @@ test_that("GuideSet constructor requires strand to be missing or in +/-/*", {
                       "positive",
                       1)
     lapply(bad_input, function(x){
-        expect_error(GuideSet(protospacers="ACTG",
+        expect_error(GuideSet(ids="grna1",
+                              protospacers="ACTG",
                               customSequences="ACTG",
                               targetOrigin=targetOrigin,
                               pams="ACTG",
@@ -141,7 +156,8 @@ test_that("GuideSet constructor requires strand to be missing or in +/-/*", {
                        "-",
                        "*")
     lapply(good_input, function(x){
-        expect_error(GuideSet(protospacers="ACTG",
+        expect_error(GuideSet(ids="grna1",
+                              protospacers="ACTG",
                               customSequences="ACTG",
                               targetOrigin=targetOrigin,
                               pams="ACTG",
@@ -150,7 +166,8 @@ test_that("GuideSet constructor requires strand to be missing or in +/-/*", {
                               strand=x),
                      regexp=NA)
     })
-    expect_warning(GuideSet(protospacers="ACTG",
+    expect_warning(GuideSet(ids="grna1",
+                            protospacers="ACTG",
                             pams="ACTG",
                             seqnames="chr1",
                             customSequences="ACTG",
@@ -167,7 +184,8 @@ test_that("GuideSet constructor requires pam_site to be an integer", {
                       1i,
                       "1")
     lapply(bad_input, function(x){
-        expect_error(GuideSet(protospacers="ACTG",
+        expect_error(GuideSet(ids="grna1",
+                              protospacers="ACTG",
                               pams="ACTG",
                               seqnames="chr1",
                               customSequences="ACTG",
@@ -180,7 +198,8 @@ test_that("GuideSet constructor requires pam_site to be an integer", {
                        1,
                        1L)
     lapply(good_input, function(x){
-        expect_error(GuideSet(protospacers="ACTG",
+        expect_error(GuideSet(ids="grna1",
+                              protospacers="ACTG",
                               pams="ACTG",
                               seqnames="chr1",
                               customSequences="ACTG",

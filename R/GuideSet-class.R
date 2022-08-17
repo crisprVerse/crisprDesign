@@ -37,6 +37,8 @@ setClass("GuideSet", contains = "GRanges")
 
 
 #' @describeIn GuideSet Create a \linkS4class{GuideSet} object
+#' @param ids Character vector of unique gRNA ids. The ids can be anything,
+#'     as long as they are unique. 
 #' @param protospacers Character vector of protospacers sequences.
 #' @param pams Character vector of PAM sequences.
 #' @param seqnames Character vector of chromosome names.
@@ -68,7 +70,9 @@ setClass("GuideSet", contains = "GRanges")
 #' data(SpCas9, package="crisprBase")
 #' CrisprNuclease <- SpCas9
 #' strand=c("+", "-")
-#' gr <- GuideSet(protospacers=protospacers,
+#' ids <- paste0("grna_", seq_along(protospacers))
+#' gr <- GuideSet(ids=ids,
+#'                protospacers=protospacers,
 #'                pams=pams,
 #'                seqnames=seqnames,
 #'                CrisprNuclease=CrisprNuclease,
@@ -85,7 +89,8 @@ setClass("GuideSet", contains = "GRanges")
 #' @importFrom S4Vectors mcols<- mcols
 #' @importFrom methods new
 #' @export
-GuideSet <- function(protospacers = NA_character_,
+GuideSet <- function(ids = NA_character_,
+                     protospacers = NA_character_,
                      pams = NULL,
                      seqnames = NA_character_,
                      pam_site = 0L,
@@ -101,6 +106,16 @@ GuideSet <- function(protospacers = NA_character_,
     targetOrigin <- match.arg(targetOrigin)
     protospacers <- .validateGuideSetSequences("protospacers", protospacers)
     pams <- .validateGuideSetSequences("pams", pams)
+
+    # Checking ids
+    if (sum(duplicated(ids))>0){
+        stop("Duplicated values for 'ids' are not allowed.")
+    }
+    if (length(ids)!=length(protospacers)){
+        stop("'ids' must have the same length as 'protospacers'.")
+    }
+
+
     gr <- GRanges(seqnames,
                   IRanges(start=pam_site,
                           width=1),
@@ -130,6 +145,7 @@ GuideSet <- function(protospacers = NA_character_,
         mcols(gr)$pam <- DNAStringSet(pams)
     }
     mcols(gr)[["pam_site"]] <- pam_site
+    names(gr) <- ids
     new("GuideSet", gr)
 }
 
@@ -201,11 +217,13 @@ setValidity("GuideSet", function(object){
         .isDNAStringSet(meta[["customSequences"]])
     }
 
-
     nuc <- meta[["CrisprNuclease"]]
     if (!is(nuc, "CrisprNuclease")){
         out <- "metadata(object)$CrisprNuclease must be a CrisprNuclease object"
         return(out)
+    }
+    if (is.null(names(object))){
+        out <- "GuideSet object cannot have NULL names."
     }
     return(out)
 })
