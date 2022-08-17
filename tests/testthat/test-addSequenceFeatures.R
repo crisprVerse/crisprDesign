@@ -93,7 +93,8 @@ test_that("percentGC is correctly calculated", {
                       "GCGCGCGCGCGCGCGCATAT", "GCGCGCGCGCGCGCGCGTAT",
                       "GCGCGCGCGCGCGCGCGCAT", "GCGCGCGCGCGCGCGCGCGT",
                       "GCGCGCGCGCGCGCGCGCGC")
-    guides <- GuideSet(protospacers=spacer_input,
+    guides <- GuideSet(ids=seq_along(spacer_input),
+                       protospacers=spacer_input,
                        customSequences=spacer_input,
                        targetOrigin="customSequences",
                        pams=rep("CGG", 21),
