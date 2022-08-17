@@ -110,7 +110,8 @@ test_that("spacers with homopolymers are correctly identified", {
                       "GAGTCAGCTTGCCCCATATG",
                       "CATGCAGCTTGGGGTATATG",
                       "CATGCATTTTGACGTCTATG")
-    guides <- GuideSet(protospacers=spacer_input,
+    guides <- GuideSet(ids=seq_along(spacer_input),
+                       protospacers=spacer_input,
                        customSequences=spacer_input,
                        targetOrigin="customSequences",
                        pams=rep("CGG", 4),
@@ -130,7 +131,8 @@ test_that("spacers with startingGGGGG are correctly identified", {
                       "GGGGCAGCTTGCATGATATG",
                       "CATGCAGCTTGGGGGATATG")
     hasStartingGGGGG <- c(TRUE, FALSE, FALSE)
-    guides <- GuideSet(protospacers=spacer_input,
+    guides <- GuideSet(ids=seq_along(spacer_input),
+                       protospacers=spacer_input,
                        customSequences=spacer_input,
                        targetOrigin="customSequences",
                        pams=rep("CGG", 3),
@@ -151,7 +153,8 @@ test_that("selfHairpin and backboneHairpin are correctly predicted", {
                  "GACAccaaTGTCagcgggac"=TRUE,     # stem length 4
                  "ACAccaaTGTCagcgggaca"=TRUE,     # with flanking 5' G
                  "ACATccaacaggagcgggAT"=TRUE)     # with flanking 3' GT
-    guides <- GuideSet(protospacers=names(spacers),
+    guides <- GuideSet(ids=seq_along(spacers),
+                       protospacers=names(spacers),
                        customSequences=names(spacers),
                        targetOrigin="customSequences",
                        pams=rep("CGG", 8),
@@ -168,7 +171,8 @@ test_that("selfHairpin and backboneHairpin are correctly predicted", {
                       "agCCACTgagga"=TRUE,        # stem length 5
                       "agaTAGCCggaa"=TRUE,        # with flanking 5' G
                       "aggACCCCaggaa"=TRUE)       # with flanking 3' GT
-    guides <- GuideSet(protospacers=spacer,
+    guides <- GuideSet(ids=seq_along(spacer),
+                       protospacers=spacer,
                        customSequences=spacer,
                        targetOrigin="customSequences",
                        pams="CGG",
