@@ -160,6 +160,7 @@ addEditedAlleles <- function(guideSet,
                                       editingWindow=c(-20,-8),
                                       nMaxAlleles=100
 ){
+    .SPLIT_CUTOFF <- 10
     if (!is(baseEditor, "BaseEditor")){
         stop("baseEditor must be a BaseEditor object.")
     }
@@ -192,29 +193,93 @@ addEditedAlleles <- function(guideSet,
     # Getting scores for the edited nucleotides:
     nucsReduced <- nucs[nucs %in% names(nucChanges)]
     nucsReduced <- nucsReduced[names(nucsReduced) %in% colnames(ws)]
-    ws <- ws[,colnames(ws) %in% names(nucsReduced),drop=FALSE]
-    choices <- lapply(nucsReduced, function(x){
-        nucChanges[[x]]
+    nNucs <- length(nucsReduced)
+
+    if (nNucs>.SPLIT_CUTOFF){
+        nSegments <- ceiling(nNucs/.SPLIT_CUTOFF)
+        breaks <- seq(0,nNucs, .SPLIT_CUTOFF)
+        if (!nNucs %in% breaks){
+            breaks <- c(breaks, nNucs)
+        }
+        wh <- .bincode(seq_len(nNucs), breaks=breaks)
+        segIndices <- split(seq_along(nucsReduced),
+                            f=wh)
+    } else {
+        segIndices <- list(seq_along(nucsReduced))
+    }
+    segments <- lapply(segIndices, function(x){
+        nucsReduced[x]
     })
-    sequences <- expand.grid(choices)
-    seqEdited <- apply(sequences, 1, paste0, collapse="")
-    scores <- .scoreEditedAlleles(sequences,
-                                  nucsReduced,
-                                  ws)
+    nSegments <- length(segments)
+
+
+    .getResultsBySegment <- function(segment){
+        wsForSegment <- ws[,colnames(ws) %in% names(segment),drop=FALSE]
+        choices <- lapply(segment, function(x){
+            nucChanges[[x]]
+        })
+        sequences <- expand.grid(choices)
+        seqEdited <- apply(sequences, 1, paste0, collapse="")
+        scores <- .scoreEditedAlleles(sequences,
+                                      segment,
+                                      wsForSegment)
+        out <- data.frame(seq=seqEdited,
+                          score=scores)
+        o <- order(-out$score)
+        out <- out[o,,drop=FALSE]
+        sequences <- sequences[o,,drop=FALSE]
+        if (nrow(out)>nMaxAlleles){
+            out <- out[seq_len(nMaxAlleles),,drop=FALSE]
+            sequences <- sequences[seq_len(nMaxAlleles),,drop=FALSE]
+        }
+        sequences <- as.matrix(sequences)
+        return(list(scores=out,
+                    sequences=sequences))
+    }
+
+
+    .mergeTwoSegments <- function(segment1, segment2){
+        scores1 <- segment1[["scores"]]
+        scores2 <- segment2[["scores"]]
+        indices <- expand.grid(seq_len(nrow(scores1)),
+                               seq_len(nrow(scores2)))
+        fullSeq <- paste0(scores1$seq[indices[,1]],
+                          scores2$seq[indices[,2]])
+        scores <- scores1$score[indices[,1]]*scores2$score[indices[,2]]
+        scores <- data.frame(seq=fullSeq,
+                             scores=scores)
+        seqs1 <- segment1[["sequences"]][indices[,1],,drop=FALSE]
+        seqs2 <- segment2[["sequences"]][indices[,2],,drop=FALSE]
+        seqs <- cbind(seqs1, seqs2)
+        o <- order(-scores$score)
+        scores <- scores[o,,drop=FALSE]
+        seqs   <- seqs[o,,drop=FALSE]
+        if (nrow(scores)>nMaxAlleles){
+            scores <- scores[seq_len(nMaxAlleles),,drop=FALSE]
+            seqs   <- seqs[seq_len(nMaxAlleles),,drop=FALSE]
+            seqs <- as.matrix(seqs)
+        }
+        return(list(scores=scores, 
+                    sequences=seqs))
+    }
+
+    .mergeSegmentedResults <- function(results){
+        final <- results[[1]]
+        if (nSegments>1){
+            segIndices <- seq_len(nSegments)
+            segIndices <- setdiff(segIndices,1)
+            for (k in segIndices){
+                final <- .mergeTwoSegments(final, results[[k]])
+            }
+        }
+        return(final)
+    }
+
+    results <- lapply(segments, .getResultsBySegment)
+    results <- .mergeSegmentedResults(results)
+    sequences <- as.matrix(results[["sequences"]])
+    scores <- results[["scores"]]
   
-    # Only keeping scores passing a threshold:
-    reducedEditedAlleles <- data.frame(seq=seqEdited,
-                                       score=scores)
-    o <- order(-reducedEditedAlleles$score)
-    reducedEditedAlleles <- reducedEditedAlleles[o,,drop=FALSE]
-    sequences <- sequences[o,,drop=FALSE]
-
-
-    nMaxAlleles <- min(nMaxAlleles, nrow(sequences))
-    good <- seq_len(nMaxAlleles)
-    reducedEditedAlleles <- reducedEditedAlleles[good,,drop=FALSE]
-    sequences <- sequences[good,,drop=FALSE]
-    sequences <- as.matrix(sequences)
 
     # Reconstructing full sequences:
     fullSequences <- c()
@@ -225,7 +290,7 @@ addEditedAlleles <- function(guideSet,
         fullSequences[i] <- paste0(as.character(unlist(temp)),collapse="")
     }
     editedAlleles <- data.frame(seq=fullSequences,
-                                score=reducedEditedAlleles$score)
+                                score=scores$score)
     editedAlleles <- editedAlleles[order(-editedAlleles$score),,drop=FALSE]
     rownames(editedAlleles) <- NULL
     editedAlleles <- editedAlleles[editedAlleles$seq!=seq,,drop=FALSE]
@@ -249,6 +314,106 @@ addEditedAlleles <- function(guideSet,
     editedAlleles$seq <- DNAStringSet(editedAlleles$seq)
     return(editedAlleles)
 }
+
+
+
+# # Get the set of predicted edited alleles for each gRNA
+# #' @importFrom crisprBase editingStrand
+# .getEditedAllelesPerGuide_slow <- function(gs,
+#                                       baseEditor,
+#                                       editingWindow=c(-20,-8),
+#                                       nMaxAlleles=100
+# ){
+#     if (!is(baseEditor, "BaseEditor")){
+#         stop("baseEditor must be a BaseEditor object.")
+#     }
+#     if (length(gs)!=1){
+#         stop("gs must be a GuideSet of length 1.")
+#     }
+#     if (editingStrand(baseEditor)!="original"){
+#         stop("Only base editors that edit the original ",
+#              "strand are supported at the moment. ")
+#     }
+#     ws <- .getEditingWeights(baseEditor,
+#                              editingWindow)
+#     nucChanges <- .getPossibleNucChanges(ws)
+
+
+#     # Getting gRNA information:
+#     pamSite <- pamSites(gs)
+#     strand <- as.character(strand(gs))
+#     chr <- as.character(seqnames(gs))
+
+#     seq <- .getExtendedSequences(gs, 
+#                                  start=editingWindow[1],
+#                                  end=editingWindow[2])
+#     nucs <- strsplit(seq, split="")[[1]]
+#     pos <- seq(editingWindow[1],
+#                editingWindow[2])
+#     names(nucs) <- pos
+
+
+#     # Getting scores for the edited nucleotides:
+#     nucsReduced <- nucs[nucs %in% names(nucChanges)]
+#     nucsReduced <- nucsReduced[names(nucsReduced) %in% colnames(ws)]
+#     ws <- ws[,colnames(ws) %in% names(nucsReduced),drop=FALSE]
+#     choices <- lapply(nucsReduced, function(x){
+#         nucChanges[[x]]
+#     })
+#     sequences <- expand.grid(choices)
+#     seqEdited <- apply(sequences, 1, paste0, collapse="")
+#     scores <- .scoreEditedAlleles(sequences,
+#                                   nucsReduced,
+#                                   ws)
+  
+#     # Only keeping scores passing a threshold:
+#     reducedEditedAlleles <- data.frame(seq=seqEdited,
+#                                        score=scores)
+#     o <- order(-reducedEditedAlleles$score)
+#     reducedEditedAlleles <- reducedEditedAlleles[o,,drop=FALSE]
+#     sequences <- sequences[o,,drop=FALSE]
+
+
+#     nMaxAlleles <- min(nMaxAlleles, nrow(sequences))
+#     good <- seq_len(nMaxAlleles)
+#     reducedEditedAlleles <- reducedEditedAlleles[good,,drop=FALSE]
+#     sequences <- sequences[good,,drop=FALSE]
+#     sequences <- as.matrix(sequences)
+
+#     # Reconstructing full sequences:
+#     fullSequences <- c()
+#     for (i in seq_len(nrow(sequences))){
+#         temp <- nucs
+#         temp[colnames(sequences)] <- as.character(sequences[i,])
+#         temp <- lapply(temp, as.character)
+#         fullSequences[i] <- paste0(as.character(unlist(temp)),collapse="")
+#     }
+#     editedAlleles <- data.frame(seq=fullSequences,
+#                                 score=reducedEditedAlleles$score)
+#     editedAlleles <- editedAlleles[order(-editedAlleles$score),,drop=FALSE]
+#     rownames(editedAlleles) <- NULL
+#     editedAlleles <- editedAlleles[editedAlleles$seq!=seq,,drop=FALSE]
+#     editedAlleles <- DataFrame(editedAlleles)
+
+#     # Adding metadata:
+#     metadata(editedAlleles)$wildtypeAllele <- seq
+#     if (strand=="+"){
+#         start <- pamSite + editingWindow[1]
+#         end   <- pamSite + editingWindow[2]
+#     } else {
+#         start <- pamSite - editingWindow[2]
+#         end   <- pamSite - editingWindow[1]
+#     }
+#     names(start) <- names(end) <- NULL
+#     metadata(editedAlleles)$start <- start
+#     metadata(editedAlleles)$end <- end
+#     metadata(editedAlleles)$chr <- chr
+#     metadata(editedAlleles)$strand <- strand
+#     metadata(editedAlleles)$editingWindow <- editingWindow
+#     editedAlleles$seq <- DNAStringSet(editedAlleles$seq)
+#     return(editedAlleles)
+# }
+
 
 
 
