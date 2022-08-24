@@ -15,8 +15,8 @@ output:
     number_sections: true
 vignette: >
   %\VignetteIndexEntry{Introduction to crisprDesign}
-  %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
+  %\VignetteEngine{knitr::rmarkdown}
 bibliography: references.bib
 ---
 
@@ -932,7 +932,7 @@ For more information, please see the following tutorial:
 
 
 
-# Design of gRNA pairs with the \code{PairedGuideSet} object
+# Design of gRNA pairs with the PairedGuideSet object
 
 The `findSpacerPairs` function in `crisprDesign` enables the design of
 pairs of gRNAs and works similar to `findSpacers`. As an example, we
