@@ -559,27 +559,65 @@ report the minor allele frequency (MAF) in the 1000Genomes and TOPMED
 populations. 
 
 
-## Ranking and selecting gRNAs
+## Filtering and ranking gRNAs
 
-Once our gRNAs are fully annotated we can filter out any unwanted gRNAs using
-the function `filterSpacers` then rank the best remaining gRNAs with
-`rankSpacers`.
+Once gRNAs are fully annotated, it is easy to filter out any unwanted gRNAs
+since `GuideSet` objects can be subsetted like regular vectors in R.
 
 As an example, suppose that we only want to keep gRNAs that have percent
-GC between 20% and 80%, that do not contain a polyT strech, and that do not
-have EcoRI and KpnI restriction sites. We can achieve this using `filterSpacers`:
+GC between 20% and 80% and that do not contain a polyT stretch.
+This can be achieved using the following lines:
 
-```{r}
-criteria <- list(percentGC=c(20, 80),
-                 polyT=FALSE,
-                 EcoRI=FALSE,
-                 KpnI=FALSE)
-guideSet <- filterSpacers(guideSet,
-                          criteria=criteria)
+```{r, eval=FALSE}
+guideSet <- guideSet[guideSet$percentGC>=20]
+guideSet <- guideSet[guideSet$percentGC<=80]
+guideSet <- guideSet[!guideSet$polyT]
 ```
 
-`rankSpacers` works similarly; see `?rankSpacers` for more information. 
+Similarly, it is easy to rank gRNAs based on a set of criteria 
+using the regular `order` function.
 
+For instance, let's sort gRNAs by the CRISPRater on-target score:
+
+```{r, eval=TRUE}
+# Creating an ordering index based on the CRISPRater score:
+# Using the negative values to make sure higher scores are ranked first:
+o <- order(-guideSet$score_crisprater) 
+# Ordering the GuideSet:
+guideSet <- guideSet[o]
+head(guideSet)
+```
+
+One can also sort gRNAs using several annotation columns.
+For instance, let's sort gRNAs using the CRISPRrater score, but also by 
+prioritizing first gRNAs that have no 1-mismatch off-targets:
+
+```{r, eval=TRUE}
+o <- order(guideSet$n1, -guideSet$score_crisprater) 
+# Ordering the GuideSet:
+guideSet <- guideSet[o]
+head(guideSet)
+```
+
+
+The `rankSpacers` function is a convenience function that implements 
+our recommended rankings for the SpCas9, enAsCas12a and CasRx nucleases.
+For a detailed description of our recommended rankings, see the
+documentation of `rankSpacers` by typing
+`?rankSpacers`.
+
+If an Ensembl transcript ID is provided, the ranking function will also
+take into account the position of the gRNA within the target CDS of 
+the transcript ID in the ranking procedure. Our recommendation is to specify
+the Ensembl canonical transcript as the representative
+transcript for the gene. In our example, ENST00000538872 is the canonical
+transcript for IQSEC3:
+
+```{r, eval=FALSE}
+tx_id <- "ENST00000538872"
+guideSet <- rankSpacers(guideSet,
+                        tx_id=tx_id)
+```
 
 
 # CRISPRa/CRISPRi design

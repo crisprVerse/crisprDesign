@@ -1,39 +1,60 @@
 Introduction to crisprDesign
 ================
 
--   [Introduction](#introduction)
--   [Installation](#installation)
--   [Terminology](#terminology)
--   [CRISPRko design](#crisprko-design)
-    -   [Nuclease specification](#nuclease-specification)
-    -   [Target DNA specification](#target-dna-specification)
-    -   [Designing spacer sequences](#designing-spacer-sequences)
-    -   [Sequence features
-        characterization](#sequence-features-characterization)
-    -   [Off-target search](#off-target-search)
-        -   [Iterative spacer alignments](#iterative-spacer-alignments)
-        -   [Faster alignment by removing repeat
-            elements](#faster-alignment-by-removing-repeat-elements)
-    -   [Off-target scoring](#off-target-scoring)
-    -   [On-target scoring](#on-target-scoring)
-    -   [Restriction enzymes](#restriction-enzymes)
-    -   [Gene annotation](#gene-annotation)
-    -   [TSS annotation](#tss-annotation)
-    -   [SNP information](#snp-information)
-    -   [Ranking and selecting gRNAs](#ranking-and-selecting-grnas)
--   [CRISPRa/CRISPRi design](#crispracrispri-design)
--   [CRISPR base editing with BE4max](#crispr-base-editing-with-be4max)
--   [CRISPR knockdown with Cas13d](#crispr-knockdown-with-cas13d)
--   [Design for optical pooled screening
-    (OPS)](#design-for-optical-pooled-screening-ops)
--   [Design of gRNA pairs with the
-    object](#design-of-grna-pairs-with-the--object)
--   [Miscellaneous design use cases](#miscellaneous-design-use-cases)
-    -   [Design with custom sequences](#design-with-custom-sequences)
-    -   [Off-target search in custom
-        sequences](#off-target-search-in-custom-sequences)
--   [Session Info](#session-info)
--   [References](#references)
+-   <a href="#introduction" id="toc-introduction">Introduction</a>
+-   <a href="#installation" id="toc-installation">Installation</a>
+-   <a href="#terminology" id="toc-terminology">Terminology</a>
+-   <a href="#crisprko-design" id="toc-crisprko-design">CRISPRko design</a>
+    -   <a href="#nuclease-specification"
+        id="toc-nuclease-specification">Nuclease specification</a>
+    -   <a href="#target-dna-specification"
+        id="toc-target-dna-specification">Target DNA specification</a>
+    -   <a href="#designing-spacer-sequences"
+        id="toc-designing-spacer-sequences">Designing spacer sequences</a>
+    -   <a href="#sequence-features-characterization"
+        id="toc-sequence-features-characterization">Sequence features
+        characterization</a>
+    -   <a href="#off-target-search" id="toc-off-target-search">Off-target
+        search</a>
+        -   <a href="#iterative-spacer-alignments"
+            id="toc-iterative-spacer-alignments">Iterative spacer alignments</a>
+        -   <a href="#faster-alignment-by-removing-repeat-elements"
+            id="toc-faster-alignment-by-removing-repeat-elements">Faster alignment
+            by removing repeat elements</a>
+    -   <a href="#off-target-scoring" id="toc-off-target-scoring">Off-target
+        scoring</a>
+    -   <a href="#on-target-scoring" id="toc-on-target-scoring">On-target
+        scoring</a>
+    -   <a href="#restriction-enzymes" id="toc-restriction-enzymes">Restriction
+        enzymes</a>
+    -   <a href="#gene-annotation" id="toc-gene-annotation">Gene annotation</a>
+    -   <a href="#tss-annotation" id="toc-tss-annotation">TSS annotation</a>
+    -   <a href="#snp-information" id="toc-snp-information">SNP information</a>
+    -   <a href="#filtering-and-ranking-grnas"
+        id="toc-filtering-and-ranking-grnas">Filtering and ranking gRNAs</a>
+-   <a href="#crispracrispri-design"
+    id="toc-crispracrispri-design">CRISPRa/CRISPRi design</a>
+-   <a href="#crispr-base-editing-with-be4max"
+    id="toc-crispr-base-editing-with-be4max">CRISPR base editing with
+    BE4max</a>
+-   <a href="#crispr-knockdown-with-cas13d"
+    id="toc-crispr-knockdown-with-cas13d">CRISPR knockdown with Cas13d</a>
+-   <a href="#design-for-optical-pooled-screening-ops"
+    id="toc-design-for-optical-pooled-screening-ops">Design for optical
+    pooled screening (OPS)</a>
+-   <a href="#design-of-grna-pairs-with-the--object"
+    id="toc-design-of-grna-pairs-with-the--object">Design of gRNA pairs with
+    the object</a>
+-   <a href="#miscellaneous-design-use-cases"
+    id="toc-miscellaneous-design-use-cases">Miscellaneous design use
+    cases</a>
+    -   <a href="#design-with-custom-sequences"
+        id="toc-design-with-custom-sequences">Design with custom sequences</a>
+    -   <a href="#off-target-search-in-custom-sequences"
+        id="toc-off-target-search-in-custom-sequences">Off-target search in
+        custom sequences</a>
+-   <a href="#session-info" id="toc-session-info">Session Info</a>
+-   <a href="#references" id="toc-references">References</a>
 
 Authors: Jean-Philippe Fortin, Aaron Lun, Luke Hoberecht
 
@@ -1035,27 +1056,170 @@ the reference and minor alleles, respectively. `MAF_1000G` and
 `MAF_TOPMED` report the minor allele frequency (MAF) in the 1000Genomes
 and TOPMED populations.
 
-## Ranking and selecting gRNAs
+## Filtering and ranking gRNAs
 
-Once our gRNAs are fully annotated we can filter out any unwanted gRNAs
-using the function `filterSpacers` then rank the best remaining gRNAs
-with `rankSpacers`.
+Once gRNAs are fully annotated, it is easy to filter out any unwanted
+gRNAs since `GuideSet` objects can be subsetted like regular vectors in
+R.
 
 As an example, suppose that we only want to keep gRNAs that have percent
-GC between 20% and 80%, that do not contain a polyT strech, and that do
-not have EcoRI and KpnI restriction sites. We can achieve this using
-`filterSpacers`:
+GC between 20% and 80% and that do not contain a polyT stretch. This can
+be achieved using the following lines:
 
 ``` r
-criteria <- list(percentGC=c(20, 80),
-                 polyT=FALSE,
-                 EcoRI=FALSE,
-                 KpnI=FALSE)
-guideSet <- filterSpacers(guideSet,
-                          criteria=criteria)
+guideSet <- guideSet[guideSet$percentGC>=20]
+guideSet <- guideSet[guideSet$percentGC<=80]
+guideSet <- guideSet[!guideSet$polyT]
 ```
 
-`rankSpacers` works similarly; see `?rankSpacers` for more information.
+Similarly, it is easy to rank gRNAs based on a set of criteria using the
+regular `order` function.
+
+For instance, let’s sort gRNAs by the CRISPRater on-target score:
+
+``` r
+# Creating an ordering index based on the CRISPRater score:
+# Using the negative values to make sure higher scores are ranked first:
+o <- order(-guideSet$score_crisprater) 
+# Ordering the GuideSet:
+guideSet <- guideSet[o]
+head(guideSet)
+```
+
+    ## GuideSet object with 6 ranges and 25 metadata columns:
+    ##              seqnames    ranges strand |          protospacer            pam
+    ##                 <Rle> <IRanges>  <Rle> |       <DNAStringSet> <DNAStringSet>
+    ##     spacer_9    chr12     66943      - | GCTCTGCTGGTTCTGCACGA            TGG
+    ##   spacer_112    chr12     67396      - | GCCCTTGCCGAGGGCGGAGG            GGG
+    ##   spacer_107    chr12     67371      + | CCGAGTTGCTGCGCTGCTGC            CGG
+    ##    spacer_74    chr12     67233      + | CGGCCGCCGCGTCAGCACCA            CGG
+    ##    spacer_76    chr12     67244      - | GGCCCCGCTGGGGCTGCTCC            AGG
+    ##   spacer_121    chr12     67413      + | TCCCCCTCCGCCCTCGGCAA            GGG
+    ##               pam_site  cut_site      region percentGC     polyA     polyC
+    ##              <numeric> <numeric> <character> <numeric> <logical> <logical>
+    ##     spacer_9     66943     66946    region_1        60     FALSE     FALSE
+    ##   spacer_112     67396     67399    region_1        80     FALSE     FALSE
+    ##   spacer_107     67371     67368    region_1        70     FALSE     FALSE
+    ##    spacer_74     67233     67230    region_1        80     FALSE     FALSE
+    ##    spacer_76     67244     67247    region_1        85     FALSE      TRUE
+    ##   spacer_121     67413     67410    region_1        75     FALSE      TRUE
+    ##                  polyG     polyT startingGGGGG        n0        n1      n0_c
+    ##              <logical> <logical>     <logical> <numeric> <numeric> <numeric>
+    ##     spacer_9     FALSE     FALSE         FALSE         1         0         1
+    ##   spacer_112     FALSE     FALSE         FALSE         1         0         1
+    ##   spacer_107     FALSE     FALSE         FALSE         1         0         1
+    ##    spacer_74     FALSE     FALSE         FALSE         1         0         1
+    ##    spacer_76      TRUE     FALSE         FALSE         1         0         1
+    ##   spacer_121     FALSE     FALSE         FALSE         1         0         1
+    ##                   n1_c    alignments inRepeats score_cfd score_mit
+    ##              <numeric> <GRangesList> <logical> <numeric> <numeric>
+    ##     spacer_9         0 chr12:66943:-     FALSE         1         1
+    ##   spacer_112         0 chr12:67396:-     FALSE         1         1
+    ##   spacer_107         0 chr12:67371:+     FALSE         1         1
+    ##    spacer_74         0 chr12:67233:+     FALSE         1         1
+    ##    spacer_76         0 chr12:67244:-     FALSE         1         1
+    ##   spacer_121         0 chr12:67413:+     FALSE         1         1
+    ##              score_crisprater      enzymeAnnotation       geneAnnotation
+    ##                     <numeric>  <SplitDataFrameList> <SplitDataFrameList>
+    ##     spacer_9         0.834319 FALSE:FALSE:FALSE:...    chr12:66946:-:...
+    ##   spacer_112         0.795745 FALSE:FALSE:FALSE:...    chr12:67399:-:...
+    ##   spacer_107         0.782780 FALSE:FALSE:FALSE:...    chr12:67368:+:...
+    ##    spacer_74         0.764870 FALSE:FALSE:FALSE:...    chr12:67230:+:...
+    ##    spacer_76         0.755493 FALSE:FALSE:FALSE:...    chr12:67247:-:...
+    ##   spacer_121         0.741315 FALSE:FALSE:FALSE:...    chr12:67410:+:...
+    ##                     tssAnnotation    hasSNP                 snps
+    ##              <SplitDataFrameList> <logical> <SplitDataFrameList>
+    ##     spacer_9    chr12:66946:-:...     FALSE             :...,...
+    ##   spacer_112             :...,...     FALSE             :...,...
+    ##   spacer_107             :...,...     FALSE             :...,...
+    ##    spacer_74    chr12:67230:+:...     FALSE             :...,...
+    ##    spacer_76    chr12:67247:-:...     FALSE             :...,...
+    ##   spacer_121             :...,...     FALSE             :...,...
+    ##   -------
+    ##   seqinfo: 640 sequences (1 circular) from hg38 genome
+    ##   crisprNuclease: SpCas9
+
+One can also sort gRNAs using several annotation columns. For instance,
+let’s sort gRNAs using the CRISPRrater score, but also by prioritizing
+first gRNAs that have no 1-mismatch off-targets:
+
+``` r
+o <- order(guideSet$n1, -guideSet$score_crisprater) 
+# Ordering the GuideSet:
+guideSet <- guideSet[o]
+head(guideSet)
+```
+
+    ## GuideSet object with 6 ranges and 25 metadata columns:
+    ##              seqnames    ranges strand |          protospacer            pam
+    ##                 <Rle> <IRanges>  <Rle> |       <DNAStringSet> <DNAStringSet>
+    ##     spacer_9    chr12     66943      - | GCTCTGCTGGTTCTGCACGA            TGG
+    ##   spacer_112    chr12     67396      - | GCCCTTGCCGAGGGCGGAGG            GGG
+    ##   spacer_107    chr12     67371      + | CCGAGTTGCTGCGCTGCTGC            CGG
+    ##    spacer_74    chr12     67233      + | CGGCCGCCGCGTCAGCACCA            CGG
+    ##    spacer_76    chr12     67244      - | GGCCCCGCTGGGGCTGCTCC            AGG
+    ##   spacer_121    chr12     67413      + | TCCCCCTCCGCCCTCGGCAA            GGG
+    ##               pam_site  cut_site      region percentGC     polyA     polyC
+    ##              <numeric> <numeric> <character> <numeric> <logical> <logical>
+    ##     spacer_9     66943     66946    region_1        60     FALSE     FALSE
+    ##   spacer_112     67396     67399    region_1        80     FALSE     FALSE
+    ##   spacer_107     67371     67368    region_1        70     FALSE     FALSE
+    ##    spacer_74     67233     67230    region_1        80     FALSE     FALSE
+    ##    spacer_76     67244     67247    region_1        85     FALSE      TRUE
+    ##   spacer_121     67413     67410    region_1        75     FALSE      TRUE
+    ##                  polyG     polyT startingGGGGG        n0        n1      n0_c
+    ##              <logical> <logical>     <logical> <numeric> <numeric> <numeric>
+    ##     spacer_9     FALSE     FALSE         FALSE         1         0         1
+    ##   spacer_112     FALSE     FALSE         FALSE         1         0         1
+    ##   spacer_107     FALSE     FALSE         FALSE         1         0         1
+    ##    spacer_74     FALSE     FALSE         FALSE         1         0         1
+    ##    spacer_76      TRUE     FALSE         FALSE         1         0         1
+    ##   spacer_121     FALSE     FALSE         FALSE         1         0         1
+    ##                   n1_c    alignments inRepeats score_cfd score_mit
+    ##              <numeric> <GRangesList> <logical> <numeric> <numeric>
+    ##     spacer_9         0 chr12:66943:-     FALSE         1         1
+    ##   spacer_112         0 chr12:67396:-     FALSE         1         1
+    ##   spacer_107         0 chr12:67371:+     FALSE         1         1
+    ##    spacer_74         0 chr12:67233:+     FALSE         1         1
+    ##    spacer_76         0 chr12:67244:-     FALSE         1         1
+    ##   spacer_121         0 chr12:67413:+     FALSE         1         1
+    ##              score_crisprater      enzymeAnnotation       geneAnnotation
+    ##                     <numeric>  <SplitDataFrameList> <SplitDataFrameList>
+    ##     spacer_9         0.834319 FALSE:FALSE:FALSE:...    chr12:66946:-:...
+    ##   spacer_112         0.795745 FALSE:FALSE:FALSE:...    chr12:67399:-:...
+    ##   spacer_107         0.782780 FALSE:FALSE:FALSE:...    chr12:67368:+:...
+    ##    spacer_74         0.764870 FALSE:FALSE:FALSE:...    chr12:67230:+:...
+    ##    spacer_76         0.755493 FALSE:FALSE:FALSE:...    chr12:67247:-:...
+    ##   spacer_121         0.741315 FALSE:FALSE:FALSE:...    chr12:67410:+:...
+    ##                     tssAnnotation    hasSNP                 snps
+    ##              <SplitDataFrameList> <logical> <SplitDataFrameList>
+    ##     spacer_9    chr12:66946:-:...     FALSE             :...,...
+    ##   spacer_112             :...,...     FALSE             :...,...
+    ##   spacer_107             :...,...     FALSE             :...,...
+    ##    spacer_74    chr12:67230:+:...     FALSE             :...,...
+    ##    spacer_76    chr12:67247:-:...     FALSE             :...,...
+    ##   spacer_121             :...,...     FALSE             :...,...
+    ##   -------
+    ##   seqinfo: 640 sequences (1 circular) from hg38 genome
+    ##   crisprNuclease: SpCas9
+
+The `rankSpacers` function is a convenience function that implements our
+recommended rankings for the SpCas9, enAsCas12a and CasRx nucleases. For
+a detailed description of our recommended rankings, see the
+documentation of `rankSpacers` by typing `?rankSpacers`.
+
+If an Ensembl transcript ID is provided, the ranking function will also
+take into account the position of the gRNA within the target CDS of the
+transcript ID in the ranking procedure. Our recommendation is to specify
+the Ensembl canonical transcript as the representative transcript for
+the gene. In our example, ENST00000538872 is the canonical transcript
+for IQSEC3:
+
+``` r
+tx_id <- "ENST00000538872"
+guideSet <- rankSpacers(guideSet,
+                        tx_id=tx_id)
+```
 
 # CRISPRa/CRISPRi design
 
@@ -1069,7 +1233,7 @@ characteristics stored in the `CrisprNuclease` object.
 
 *CRISPRi*: Fusing dSpCas9 with a Krüppel-associated box (KRAB) domain
 has been shown to be effective at repressing transcription in mammalian
-cells (Gilbert et al. et al. 2013). The dSpCas9-KRAB fused protein is a
+cells (Gilbert et al. 2013). The dSpCas9-KRAB fused protein is a
 commonly-used construct to conduct CRISPR inhibition (CRISPRi)
 experiments. To achieve optimal inhibition, gRNAs are usually designed
 targeting the region directly downstream of the gene transcription
@@ -1090,8 +1254,8 @@ includes a column named `dist_to_tss` that indicates the distance
 between the TSS position and the PAM site of the gRNA. For CRISPRi, we
 recommend targeting the 25-75bp region downstream of the TSS for optimal
 inhibition. For CRISPRa, we recommend targeting the region 75-150bp
-upstream of the TSS for optimal activation; see (Sanson et al. et al.
-2018) for more information.
+upstream of the TSS for optimal activation; see (Sanson et al. 2018) for
+more information.
 
 For more information, please see the following two tutorials:
 
@@ -1857,7 +2021,7 @@ For more information, please see the following tutorial:
 sessionInfo()
 ```
 
-    ## R Under development (unstable) (2022-03-21 r81954)
+    ## R version 4.2.1 (2022-06-23)
     ## Platform: x86_64-apple-darwin17.0 (64-bit)
     ## Running under: macOS Catalina 10.15.7
     ## 
@@ -1873,66 +2037,66 @@ sessionInfo()
     ## [8] base     
     ## 
     ## other attached packages:
-    ##  [1] Rbowtie_1.36.0                    BSgenome.Hsapiens.UCSC.hg38_1.4.4
-    ##  [3] BSgenome_1.64.0                   rtracklayer_1.55.4               
-    ##  [5] Biostrings_2.64.0                 XVector_0.35.0                   
-    ##  [7] GenomicRanges_1.48.0              GenomeInfoDb_1.32.2              
-    ##  [9] IRanges_2.30.0                    S4Vectors_0.33.11                
-    ## [11] BiocGenerics_0.42.0               crisprDesign_0.99.131            
+    ##  [1] Rbowtie_1.37.0                    BSgenome.Hsapiens.UCSC.hg38_1.4.4
+    ##  [3] BSgenome_1.65.2                   rtracklayer_1.57.0               
+    ##  [5] Biostrings_2.65.2                 XVector_0.37.0                   
+    ##  [7] GenomicRanges_1.49.1              GenomeInfoDb_1.33.5              
+    ##  [9] IRanges_2.31.2                    S4Vectors_0.35.1                 
+    ## [11] BiocGenerics_0.43.1               crisprDesign_0.99.132            
     ## [13] crisprBase_1.1.5                 
     ## 
     ## loaded via a namespace (and not attached):
-    ##   [1] bitops_1.0-7                  matrixStats_0.61.0           
+    ##   [1] bitops_1.0-7                  matrixStats_0.62.0           
     ##   [3] bit64_4.0.5                   filelock_1.0.2               
-    ##   [5] progress_1.2.2                httr_1.4.2                   
-    ##   [7] tools_4.2.0                   utf8_1.2.2                   
-    ##   [9] R6_2.5.1                      DBI_1.1.2                    
+    ##   [5] progress_1.2.2                httr_1.4.4                   
+    ##   [7] tools_4.2.1                   utf8_1.2.2                   
+    ##   [9] R6_2.5.1                      DBI_1.1.3                    
     ##  [11] tidyselect_1.1.2              prettyunits_1.1.1            
     ##  [13] bit_4.0.4                     curl_4.3.2                   
-    ##  [15] compiler_4.2.0                crisprBowtie_1.1.1           
-    ##  [17] cli_3.3.0                     Biobase_2.55.0               
+    ##  [15] compiler_4.2.1                crisprBowtie_1.1.1           
+    ##  [17] cli_3.3.0                     Biobase_2.57.1               
     ##  [19] basilisk.utils_1.9.1          crisprScoreData_1.1.3        
-    ##  [21] xml2_1.3.3                    DelayedArray_0.21.2          
-    ##  [23] randomForest_4.7-1            readr_2.1.2                  
-    ##  [25] rappdirs_0.3.3                stringr_1.4.0                
-    ##  [27] digest_0.6.29                 Rsamtools_2.11.0             
-    ##  [29] rmarkdown_2.13                crisprScore_1.1.13           
+    ##  [21] xml2_1.3.3                    DelayedArray_0.23.1          
+    ##  [23] randomForest_4.7-1.1          readr_2.1.2                  
+    ##  [25] rappdirs_0.3.3                stringr_1.4.1                
+    ##  [27] digest_0.6.29                 Rsamtools_2.13.4             
+    ##  [29] rmarkdown_2.15.2              crisprScore_1.1.14           
     ##  [31] basilisk_1.9.2                pkgconfig_2.0.3              
-    ##  [33] htmltools_0.5.2               MatrixGenerics_1.7.0         
-    ##  [35] dbplyr_2.1.1                  fastmap_1.1.0                
-    ##  [37] rlang_1.0.4                   rstudioapi_0.13              
-    ##  [39] RSQLite_2.2.12                shiny_1.7.1                  
-    ##  [41] BiocIO_1.5.0                  generics_0.1.2               
+    ##  [33] htmltools_0.5.3               MatrixGenerics_1.9.1         
+    ##  [35] dbplyr_2.2.1                  fastmap_1.1.0                
+    ##  [37] rlang_1.0.4                   rstudioapi_0.14              
+    ##  [39] RSQLite_2.2.16                shiny_1.7.2                  
+    ##  [41] BiocIO_1.7.1                  generics_0.1.3               
     ##  [43] jsonlite_1.8.0                vroom_1.5.7                  
-    ##  [45] BiocParallel_1.29.18          dplyr_1.0.8                  
-    ##  [47] VariantAnnotation_1.41.3      RCurl_1.98-1.6               
-    ##  [49] magrittr_2.0.2                GenomeInfoDbData_1.2.7       
-    ##  [51] Matrix_1.4-0                  Rcpp_1.0.8.3                 
-    ##  [53] fansi_1.0.2                   reticulate_1.25              
-    ##  [55] lifecycle_1.0.1               stringi_1.7.6                
-    ##  [57] yaml_2.3.5                    SummarizedExperiment_1.25.3  
-    ##  [59] zlibbioc_1.41.0               BiocFileCache_2.3.4          
-    ##  [61] AnnotationHub_3.3.9           grid_4.2.0                   
-    ##  [63] blob_1.2.2                    promises_1.2.0.1             
-    ##  [65] parallel_4.2.0                ExperimentHub_2.3.5          
-    ##  [67] crayon_1.5.0                  crisprBwa_1.1.3              
-    ##  [69] dir.expiry_1.3.0              lattice_0.20-45              
-    ##  [71] GenomicFeatures_1.47.13       hms_1.1.1                    
-    ##  [73] KEGGREST_1.35.0               knitr_1.37                   
-    ##  [75] pillar_1.7.0                  rjson_0.2.21                 
-    ##  [77] biomaRt_2.51.3                BiocVersion_3.15.0           
-    ##  [79] XML_3.99-0.9                  glue_1.6.2                   
-    ##  [81] evaluate_0.15                 BiocManager_1.30.16          
-    ##  [83] httpuv_1.6.5                  png_0.1-7                    
-    ##  [85] vctrs_0.3.8                   tzdb_0.2.0                   
-    ##  [87] purrr_0.3.4                   assertthat_0.2.1             
-    ##  [89] cachem_1.0.6                  xfun_0.30                    
-    ##  [91] mime_0.12                     Rbwa_1.1.0                   
-    ##  [93] xtable_1.8-4                  restfulr_0.0.13              
-    ##  [95] later_1.3.0                   tibble_3.1.6                 
-    ##  [97] GenomicAlignments_1.31.2      AnnotationDbi_1.57.1         
-    ##  [99] memoise_2.0.1                 interactiveDisplayBase_1.33.0
-    ## [101] ellipsis_0.3.2
+    ##  [45] BiocParallel_1.31.12          dplyr_1.0.9                  
+    ##  [47] VariantAnnotation_1.43.3      RCurl_1.98-1.8               
+    ##  [49] magrittr_2.0.3                GenomeInfoDbData_1.2.8       
+    ##  [51] Matrix_1.4-1                  Rcpp_1.0.9                   
+    ##  [53] fansi_1.0.3                   reticulate_1.25              
+    ##  [55] lifecycle_1.0.1               stringi_1.7.8                
+    ##  [57] yaml_2.3.5                    SummarizedExperiment_1.27.1  
+    ##  [59] zlibbioc_1.43.0               BiocFileCache_2.5.0          
+    ##  [61] AnnotationHub_3.5.0           grid_4.2.1                   
+    ##  [63] blob_1.2.3                    promises_1.2.0.1             
+    ##  [65] parallel_4.2.1                ExperimentHub_2.5.0          
+    ##  [67] crayon_1.5.1                  crisprBwa_1.1.3              
+    ##  [69] dir.expiry_1.5.0              lattice_0.20-45              
+    ##  [71] GenomicFeatures_1.49.6        hms_1.1.2                    
+    ##  [73] KEGGREST_1.37.3               knitr_1.40                   
+    ##  [75] pillar_1.8.1                  rjson_0.2.21                 
+    ##  [77] codetools_0.2-18              biomaRt_2.53.2               
+    ##  [79] BiocVersion_3.16.0            XML_3.99-0.10                
+    ##  [81] glue_1.6.2                    evaluate_0.16                
+    ##  [83] BiocManager_1.30.18           httpuv_1.6.5                 
+    ##  [85] png_0.1-7                     vctrs_0.4.1                  
+    ##  [87] tzdb_0.3.0                    purrr_0.3.4                  
+    ##  [89] assertthat_0.2.1              cachem_1.0.6                 
+    ##  [91] xfun_0.32                     mime_0.12                    
+    ##  [93] Rbwa_1.1.0                    xtable_1.8-4                 
+    ##  [95] restfulr_0.0.15               later_1.3.0                  
+    ##  [97] tibble_3.1.8                  GenomicAlignments_1.33.1     
+    ##  [99] AnnotationDbi_1.59.1          memoise_2.0.1                
+    ## [101] interactiveDisplayBase_1.35.0 ellipsis_0.3.2
 
 # References
 
@@ -1949,7 +2113,7 @@ Anja Mezger, Anthony J Garrity, Feng Zhang, and Paul C Blainey. 2019.
 <div id="ref-crispri" class="csl-entry">
 
 Gilbert, Luke A, Matthew H Larson, Leonardo Morsut, Zairan Liu, Gloria A
-Brar, Sandra E Torres, Noam Stern-Ginossar, et al., et al. 2013.
+Brar, Sandra E Torres, Noam Stern-Ginossar, et al. 2013.
 “CRISPR-Mediated Modular RNA-Guided Regulation of Transcription in
 Eukaryotes.” *Cell* 154 (2): 442–51.
 
@@ -1993,8 +2157,8 @@ Human Genome.” *Genome Biology* 10 (3): R25.
 <div id="ref-sanson2018optimized" class="csl-entry">
 
 Sanson, Kendall R, Ruth E Hanna, Mudra Hegde, Katherine F Donovan,
-Christine Strand, Meagan E Sullender, Emma W Vaimberg, et al., et al.
-2018. “Optimized Libraries for CRISPR-Cas9 Genetic Screens with Multiple
+Christine Strand, Meagan E Sullender, Emma W Vaimberg, et al. 2018.
+“Optimized Libraries for CRISPR-Cas9 Genetic Screens with Multiple
 Modalities.” *Nature Communications* 9 (1): 1–15.
 
 </div>
