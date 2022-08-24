@@ -1,25 +1,18 @@
 ---
 title: "Introduction to crisprDesign"
-author: 
-- name: Jean-Philippe Fortin
-  affiliation: Department of Data Science and Statistical Computing, gRED, Genentech
-  email: fortinj2@gene.com
-- name: Luke Hoberecht
-  affiliation: Department of Data Science and Statistical Computing, gRED, Genentech
-  email: hoberecl@gene.com
-date: "`r Sys.Date()`"
 output: 
-  BiocStyle::html_document:
-    toc_float: true
-    #theme: paper
-    number_sections: true
-vignette: >
-  %\VignetteIndexEntry{Introduction to crisprDesign}
-  %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
-bibliography: references.bib
+  github_document:
+    toc: true
+bibliography: vignettes/references.bib
 ---
 
+```{r, echo=FALSE, results="hide"}
+options("knitr.graphics.auto_pdf"=TRUE)
+```
+
+Authors: Jean-Philippe Fortin, Aaron Lun, Luke Hoberecht
+
+Date: July 1, 2022
 
 
 # Introduction
