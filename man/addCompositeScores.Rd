@@ -52,7 +52,8 @@ Add on-target composite score to a \linkS4class{GuideSet}
 The function creates a composite score across a specified list
     of on-target scores by first transforming each individual score into
     a rank, and then taking the average rank across all specified methods.
-    This can improve on-target activity prediction robustness.
+    This can improve on-target activity prediction robustness. 
+    A higher score indicates higher on-target activity.
 }
 \examples{
 gs <- findSpacers("CCAACATAGTGAAACCACGTCTCTATAAAGAATAAAAAATTAGCCGGGTTA")

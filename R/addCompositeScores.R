@@ -20,6 +20,7 @@
 #'     of on-target scores by first transforming each individual score into
 #'     a rank, and then taking the average rank across all specified methods.
 #'     This can improve on-target activity prediction robustness. 
+#'     A higher score indicates higher on-target activity. 
 #' 
 #' @author Jean-Philippe Fortin
 #' 
