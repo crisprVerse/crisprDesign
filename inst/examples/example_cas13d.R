@@ -2,22 +2,16 @@ library(crisprDesignData)
 library(crisprDesign)
 library(crisprBase)
 library(BSgenome.Hsapiens.UCSC.hg38)
-data(CasRx)
+data(CasRx, package="crisprBase")
+data(txdb_human, package="crisprDesignData")
 bsgenome <- BSgenome.Hsapiens.UCSC.hg38
 txObject <- txdb_human
 txids <- c("ENST00000367064") #CD55
 
-
 out <- getMrnaSequences(txids,
                         bsgenome=bsgenome,
                         txObject=txObject)
-guides <- findSpacers(out[1], crisprNuclease=CasRx)
-a=flattenGuideSet(guides)
-
-
-
-
-
+guides <- findSpacers(out, crisprNuclease=CasRx)
 guides <- addOnTargetScores(guides)
 
 

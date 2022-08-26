@@ -12,14 +12,14 @@ addCompositeScores(object, ...)
 \S4method{addCompositeScores}{GuideSet}(
   object,
   methods = c("azimuth", "ruleset1", "ruleset3", "lindel", "deepcpf1", "deephf",
-    "deepspcas9", "enpamgb", "casrxrf", "crisprater", "crisprscan"),
+    "deepspcas9", "enpamgb", "casrxrf", "crisprater", "crisprscan", "crispra", "crispri"),
   scoreName = "score_composite"
 )
 
 \S4method{addCompositeScores}{PairedGuideSet}(
   object,
   methods = c("azimuth", "ruleset1", "ruleset3", "lindel", "deepcpf1", "deephf",
-    "deepspcas9", "enpamgb", "crisprater", "crisprscan", "casrxrf"),
+    "deepspcas9", "enpamgb", "crisprater", "crisprscan", "casrxrf", "crispra", "crispri"),
   scoreName = "score_composite"
 )
 

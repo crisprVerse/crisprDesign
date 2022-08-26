@@ -12,7 +12,8 @@
 
 #' @title Recommended gRNA ranking
 #' @description Function for ranking spacers using 
-#'     recommended crisprDesign criteria.
+#'     recommended crisprDesign criteria. CRISPRko, CRISPRa and CRISPRi
+#'     modalities are supported. 
 #' 
 #' @param guideSet A \linkS4class{GuideSet} object.
 #' @param tx_id Optional string specifying transcript ID to use
@@ -21,6 +22,8 @@
 #'    gRNAs based on the number of off-targets? TRUE by default. 
 #' @param commonExon Should gRNAs targeting common exons by prioritized?
 #'     FALSE by default. If TRUE, \code{tx_id} must be provided.
+#' @param modality String specifying the CRISPR modality. Should be one
+#'     of the following: "CRISPRko", "CRISPRa", or "CRISPRi". 
 #' 
 #' @return A \linkS4class{GuideSet} object ranked from best to worst gRNAs,
 #'     with a column \code{rank} stored in \code{mcols(guideSet)} indicating
@@ -49,7 +52,8 @@
 #'     Within each bin, gRNAs are ranked by a composite 
 #'     on-target activity rank to prioritize active gRNAs. The composite
 #'     on-target activity rank is calculated by taking the average rank
-#'     across the DeepHF and DeepSpCas9 scores.
+#'     across the DeepHF and DeepSpCas9 scores for CRISPRko.
+#'     For CRISPRa or CRISPRi, the CRISPRai scores are used if available.
 #' 
 #'     The process is identical for enAsCas12a, with the exception that the 
 #'     enPAMGb method is used as the composite score.
@@ -74,8 +78,10 @@
 rankSpacers <- function(guideSet,
                         tx_id=NULL,
                         useCodingInfo=TRUE,
-                        commonExon=FALSE
+                        commonExon=FALSE,
+                        modality=c("CRISPRko", "CRISPRa", "CRISPRi")
 ){
+    modality <- match.arg(modality)
     crisprNuclease <- crisprNuclease(guideSet)
     data(SpCas9,     package="crisprBase", envir=environment())
     data(enAsCas12a, package="crisprBase", envir=environment())
@@ -110,11 +116,17 @@ rankSpacers <- function(guideSet,
     guideSet <- .createDefaultSelectionRounds(guideSet,
                                               useCodingInfo=useCodingInfo)
     guideSet <- .getDefaultCompositeScores(guideSet)
-    rankingCols <- c("round",
-                     "score_exon",
-                     "score_cds",
-                     "score_conservation_binary",
-                     "score_composite")
+    if (modality=="CRISPRko"){
+        rankingCols <- c("round",
+                         "score_exon",
+                         "score_cds",
+                         "score_conservation_binary",
+                         "score_composite")
+    } else if (modality=="CRISPRa" | modality=="CRISPRi"){
+        rankingCols <- c("round",
+                         "score_composite")
+    }
+
     rankingCols <- intersect(rankingCols, colnames(mcols(guideSet)))
     ranks <- lapply(rankingCols, function(x) mcols(guideSet)[[x]])
     names(ranks) <- rankingCols
@@ -189,6 +201,18 @@ rankSpacers <- function(guideSet,
     isCas13d <- .identicalNucleases(crisprNuclease, CasRx)
     if (isCas9){
         scores <- c("deephf", "deepspcas9")
+        hasCrispraScore <- "score_crispra" %in% colnames(mcols(guideSet))
+        hasCrispriScore <- "score_crispri" %in% colnames(mcols(guideSet))
+        if (hasCrispraScore){
+            scores <- "score_crispra"
+        }
+        if (hasCrispriScore){
+            scores <- "score_crispri"
+        }
+        if (hasCrispriScore & hasCrispriScore){
+            stop("Both CRISPRi and CRISPRa scores are added.",
+                 "Please remove one.")
+        }
     } else if (isCas12a){
         scores <- c("enpamgb")
     } else if (isCas13d){

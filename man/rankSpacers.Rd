@@ -4,7 +4,13 @@
 \alias{rankSpacers}
 \title{Recommended gRNA ranking}
 \usage{
-rankSpacers(guideSet, tx_id = NULL, useCodingInfo = TRUE, commonExon = FALSE)
+rankSpacers(
+  guideSet,
+  tx_id = NULL,
+  useCodingInfo = TRUE,
+  commonExon = FALSE,
+  modality = c("CRISPRko", "CRISPRa", "CRISPRi")
+)
 }
 \arguments{
 \item{guideSet}{A \linkS4class{GuideSet} object.}
@@ -17,6 +23,9 @@ gRNAs based on the number of off-targets? TRUE by default.}
 
 \item{commonExon}{Should gRNAs targeting common exons by prioritized?
 FALSE by default. If TRUE, \code{tx_id} must be provided.}
+
+\item{modality}{String specifying the CRISPR modality. Should be one
+of the following: "CRISPRko", "CRISPRa", or "CRISPRi".}
 }
 \value{
 A \linkS4class{GuideSet} object ranked from best to worst gRNAs,
@@ -25,7 +34,8 @@ A \linkS4class{GuideSet} object ranked from best to worst gRNAs,
 }
 \description{
 Function for ranking spacers using 
-    recommended crisprDesign criteria.
+    recommended crisprDesign criteria. CRISPRko, CRISPRa and CRISPRi
+    modalities are supported.
 }
 \details{
 For each nuclease, we rank gRNAs based on several rounds of priority.
@@ -49,7 +59,8 @@ For each nuclease, we rank gRNAs based on several rounds of priority.
     Within each bin, gRNAs are ranked by a composite 
     on-target activity rank to prioritize active gRNAs. The composite
     on-target activity rank is calculated by taking the average rank
-    across the DeepHF and DeepSpCas9 scores.
+    across the DeepHF and DeepSpCas9 scores for CRISPRko.
+    For CRISPRa or CRISPRi, the CRISPRai scores are used if available.
 
     The process is identical for enAsCas12a, with the exception that the 
     enPAMGb method is used as the composite score.

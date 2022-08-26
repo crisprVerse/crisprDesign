@@ -45,7 +45,9 @@ setMethod("addCompositeScores", "GuideSet",
                        "enpamgb",
                        "casrxrf",
                        "crisprater",
-                       "crisprscan"),
+                       "crisprscan",
+                       "crispra", 
+                       "crispri"),
              scoreName="score_composite"
 ){
     object <- .validateGuideSet(object)
@@ -112,7 +114,9 @@ setMethod("addCompositeScores", "PairedGuideSet",
                              "enpamgb",
                              "crisprater",
                              "crisprscan",
-                             "casrxrf"),
+                             "casrxrf",
+                             "crispra", 
+                             "crispri"),
                    scoreName="score_composite"
 ){
     object <- .validatePairedGuideSet(object)
