@@ -127,6 +127,9 @@ the following CRISPR-related package dependencies:
 You can contribute to the package by submitting pull requests to our
 [GitHub repo](https://github.com/crisprVerse/crisprDesign).
 
+The complete documentation for the package can be found
+[here](https://bioconductor.org/packages/devel/bioc/manuals/crisprDesign/man/crisprDesign.pdf).
+
 # Terminology
 
 CRISPR nucleases are examples of RNA-guided endonucleases. They require
@@ -2042,7 +2045,7 @@ sessionInfo()
     ##  [5] Biostrings_2.65.2                 XVector_0.37.0                   
     ##  [7] GenomicRanges_1.49.1              GenomeInfoDb_1.33.5              
     ##  [9] IRanges_2.31.2                    S4Vectors_0.35.1                 
-    ## [11] BiocGenerics_0.43.1               crisprDesign_0.99.132            
+    ## [11] BiocGenerics_0.43.1               crisprDesign_0.99.133            
     ## [13] crisprBase_1.1.5                 
     ## 
     ## loaded via a namespace (and not attached):

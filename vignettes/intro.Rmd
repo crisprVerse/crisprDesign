@@ -324,10 +324,12 @@ annotate genomic alignments with a gene model annotation. This is useful
 to understand whether or not off-targets are located in the CDS of
 another gene, for instance. 
 
-For the sake of time, we will search here for on- and off-targets located
-in the beginning of the human chr12 where the gene IQSEC3 is located.
-We will the bowtie method, with a maximum of 2 mismatches.
+For the sake of time here, we will search only for on- and off-targets located
+in the beginning of human chr12 where IQSEC3 is located. We note note that users should always perform a genome-wide search as shown in the
+[CRISPRko design tutorial](https://github.com/crisprVerse/Tutorials/tree/master/Design_CRISPRko_Cas9].
 
+
+We will use the bowtie method, with a maximum of 2 mismatches.
 First, we need to build a bowtie index sequence using the fasta file provided
 in `crisprDesign`. We use the `RBowtie` package to build the index:
 

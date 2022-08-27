@@ -76,6 +76,8 @@ algorithms
 
 You can contribute to the package by submitting pull requests to our [GitHub repo](https://github.com/crisprVerse/crisprDesign). 
 
+The complete documentation for the package can be found [here](https://bioconductor.org/packages/devel/bioc/manuals/crisprDesign/man/crisprDesign.pdf).
+
 
 # Terminology
 
