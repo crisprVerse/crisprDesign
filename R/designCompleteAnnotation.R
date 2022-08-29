@@ -253,28 +253,20 @@ designCompleteAnnotation <- function(queryValue=NULL,
     }
 
 
- 
-    if (!isKD){
-        out <- addSpacerAlignmentsIterative(out,
-                                            aligner="bowtie",
-                                            aligner_index=bowtie_index,
-                                            n_mismatches=n_mismatches,
-                                            canonical=canonical_offtarget,
-                                            all_alignments=all_alignments,
-                                            bsgenome=bsgenome,
-                                            txObject=txObject,
-                                            tssObject=tssObject)
-    } else {
-        out <- addSpacerAlignments(out,
-                                   aligner="bowtie",
-                                   aligner_index=bowtie_index,
-                                   n_mismatches=n_mismatches,
-                                   canonical=canonical_offtarget,
-                                   all_alignments=all_alignments,
-                                   bsgenome=NULL,
-                                   txObject=txObject,
-                                   tssObject=tssObject)
-    }
+    bsgenome2 <- bsgenome
+    if (isKD){
+        bsgenome2 <- NULL
+    } 
+    out <- addSpacerAlignmentsIterative(out,
+                                        aligner="bowtie",
+                                        aligner_index=bowtie_index,
+                                        n_mismatches=n_mismatches,
+                                        canonical=canonical_offtarget,
+                                        all_alignments=all_alignments,
+                                        bsgenome=bsgenome2,
+                                        txObject=txObject,
+                                        tssObject=tssObject)
+   
    
     if (verbose){
         cat("[designCompleteAnnotation] Adding gene annotation \n")

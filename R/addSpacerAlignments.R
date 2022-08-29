@@ -154,6 +154,7 @@
 #' @rdname addSpacerAlignments
 #' @export
 #' @importFrom S4Vectors mcols mcols<-
+#' @importFrom crisprBase isRnase
 setMethod("addSpacerAlignmentsIterative",
           "GuideSet", 
           function(object,
@@ -214,10 +215,16 @@ setMethod("addSpacerAlignmentsIterative",
                                 tss_window=tss_window)
         )
     }
+
+    rnase <- isRnase(crisprNuclease(object))
     object <- .iterateAddSpacerAlignments(object, 0)
     good <- TRUE
     for (i in seq_len(n_mismatches)){
         mismatch_col <- paste0("n", i-1)
+        if (rnase){
+            mismatch_col <- paste0(mismatch_col, "_gene")
+        } 
+        
         good <- good &
             S4Vectors::mcols(object)[[mismatch_col]] <= maxAlignments[i]
         if (any(good)){
@@ -230,17 +237,28 @@ setMethod("addSpacerAlignmentsIterative",
             object[good] <- updatedGuideSet
         } else {
             na_col <- paste0("n", i)
+            if (rnase){
+                na_col <- paste0(na_col, "_gene")
+            } 
             S4Vectors::mcols(object)[[na_col]] <- as.numeric(NA)
             ## fix to add any coding/promoter-targeting alignments ############
-            mismatch_c_col <- paste0(mismatch_col, "_c")
-            if (mismatch_c_col %in% colnames(S4Vectors::mcols(object))){
-                na_c_col <- paste0(na_col, "_c")
-                S4Vectors::mcols(object)[[na_c_col]] <- as.numeric(NA)
-            }
-            mismatch_p_col <- paste0(mismatch_col, "_p")
-            if (mismatch_p_col %in% colnames(S4Vectors::mcols(object))){
-                na_p_col <- paste0(na_col, "_p")
-                S4Vectors::mcols(object)[[na_p_col]] <- as.numeric(NA)
+            if (!isRnase){
+                mismatch_c_col <- paste0(mismatch_col, "_c")
+                if (mismatch_c_col %in% colnames(S4Vectors::mcols(object))){
+                    na_c_col <- paste0(na_col, "_c")
+                    S4Vectors::mcols(object)[[na_c_col]] <- as.numeric(NA)
+                }
+                mismatch_p_col <- paste0(mismatch_col, "_p")
+                if (mismatch_p_col %in% colnames(S4Vectors::mcols(object))){
+                    na_p_col <- paste0(na_col, "_p")
+                    S4Vectors::mcols(object)[[na_p_col]] <- as.numeric(NA)
+                } 
+            } else {
+                mismatch_col_tx <- gsub("_gene", "_tx", mismatch_col)
+                if (mismatch_col_tx %in% colnames(S4Vectors::mcols(object))){
+                    na_col_tx <- gsub("_gene", "_tx", na_col)
+                    S4Vectors::mcols(object)[[na_col_tx]] <- as.numeric(NA)
+                } 
             }
             ###################################################################
         }
