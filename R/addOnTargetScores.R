@@ -295,12 +295,17 @@ setMethod("addOnTargetScores", "NULL", function(object){
     if (spacerLen != 23){
         stop("Spacer length must be 23 to use CasRxRF")
     }
-    scores <- crisprScore::getCasRxRFScores(mrnaSequence=mrnaSequence,
-                                            directRepeat=directRepeat,
-                                            binaries=binaries)
-    wh <- match(spacers(guideSet, as.character=TRUE), scores$spacer)
-    scores <- scores[wh,,drop=FALSE]
-    out <- scores[["standardizedScore"]]
+    len <- BiocGenerics::width(mrnaSequence)
+    if (len>80){
+        scores <- crisprScore::getCasRxRFScores(mrnaSequence=mrnaSequence,
+                                                directRepeat=directRepeat,
+                                                binaries=binaries)
+        wh <- match(spacers(guideSet, as.character=TRUE), scores$spacer)
+        scores <- scores[wh,,drop=FALSE]
+        out <- scores[["standardizedScore"]]
+    } else {
+        out <- rep(NA_real_, length(guideSet))
+    }
     return(out)
 }
 
