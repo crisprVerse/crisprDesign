@@ -541,6 +541,7 @@ getSpacerAlignments <- function(spacers,
                                 both_strands=TRUE
 ){
     
+    aligner <- match.arg(aligner)
     if (.Platform$OS.type=="windows" & aligner=="bwa"){
         stop("BWA aligner not available for windows machines. ",
              "Use bowtie instead")
@@ -559,7 +560,6 @@ getSpacerAlignments <- function(spacers,
         stop("'spacers' argument must be a GuideSet, XString, or",
              "XStringSet object, or a character vector")
     }
-    aligner <- match.arg(aligner)
     crisprNuclease <- .validateCrisprNuclease(crisprNuclease)
     n_mismatches <- .validateNumberOfMismatches(n_mismatches, aligner)
     stopifnot("canonical must be either TRUE, FALSE, or NA" = {
