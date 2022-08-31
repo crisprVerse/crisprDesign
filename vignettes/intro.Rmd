@@ -59,13 +59,14 @@ and comprehensive tutorials, please visit our [crisprVerse tutorials page](https
 
 # Installation
 
-`crisprDesign` can be installed from Bioconductor using the following
-commands in an R session:
+`crisprDesign` can be installed from from the Bioconductor devel branch
+using the following commands in a fresh R session:
 
 ```{r, eval=FALSE}
-if (!requireNamespace("BiocManager", quietly = TRUE))
+if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
+BiocManager::install(version="devel")
 BiocManager::install("crisprDesign")
 ```
 

@@ -100,13 +100,14 @@ tutorials page](https://github.com/crisprVerse/Tutorials).
 
 # Installation
 
-`crisprDesign` can be installed from Bioconductor using the following
-commands in an R session:
+`crisprDesign` can be installed from from the Bioconductor devel branch
+using the following commands in a fresh R session:
 
 ``` r
-if (!requireNamespace("BiocManager", quietly = TRUE))
+if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
+BiocManager::install(version="devel")
 BiocManager::install("crisprDesign")
 ```
 
@@ -2045,7 +2046,7 @@ sessionInfo()
     ##  [5] Biostrings_2.65.2                 XVector_0.37.0                   
     ##  [7] GenomicRanges_1.49.1              GenomeInfoDb_1.33.5              
     ##  [9] IRanges_2.31.2                    S4Vectors_0.35.1                 
-    ## [11] BiocGenerics_0.43.1               crisprDesign_0.99.133            
+    ## [11] BiocGenerics_0.43.1               crisprDesign_0.99.134            
     ## [13] crisprBase_1.1.5                 
     ## 
     ## loaded via a namespace (and not attached):
@@ -2064,7 +2065,7 @@ sessionInfo()
     ##  [25] rappdirs_0.3.3                stringr_1.4.1                
     ##  [27] digest_0.6.29                 Rsamtools_2.13.4             
     ##  [29] rmarkdown_2.15.2              crisprScore_1.1.14           
-    ##  [31] basilisk_1.9.2                pkgconfig_2.0.3              
+    ##  [31] basilisk_1.9.3                pkgconfig_2.0.3              
     ##  [33] htmltools_0.5.3               MatrixGenerics_1.9.1         
     ##  [35] dbplyr_2.2.1                  fastmap_1.1.0                
     ##  [37] rlang_1.0.4                   rstudioapi_0.14              
