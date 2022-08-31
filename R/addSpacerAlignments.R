@@ -242,7 +242,7 @@ setMethod("addSpacerAlignmentsIterative",
             } 
             S4Vectors::mcols(object)[[na_col]] <- as.numeric(NA)
             ## fix to add any coding/promoter-targeting alignments ############
-            if (!isRnase){
+            if (!rnase){
                 mismatch_c_col <- paste0(mismatch_col, "_c")
                 if (mismatch_c_col %in% colnames(S4Vectors::mcols(object))){
                     na_c_col <- paste0(na_col, "_c")
