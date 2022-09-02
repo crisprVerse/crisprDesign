@@ -122,19 +122,19 @@ flattenGuideSet <- function(guideSet,
 #' @importFrom S4Vectors mcols
 .getMcolsTable_flat <- function(guideSet){
     meta <- S4Vectors::mcols(guideSet)
-    meta <- as.data.frame(meta)
-    coltypes <-.getDFColtypes(meta)
+    coltypes <- .getDFColtypes(meta)
     wh <- which(coltypes=="DNAStringSet")
     for (k in seq_along(wh)){
         meta[,wh[k]] <- as.character(meta[,wh[k]])
     }
-    coltypes <-.getDFColtypes(meta)
+    coltypes <- .getDFColtypes(meta)
     wh <- which(coltypes %in% .coltypes_flat)
     if (length(wh)>0){
         meta <- meta[,wh,drop=FALSE]    
     } else {
         meta <- NULL
     }
+    meta <- as.data.frame(meta)
     return(meta)
 }
 
