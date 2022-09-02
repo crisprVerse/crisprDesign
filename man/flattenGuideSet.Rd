@@ -4,7 +4,7 @@
 \alias{flattenGuideSet}
 \title{Create a list of annotation tables from a GuideSet object}
 \usage{
-flattenGuideSet(guideSet, useSpacerCoordinates = TRUE)
+flattenGuideSet(guideSet, useSpacerCoordinates = TRUE, primaryOnly = FALSE)
 }
 \arguments{
 \item{guideSet}{A GuideSet object}
@@ -12,6 +12,9 @@ flattenGuideSet(guideSet, useSpacerCoordinates = TRUE)
 \item{useSpacerCoordinates}{Should the spacer coordinates be used
 as start and end coordinates? TRUE by default. If FALSE,
 the PAM site coordinate is used for both start and end.}
+
+\item{primaryOnly}{Should only the primary table (on-targets) be returned?
+FALSE by default.}
 }
 \value{
 A simple list of tables containing annotations derived from a 

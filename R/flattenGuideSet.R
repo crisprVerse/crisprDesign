@@ -6,6 +6,8 @@
 #' @param useSpacerCoordinates Should the spacer coordinates be used
 #'     as start and end coordinates? TRUE by default. If FALSE,
 #'     the PAM site coordinate is used for both start and end. 
+#' @param primaryOnly Should only the primary table (on-targets) be returned?
+#'     FALSE by default.
 #' 
 #' @return A simple list of tables containing annotations derived from a 
 #'     GuideSet object. The first table ("primary") is always available,
@@ -35,24 +37,28 @@
 #' tables <- flattenGuideSet(guideSetExampleFullAnnotation)
 #' 
 flattenGuideSet <- function(guideSet,
-                            useSpacerCoordinates=TRUE
+                            useSpacerCoordinates=TRUE,
+                            primaryOnly=FALSE
 ){
     primaryTable <- .getPrimaryTable(guideSet,
                                      useSpacerCoordinates=useSpacerCoordinates,
                                      addSpacer=TRUE)
-    cols <- c("alignments",
-              "geneAnnotation",
-              "tssAnnotation",
-              "enzymeAnnotation", "snps")
-    cols <- intersect(cols, colnames(mcols(guideSet)))
-    secondaryTables <- lapply(cols, function(col){
-        .getSecondaryTable(guideSet,
-                           col,
-                           useSpacerCoordinates=useSpacerCoordinates)
-    })
-    names(secondaryTables) <- cols
-    out <- c(list(primary=primaryTable),
-             secondaryTables)
+    
+    out <- list(primary=primaryTable)
+    if (!primaryOnly){
+        cols <- c("alignments",
+                  "geneAnnotation",
+                  "tssAnnotation",
+                  "enzymeAnnotation", "snps")
+        cols <- intersect(cols, colnames(mcols(guideSet)))
+        secondaryTables <- lapply(cols, function(col){
+            .getSecondaryTable(guideSet,
+                               col,
+                               useSpacerCoordinates=useSpacerCoordinates)
+        })
+        names(secondaryTables) <- cols
+        out <- c(out, secondaryTables)
+    }
     return(out)
 }
 
