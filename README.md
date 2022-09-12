@@ -776,7 +776,59 @@ guideSet
     ##   crisprNuclease: SpCas9
 
 Note that this will only work after calling `addSpacerAlignments`, as it
-requires a list of off-targets for each gRNA entry.
+requires a list of off-targets for each gRNA entry. The returned
+`GuideSet` object has now the additional columns `score_mit` and
+`score_cfd` representing the gRNA-level aggregated off-target
+specificity scores. The off-target table also contains a cutting
+likelihood score for each gRNA and off-target pair:
+
+``` r
+head(alignments(guideSet))
+```
+
+    ## GRanges object with 6 ranges and 16 metadata columns:
+    ##              seqnames    ranges strand |               spacer
+    ##                 <Rle> <IRanges>  <Rle> |       <DNAStringSet>
+    ##   spacer_107    chr12     67371      + | CCGAGTTGCTGCGCTGCTGC
+    ##     spacer_9    chr12     66943      - | GCTCTGCTGGTTCTGCACGA
+    ##    spacer_74    chr12     67233      + | CGGCCGCCGCGTCAGCACCA
+    ##   spacer_112    chr12     67396      - | GCCCTTGCCGAGGGCGGAGG
+    ##    spacer_76    chr12     67244      - | GGCCCCGCTGGGGCTGCTCC
+    ##    spacer_55    chr12     67153      - | CTGGTCCTGGAGAGGTTCCT
+    ##                       protospacer            pam  pam_site n_mismatches
+    ##                    <DNAStringSet> <DNAStringSet> <numeric>    <integer>
+    ##   spacer_107 CCGAGTTGCTGCGCTGCTGC            CGG     67371            0
+    ##     spacer_9 GCTCTGCTGGTTCTGCACGA            TGG     66943            0
+    ##    spacer_74 CGGCCGCCGCGTCAGCACCA            CGG     67233            0
+    ##   spacer_112 GCCCTTGCCGAGGGCGGAGG            GGG     67396            0
+    ##    spacer_76 GGCCCCGCTGGGGCTGCTCC            AGG     67244            0
+    ##    spacer_55 CTGGTCCTGGAGAGGTTCCT            GGG     67153            0
+    ##              canonical  cut_site         cds    fiveUTRs   threeUTRs
+    ##              <logical> <numeric> <character> <character> <character>
+    ##   spacer_107      TRUE     67368      IQSEC3        <NA>        <NA>
+    ##     spacer_9      TRUE     66946      IQSEC3        <NA>        <NA>
+    ##    spacer_74      TRUE     67230      IQSEC3        <NA>        <NA>
+    ##   spacer_112      TRUE     67399      IQSEC3        <NA>        <NA>
+    ##    spacer_76      TRUE     67247      IQSEC3        <NA>        <NA>
+    ##    spacer_55      TRUE     67156      IQSEC3        <NA>        <NA>
+    ##                    exons     introns  intergenic intergenic_distance score_cfd
+    ##              <character> <character> <character>           <integer> <numeric>
+    ##   spacer_107      IQSEC3        <NA>        <NA>                <NA>         1
+    ##     spacer_9      IQSEC3        <NA>        <NA>                <NA>         1
+    ##    spacer_74      IQSEC3        <NA>        <NA>                <NA>         1
+    ##   spacer_112      IQSEC3        <NA>        <NA>                <NA>         1
+    ##    spacer_76      IQSEC3        <NA>        <NA>                <NA>         1
+    ##    spacer_55      IQSEC3        <NA>        <NA>                <NA>         1
+    ##              score_mit
+    ##              <numeric>
+    ##   spacer_107         1
+    ##     spacer_9         1
+    ##    spacer_74         1
+    ##   spacer_112         1
+    ##    spacer_76         1
+    ##    spacer_55         1
+    ##   -------
+    ##   seqinfo: 25 sequences (1 circular) from hg38 genome
 
 ## On-target scoring
 
@@ -2043,10 +2095,10 @@ sessionInfo()
     ## other attached packages:
     ##  [1] Rbowtie_1.37.0                    BSgenome.Hsapiens.UCSC.hg38_1.4.4
     ##  [3] BSgenome_1.65.2                   rtracklayer_1.57.0               
-    ##  [5] Biostrings_2.65.2                 XVector_0.37.0                   
-    ##  [7] GenomicRanges_1.49.1              GenomeInfoDb_1.33.5              
-    ##  [9] IRanges_2.31.2                    S4Vectors_0.35.1                 
-    ## [11] BiocGenerics_0.43.1               crisprDesign_0.99.134            
+    ##  [5] Biostrings_2.65.3                 XVector_0.37.1                   
+    ##  [7] GenomicRanges_1.49.1              GenomeInfoDb_1.33.7              
+    ##  [9] IRanges_2.31.2                    S4Vectors_0.35.3                 
+    ## [11] BiocGenerics_0.43.4               crisprDesign_0.99.140            
     ## [13] crisprBase_1.1.5                 
     ## 
     ## loaded via a namespace (and not attached):
@@ -2058,33 +2110,33 @@ sessionInfo()
     ##  [11] tidyselect_1.1.2              prettyunits_1.1.1            
     ##  [13] bit_4.0.4                     curl_4.3.2                   
     ##  [15] compiler_4.2.1                crisprBowtie_1.1.1           
-    ##  [17] cli_3.3.0                     Biobase_2.57.1               
-    ##  [19] basilisk.utils_1.9.1          crisprScoreData_1.1.3        
+    ##  [17] cli_3.4.0                     Biobase_2.57.1               
+    ##  [19] basilisk.utils_1.9.3          crisprScoreData_1.1.3        
     ##  [21] xml2_1.3.3                    DelayedArray_0.23.1          
     ##  [23] randomForest_4.7-1.1          readr_2.1.2                  
     ##  [25] rappdirs_0.3.3                stringr_1.4.1                
     ##  [27] digest_0.6.29                 Rsamtools_2.13.4             
-    ##  [29] rmarkdown_2.15.2              crisprScore_1.1.14           
-    ##  [31] basilisk_1.9.3                pkgconfig_2.0.3              
+    ##  [29] rmarkdown_2.16                crisprScore_1.1.15           
+    ##  [31] basilisk_1.9.6                pkgconfig_2.0.3              
     ##  [33] htmltools_0.5.3               MatrixGenerics_1.9.1         
     ##  [35] dbplyr_2.2.1                  fastmap_1.1.0                
-    ##  [37] rlang_1.0.4                   rstudioapi_0.14              
+    ##  [37] rlang_1.0.5                   rstudioapi_0.14              
     ##  [39] RSQLite_2.2.16                shiny_1.7.2                  
     ##  [41] BiocIO_1.7.1                  generics_0.1.3               
     ##  [43] jsonlite_1.8.0                vroom_1.5.7                  
-    ##  [45] BiocParallel_1.31.12          dplyr_1.0.9                  
+    ##  [45] BiocParallel_1.31.12          dplyr_1.0.10                 
     ##  [47] VariantAnnotation_1.43.3      RCurl_1.98-1.8               
     ##  [49] magrittr_2.0.3                GenomeInfoDbData_1.2.8       
     ##  [51] Matrix_1.4-1                  Rcpp_1.0.9                   
-    ##  [53] fansi_1.0.3                   reticulate_1.25              
+    ##  [53] fansi_1.0.3                   reticulate_1.26              
     ##  [55] lifecycle_1.0.1               stringi_1.7.8                
-    ##  [57] yaml_2.3.5                    SummarizedExperiment_1.27.1  
+    ##  [57] yaml_2.3.5                    SummarizedExperiment_1.27.2  
     ##  [59] zlibbioc_1.43.0               BiocFileCache_2.5.0          
-    ##  [61] AnnotationHub_3.5.0           grid_4.2.1                   
+    ##  [61] AnnotationHub_3.5.1           grid_4.2.1                   
     ##  [63] blob_1.2.3                    promises_1.2.0.1             
     ##  [65] parallel_4.2.1                ExperimentHub_2.5.0          
     ##  [67] crayon_1.5.1                  crisprBwa_1.1.3              
-    ##  [69] dir.expiry_1.5.0              lattice_0.20-45              
+    ##  [69] dir.expiry_1.5.1              lattice_0.20-45              
     ##  [71] GenomicFeatures_1.49.6        hms_1.1.2                    
     ##  [73] KEGGREST_1.37.3               knitr_1.40                   
     ##  [75] pillar_1.8.1                  rjson_0.2.21                 

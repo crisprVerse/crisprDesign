@@ -431,8 +431,15 @@ guideSet
 ```
 
 Note that this will only work after calling `addSpacerAlignments`,
-as it requires a list of off-targets for each gRNA entry. 
+as it requires a list of off-targets for each gRNA entry. The returned
+`GuideSet` object has now the additional columns `score_mit` and `score_cfd`
+representing the gRNA-level aggregated off-target specificity scores. The 
+off-target table also contains a cutting likelihood score for each gRNA 
+and off-target pair:
 
+```{r}
+head(alignments(guideSet))
+```
 
 ## On-target scoring
 
