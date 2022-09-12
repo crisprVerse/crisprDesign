@@ -22,9 +22,10 @@ addOffTargetScores(object, ...)
 
 \item{...}{Additional arguments, currently ignored.}
 
-\item{max_mm}{The maximimum number of mismatches between a spacer and
-an off-target. Used to select which off-target scores to
-include in calculating the aggregated score.}
+\item{max_mm}{The maximimum number of mismatches between the spacer sequence
+and the protospacer off-target sequence. This is used to filter out
+off-targets with low probability of binging in calculating the
+gRNA-level aggregated score.}
 
 \item{includeDistance}{Should a distance penalty for the MIT score be
 included? TRUE by default.}
@@ -34,20 +35,24 @@ when calcuting the aggregated score (inverse summation formula).
 0 by default.}
 }
 \value{
-\code{guideSet} with off-target score columns appended in
-    \code{mcols(alignments(guideSet))}. For SpCas9, it
-    also adds aggregated off-target score columns to 
-    \code{mcols(guideSet)}.
+A \code{GuideSet} or a \code{PairedGuideSet} object with added 
+    scores. The alignments annotation returned by \code{alignments(object)}
+    will have additional column storing off-target scores. Those scores
+    representing the off-target score for each gRNA and off-target pair.
+    For SpCas9, a column containing an aggregated specificity off-target 
+    score for each scoring method is added to the metadata columns 
+    obtained by \code{mcols(object)}.
 }
 \description{
-Add CFD and MIT off-target scores to a \linkS4class{GuideSet}
-    object. Package \pkg{crisprScore} must be installed.
-    Both CFD and MIT methods are available to SpCas9.
-    CFD method is available for CasRx.
+Add CFD and MIT off-target scores to a 
+    \linkS4class{GuideSet} object. 
+    Both the CFD and MIT methods are available for the SpCas9 nuclease.
+    The CFD method is also available for the CasRx nuclease.
+    Other nucleases are currently not supported.
 }
 \details{
-See \pkg{crisprScore} package for a description of the off-target
-    scoring methods.
+See the \pkg{crisprScore} package for a description of the 
+    different off-target scoring methods.
 }
 \examples{
 
