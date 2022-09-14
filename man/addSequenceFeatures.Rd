@@ -10,9 +10,21 @@
 \usage{
 addSequenceFeatures(object, ...)
 
-\S4method{addSequenceFeatures}{GuideSet}(object, addHairpin = FALSE, backbone = "AGGCTAGTCCGT", ...)
+\S4method{addSequenceFeatures}{GuideSet}(
+  object,
+  addHairpin = FALSE,
+  backbone = "AGGCTAGTCCGT",
+  tp53 = TRUE,
+  ...
+)
 
-\S4method{addSequenceFeatures}{PairedGuideSet}(object, addHairpin = FALSE, backbone = "AGGCTAGTCCGT", ...)
+\S4method{addSequenceFeatures}{PairedGuideSet}(
+  object,
+  addHairpin = FALSE,
+  backbone = "AGGCTAGTCCGT",
+  tp53 = TRUE,
+  ...
+)
 
 \S4method{addSequenceFeatures}{`NULL`}(object, ...)
 }
@@ -27,6 +39,9 @@ sequence complementarity. FALSE by default. See details.}
 
 \item{backbone}{Backbone sequence in the guide RNA that is susceptible
 to hairpin formation with a complementary region in the spacer sequence.}
+
+\item{tp53}{Should TP53-related toxicity features be added? 
+TRUE by default.}
 }
 \value{
 \code{guideSet} with the following columns appended to

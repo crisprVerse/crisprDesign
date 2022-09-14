@@ -10,6 +10,8 @@
 #'     sequence complementarity. FALSE by default. See details.
 #' @param backbone Backbone sequence in the guide RNA that is susceptible
 #'     to hairpin formation with a complementary region in the spacer sequence.
+#' @param tp53 Should TP53-related toxicity features be added? 
+#'     TRUE by default.
 #' @param ... Additional arguments, currently ignored.
 #'     
 #' @details \code{addSequenceFeatures} predicts spacers to form internal
@@ -42,6 +44,7 @@
 setMethod("addSequenceFeatures", "GuideSet", function(object,
                                                       addHairpin=FALSE,
                                                       backbone="AGGCTAGTCCGT",
+                                                      tp53=TRUE,
                                                       ...
 ){
     object <- .validateGuideSet(object)
@@ -57,7 +60,9 @@ setMethod("addSequenceFeatures", "GuideSet", function(object,
     if (addHairpin){
         object <- .addHairpins(object, seqs, backbone)
     }
-    
+    if (tp53){
+        object <- .addTp53ToxicityFeatures(object)
+    }
     return(object)
 })
 
@@ -68,13 +73,15 @@ setMethod("addSequenceFeatures",
           "PairedGuideSet", function(object,
                                      addHairpin=FALSE,
                                      backbone="AGGCTAGTCCGT",
+                                     tp53=TRUE,
                                      ...
 ){
     object <- .validateGuideSetOrPairedGuideSet(object)
     unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
     unifiedGuideSet <- addSequenceFeatures(unifiedGuideSet,
                                            addHairpin=addHairpin,
-                                           backbone=backbone)
+                                           backbone=backbone,
+                                           tp53=tp53)
     out <- .addColumnsFromUnifiedGuideSet(object,
                                           unifiedGuideSet)
     return(out)
@@ -202,3 +209,31 @@ setMethod("addSequenceFeatures", "NULL", function(object,
     hasComplementarity <- any(.calculatePercentGC(stem) >= 50)
     return(hasComplementarity)
 }
+
+
+
+
+.addTp53ToxicityFeatures <- function(guideSet){
+    nuc <- crisprNuclease(guideSet)
+    data(SpCas9,
+         package="crisprBase",
+         envir=environment())
+    if (!.identicalNucleases(SpCas9, nuc)){
+        stop(".addTp53Toxicity only works for SpCas9.")
+    }
+    NNGG <- .getExtendedSequences(guideSet,
+                                  start=-1,
+                                  end=2)
+    mcols(guideSet)$NNGG <- NNGG
+    return(guideSet)
+}
+
+
+
+
+
+
+
+
+
+
