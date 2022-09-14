@@ -101,7 +101,7 @@ test_that("percentGC is correctly calculated", {
                        seqnames=rep("chr1", 21),
                        CrisprNuclease=SpCas9,
                        strand="+")
-    out <- addSequenceFeatures(guides)
+    out <- addSequenceFeatures(guides, tp53=FALSE)
     expect_equal(out$percentGC, seq(0, 100, by=5))
 })
 
@@ -119,7 +119,7 @@ test_that("spacers with homopolymers are correctly identified", {
                        seqnames=rep("chr1", 4),
                        CrisprNuclease=SpCas9,
                        strand="+")
-    out <- addSequenceFeatures(guides)
+    out <- addSequenceFeatures(guides, tp53=FALSE)
     expect_equal(which(out$polyA), 1)
     expect_equal(which(out$polyC), 2)
     expect_equal(which(out$polyG), 3)
@@ -140,7 +140,7 @@ test_that("spacers with startingGGGGG are correctly identified", {
                        seqnames=rep("chr1", 3),
                        CrisprNuclease=SpCas9,
                        strand="+")
-    startingGGGGG <- addSequenceFeatures(guides)$startingGGGGG
+    startingGGGGG <- addSequenceFeatures(guides, tp53=FALSE)$startingGGGGG
     expect_equal(startingGGGGG, hasStartingGGGGG)
 })
 
@@ -162,7 +162,7 @@ test_that("selfHairpin and backboneHairpin are correctly predicted", {
                        seqnames=rep("chr", 8),
                        CrisprNuclease=SpCas9,
                        strand="+")
-    out <- addSequenceFeatures(guides, addHairpin=TRUE)
+    out <- addSequenceFeatures(guides, addHairpin=TRUE,  tp53=FALSE)
     expect_equal(mcols(out)$selfHairpin, as.logical(spacers))
     
     spacer <- "gCTAGTGGagaggaggaggg"
@@ -181,7 +181,9 @@ test_that("selfHairpin and backboneHairpin are correctly predicted", {
                        CrisprNuclease=SpCas9,
                        strand="+")
     lapply(seq_along(backbones), function(x){
-        out <- addSequenceFeatures(guides, addHairpin=TRUE,
+        out <- addSequenceFeatures(guides,
+                                   tp53=FALSE,
+                                   addHairpin=TRUE,
                                    backbone=names(backbones)[x])
         expect_equal(as.logical(out$backboneHairpin), backbones[[x]])
     })
