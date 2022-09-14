@@ -44,7 +44,10 @@ setMethod("addIsoformAnnotation",
     }
     cols <- c("percentCDS",
               "percentCodingIsoforms",
-              "isCommonCodingExon")
+              "isCommonCodingExon",
+              "pfam")
+    geneAnn <- geneAnnotation(object, unlist=TRUE)
+    cols <- intersect(cols, colnames(geneAnn))
 
     # Initializing
     df <- S4Vectors::mcols(object)
