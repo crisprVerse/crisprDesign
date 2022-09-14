@@ -8,11 +8,13 @@
 #' @param x1 Either a \linkS4class{GRanges}, a \linkS4class{DNAStringSet}, or a
 #'     \linkS4class{DNAString} object, or a character vector of genomic
 #'     sequences. This specifies the sequence space from which gRNAs in
-#'     position 1 of the pairs will be designed. 
+#'     position 1 of the pairs will be designed. Alternatively, a 
+#'     \linkS4class{GuideSet} object can be provided.
 #' @param x2 Either a \linkS4class{GRanges}, a \linkS4class{DNAStringSet}, or a
 #'     \linkS4class{DNAString} object, or a character vector of genomic
 #'     sequences. This specifies the sequence space from which gRNAs in
-#'     position 2 of the pairs will be designed. 
+#'     position 2 of the pairs will be designed. Alternatively, a 
+#'     \linkS4class{GuideSet} object can be provided.
 #' @param sortWithinPair Should gRNAs be sorted by chr and position
 #'     within a pair? TRUE by default.
 #' @param pamOrientation String specifying a constraint on the PAM orientation  
@@ -109,22 +111,30 @@ findSpacerPairs <- function(x1,
                             remove_ambiguities=TRUE
 ){
     pamOrientation <- match.arg(pamOrientation)
-    gs1 <- findSpacers(x1, 
-                       crisprNuclease=crisprNuclease,
-                       bsgenome=bsgenome,
-                       canonical=canonical,
-                       both_strands=both_strands,
-                       spacer_len=spacer_len,
-                       strict_overlap=strict_overlap,
-                       remove_ambiguities=remove_ambiguities)
-    gs2 <- findSpacers(x2, 
-                       crisprNuclease=crisprNuclease,
-                       bsgenome=bsgenome,
-                       canonical=canonical,
-                       both_strands=both_strands,
-                       spacer_len=spacer_len,
-                       strict_overlap=strict_overlap,
-                       remove_ambiguities=remove_ambiguities)
+    if (!is(x1, "GuideSet")){
+        gs1 <- findSpacers(x1, 
+                           crisprNuclease=crisprNuclease,
+                           bsgenome=bsgenome,
+                           canonical=canonical,
+                           both_strands=both_strands,
+                           spacer_len=spacer_len,
+                           strict_overlap=strict_overlap,
+                           remove_ambiguities=remove_ambiguities)
+    } else {
+        gs1 <- x1
+    }
+    if (!is(x2, "GuideSet")){
+        gs2 <- findSpacers(x2, 
+                           crisprNuclease=crisprNuclease,
+                           bsgenome=bsgenome,
+                           canonical=canonical,
+                           both_strands=both_strands,
+                           spacer_len=spacer_len,
+                           strict_overlap=strict_overlap,
+                           remove_ambiguities=remove_ambiguities)
+    } else {
+        gs2 <- x2
+    }
     indices <- .getValidPairIndices(gs1,
                                     gs2,
                                     sortWithinPair=sortWithinPair)

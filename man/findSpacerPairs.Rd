@@ -24,12 +24,14 @@ findSpacerPairs(
 \item{x1}{Either a \linkS4class{GRanges}, a \linkS4class{DNAStringSet}, or a
 \linkS4class{DNAString} object, or a character vector of genomic
 sequences. This specifies the sequence space from which gRNAs in
-position 1 of the pairs will be designed.}
+position 1 of the pairs will be designed. Alternatively, a 
+\linkS4class{GuideSet} object can be provided.}
 
 \item{x2}{Either a \linkS4class{GRanges}, a \linkS4class{DNAStringSet}, or a
 \linkS4class{DNAString} object, or a character vector of genomic
 sequences. This specifies the sequence space from which gRNAs in
-position 2 of the pairs will be designed.}
+position 2 of the pairs will be designed. Alternatively, a 
+\linkS4class{GuideSet} object can be provided.}
 
 \item{sortWithinPair}{Should gRNAs be sorted by chr and position
 within a pair? TRUE by default.}
