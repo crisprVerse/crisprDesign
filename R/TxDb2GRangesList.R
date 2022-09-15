@@ -310,14 +310,22 @@ TxDb2GRangesList <- function(txdb,
 
 
 # Extract 5' UTRs from TxDb object
-.getFiveUtrsFromTxdb <- function(txdb, bm=NULL, exonInfo){
-    fiveUTRs <- GenomicFeatures::fiveUTRsByTranscript(txdb)
+#' @importFrom GenomicFeatures fiveUTRsByTranscript
+.getFiveUtrsFromTxdb <- function(txdb,
+                                 bm=NULL,
+                                 exonInfo
+){
+    fiveUTRs <- fiveUTRsByTranscript(txdb, use.names=TRUE)
     fiveUTRs <- unlist(methods::as(fiveUTRs, 'GRangesList'))
     fiveUTRs$exon_id <- fiveUTRs$exon_name
     fiveUTRs$exon_name <- NULL
-    wh <- match(fiveUTRs$exon_id, exonInfo$EXONNAME)
-    fiveUTRs$tx_id   <- exonInfo$TXNAME[wh]
+    fiveUTRs$tx_id <- names(fiveUTRs)
+    wh <- match(fiveUTRs$tx_id, exonInfo$TXNAME)
     fiveUTRs$gene_id <- exonInfo$GENEID[wh]
+
+    #wh <- match(fiveUTRs$exon_id, exonInfo$EXONNAME)
+    #fiveUTRs$tx_id   <- exonInfo$TXNAME[wh]
+    #fiveUTRs$gene_id <- exonInfo$GENEID[wh]
     if (!is.null(bm)){
         wh <- match(fiveUTRs$tx_id, bm$ensembl_transcript_id)
         fiveUTRs$gene_symbol <- bm$external_gene_name[wh]
@@ -329,14 +337,22 @@ TxDb2GRangesList <- function(txdb,
 
 
 # Extract 3' UTRs from TxDb object
-.getThreeUtrsFromTxdb <- function(txdb, bm=NULL, exonInfo){
-    threeUTRs <- GenomicFeatures::threeUTRsByTranscript(txdb)
+#' @importFrom GenomicFeatures threeUTRsByTranscript
+.getThreeUtrsFromTxdb <- function(txdb,
+                                  bm=NULL,
+                                  exonInfo
+){
+    threeUTRs <- threeUTRsByTranscript(txdb, use.names=TRUE)
     threeUTRs <- unlist(methods::as(threeUTRs, 'GRangesList'))
     threeUTRs$exon_id <- threeUTRs$exon_name
     threeUTRs$exon_name <- NULL
-    wh <- match(threeUTRs$exon_id, exonInfo$EXONNAME)
-    threeUTRs$tx_id   <- exonInfo$TXNAME[wh]
+    threeUTRs$tx_id <- names(threeUTRs)
+    wh <- match(threeUTRs$tx_id, exonInfo$TXNAME)
     threeUTRs$gene_id <- exonInfo$GENEID[wh]
+
+    #wh <- match(threeUTRs$exon_id, exonInfo$EXONNAME)
+    #threeUTRs$tx_id   <- exonInfo$TXNAME[wh]
+    #threeUTRs$gene_id <- exonInfo$GENEID[wh]
     if (!is.null(bm)){
         wh <- match(threeUTRs$tx_id, bm$ensembl_transcript_id)
         threeUTRs$gene_symbol <- bm$external_gene_name[wh]
