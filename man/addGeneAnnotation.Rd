@@ -109,7 +109,7 @@ For DNA-targeting nucleases, the different columns stored in
 \item \code{isCommonExon} Logical value to indicate whether or not the gRNA
     is targeing an exon common to all isoforms.
 \item \code{nCodingIsoforms} Numeric value indicating the number of 
-    coding isoforms targeted by the gRNA.
+    coding isoforms targeted by the gRNA. 5' UTRs and 3' UTRs are excluded.
 \item \code{totalCodingIsoforms} Numeric value indicating the total number of
     coding isoforms existing for the gene targeted by the gRNA and specified
     in \code{gene_id}.
@@ -117,6 +117,7 @@ For DNA-targeting nucleases, the different columns stored in
     of coding isoforms for the gene specified in \code{gene_id} targeted
     by the gRNA. Equivalent to
     \code{nCodingIsoforms}/\code{totalCodingIsoforms}*100.
+    5' UTRs and 3' UTRs are excluded.
 \item \code{isCommonCodingExon} Logical value to indicate whether or
     not the gRNA is targeing an exon common to all coding isoforms.
 }

@@ -71,7 +71,7 @@
 #' \item \code{isCommonExon} Logical value to indicate whether or not the gRNA
 #'     is targeing an exon common to all isoforms.
 #' \item \code{nCodingIsoforms} Numeric value indicating the number of 
-#'     coding isoforms targeted by the gRNA.
+#'     coding isoforms targeted by the gRNA. 5' UTRs and 3' UTRs are excluded.
 #' \item \code{totalCodingIsoforms} Numeric value indicating the total number of
 #'     coding isoforms existing for the gene targeted by the gRNA and specified
 #'     in \code{gene_id}.
@@ -79,6 +79,7 @@
 #'     of coding isoforms for the gene specified in \code{gene_id} targeted
 #'     by the gRNA. Equivalent to
 #'     \code{nCodingIsoforms}/\code{totalCodingIsoforms}*100.
+#'     5' UTRs and 3' UTRs are excluded.
 #' \item \code{isCommonCodingExon} Logical value to indicate whether or
 #'     not the gRNA is targeing an exon common to all coding isoforms.
 #' }
@@ -592,8 +593,14 @@ setMethod("addGeneAnnotation", "NULL", function(object){
     isoformCountByGene <- table(isoformCountByGene$gene_id)
     totalIsoforms <- as.numeric(isoformCountByGene[geneAnn$gene_id])
     
-    nIsoforms <- table(spacer_id=names(geneAnn),
-                       gene_id=S4Vectors::mcols(geneAnn)[["gene_id"]])
+    txTable <- geneAnn
+    if (featureType=="cds"){
+        txTable <- txTable[txTable$cut_cds]
+    } 
+    ids <- factor(names(txTable),
+                  levels=unique(names(geneAnn)))
+    nIsoforms <- table(spacer_id=ids,
+                       gene_id=S4Vectors::mcols(txTable)[["gene_id"]])
     nIsoforms <- as.data.frame(nIsoforms)
     geneAnnInteraction <- interaction(names(geneAnn),
                                       S4Vectors::mcols(geneAnn)[["gene_id"]])

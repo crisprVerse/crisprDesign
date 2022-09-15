@@ -47,17 +47,36 @@ setMethod("addIsoformAnnotation",
               "isCommonCodingExon",
               "pfam")
     geneAnn <- geneAnnotation(object, unlist=TRUE)
+
+    # Let's extract gene id:
+    wh <- match(tx_id, geneAnn$tx_id)
+    if (length(wh)==0){
+        stop("tx_id not found")
+    }
+    gene_id <- geneAnn[wh, "gene_id"]
+    geneAnn <- geneAnn[geneAnn$gene_id==gene_id,,drop=FALSE]
     cols <- intersect(cols, colnames(geneAnn))
 
-    # Initializing
+    # Extracting metadata columns:
     df <- S4Vectors::mcols(object)
+    # Initializing
     for (col in cols){
         df[[col]] <- NA
     } 
+    wh <- match(rownames(df), rownames(geneAnn))
+    if ("percentCodingIsoforms" %in% cols){
+        df$percentCodingIsoforms <- geneAnn[wh,"percentCodingIsoforms"]
+    }
+    if ("isCommonCodingExon" %in% cols){
+        df$isCommonCodingExon <- geneAnn[wh,"isCommonCodingExon"]   
+    }
+    
     if (!is.na(tx_id)){
+        cols <- c("percentCDS", "pfam")
         ann <- geneAnnotation(object,
                               tx_id=tx_id,
                               unlist=TRUE)
+        cols <- intersect(cols, colnames(ann))
         if (nrow(ann)>0){
             ann <- ann[, cols, drop=FALSE]
             
