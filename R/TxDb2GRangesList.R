@@ -51,9 +51,6 @@ getTxDb <- function(file=NA,
 
 
 
-
-
-
 #' @title Convert a \linkS4class{TxDb} object into a \linkS4class{GRangesList}
 #' @description Convenience function to reformat a \linkS4class{TxDb} object
 #'    into a \linkS4class{GRangesList}.
@@ -63,6 +60,9 @@ getTxDb <- function(file=NA,
 #'     TRUE by default. 
 #' @param genome Optional string specifying genome. e.g. "hg38", to be
 #'     added to \code{genome(txdb)}.
+#' @param seqlevelsStyle String specifying which style should be used
+#'     for sequence names. "UCSC" by default (including "chr").
+#'     "NCBI" will omit "chr" in the sequence names. 
 #' @return A named \linkS4class{GRangesList} of length 7 with the
 #'     following elements:
 #'     \code{transcripts}, \code{exons}, \code{introns}, \code{cds},
@@ -94,9 +94,11 @@ getTxDb <- function(file=NA,
 #' @importFrom S4Vectors isTRUEorFALSE
 TxDb2GRangesList <- function(txdb,
                              standardChromOnly=TRUE,
-                             genome=NULL
+                             genome=NULL,
+                             seqlevelsStyle=c("UCSC", "NCBI")
 ){
     txdb <- .validateTxDb(txdb)
+    seqlevelsStyle <- match.arg(seqlevelsStyle)
     stopifnot("standardChromOnly must be TRUE or FALSE" = {
         S4Vectors::isTRUEorFALSE(standardChromOnly)
     })
@@ -109,6 +111,8 @@ TxDb2GRangesList <- function(txdb,
     gRangesList <- .TxDb2GRangesList(txdb=txdb,
                                      standardChromOnly=standardChromOnly,
                                      genome=genome)
+    gRangesList <- .changeSeqlevelsStyle(gRangesList,
+                                         seqlevelsStyle=seqlevelsStyle)
     return(gRangesList)
 }
 

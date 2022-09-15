@@ -4,7 +4,12 @@
 \alias{TxDb2GRangesList}
 \title{Convert a \linkS4class{TxDb} object into a \linkS4class{GRangesList}}
 \usage{
-TxDb2GRangesList(txdb, standardChromOnly = TRUE, genome = NULL)
+TxDb2GRangesList(
+  txdb,
+  standardChromOnly = TRUE,
+  genome = NULL,
+  seqlevelsStyle = c("UCSC", "NCBI")
+)
 }
 \arguments{
 \item{txdb}{A \linkS4class{TxDb} object.}
@@ -14,6 +19,10 @@ TRUE by default.}
 
 \item{genome}{Optional string specifying genome. e.g. "hg38", to be
 added to \code{genome(txdb)}.}
+
+\item{seqlevelsStyle}{String specifying which style should be used
+for sequence names. "UCSC" by default (including "chr").
+"NCBI" will omit "chr" in the sequence names.}
 }
 \value{
 A named \linkS4class{GRangesList} of length 7 with the
