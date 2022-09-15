@@ -257,9 +257,11 @@ test_that("function outputs correct values", {
                           USE.NAMES=FALSE)
     expect_equal(geneAnnRows, geneAnnUniqueSpacer$nIsoforms)
     geneAnnCodingRows <- vapply(out$geneAnnotation, function(x){
-        sum(x$tx_id %in% grListExample$cds$tx_id)
+        xx <- x[x$cut_cds,,drop=FALSE]
+        sum(xx$tx_id %in% grListExample$cds$tx_id)
     }, FUN.VALUE=numeric(1), USE.NAMES=FALSE)
-    expect_equal(geneAnnCodingRows, geneAnnUniqueSpacer$nCodingIsoforms)
+    expect_equal(geneAnnCodingRows,
+                 geneAnnUniqueSpacer$nCodingIsoforms)
     
     
     isoformTestCols <- c("gene_id", "totalIsoforms", "totalCodingIsoforms")
