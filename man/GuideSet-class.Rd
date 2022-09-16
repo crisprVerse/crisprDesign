@@ -39,13 +39,13 @@
 \alias{pamSide,GuideSet-method}
 \alias{snps,GuideSet-method}
 \alias{alignments,GuideSet-method}
+\alias{onTargets,GuideSet-method}
+\alias{offTargets,GuideSet-method}
 \alias{alignments<-,GuideSet-method}
 \alias{geneAnnotation<-,GuideSet-method}
 \alias{tssAnnotation<-,GuideSet-method}
 \alias{enzymeAnnotation<-,GuideSet-method}
 \alias{snps<-,GuideSet-method}
-\alias{onTargets,GuideSet-method}
-\alias{offTargets,GuideSet-method}
 \alias{geneAnnotation,GuideSet-method}
 \alias{editedAlleles,GuideSet-method}
 \alias{tssAnnotation,GuideSet-method}
@@ -143,16 +143,6 @@ GuideSet(
 
 \S4method{alignments}{GuideSet}(object, columnName = "alignments", unlist = TRUE, use.names = TRUE)
 
-\S4method{alignments}{GuideSet}(object) <- value
-
-\S4method{geneAnnotation}{GuideSet}(object) <- value
-
-\S4method{tssAnnotation}{GuideSet}(object) <- value
-
-\S4method{enzymeAnnotation}{GuideSet}(object) <- value
-
-\S4method{snps}{GuideSet}(object) <- value
-
 \S4method{onTargets}{GuideSet}(object, columnName = "alignments", unlist = TRUE, use.names = TRUE)
 
 \S4method{offTargets}{GuideSet}(
@@ -162,6 +152,16 @@ GuideSet(
   unlist = TRUE,
   use.names = TRUE
 )
+
+\S4method{alignments}{GuideSet}(object) <- value
+
+\S4method{geneAnnotation}{GuideSet}(object) <- value
+
+\S4method{tssAnnotation}{GuideSet}(object) <- value
+
+\S4method{enzymeAnnotation}{GuideSet}(object) <- value
+
+\S4method{snps}{GuideSet}(object) <- value
 
 \S4method{geneAnnotation}{GuideSet}(
   object,

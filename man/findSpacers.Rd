@@ -12,7 +12,8 @@ findSpacers(
   both_strands = TRUE,
   spacer_len = NULL,
   strict_overlap = TRUE,
-  remove_ambiguities = TRUE
+  remove_ambiguities = TRUE,
+  remove_duplicates = TRUE
 )
 }
 \arguments{
@@ -44,6 +45,9 @@ gRNAs that share any overlap with the input range (\code{FALSE}).
 \item{remove_ambiguities}{Whether to remove spacer sequences that contain
 ambiguous nucleotides (not explicily \code{A}, \code{C}, \code{G}, or
 \code{T}). TRUE by default.}
+
+\item{remove_duplicates}{Whether to remove duplicated protospacer sequences
+originating from overlapping genomic ranges. TRUE by default.}
 }
 \value{
 A \linkS4class{GuideSet} object.

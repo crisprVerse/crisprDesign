@@ -25,6 +25,8 @@
 #' @param remove_ambiguities Whether to remove spacer sequences that contain
 #'     ambiguous nucleotides (not explicily \code{A}, \code{C}, \code{G}, or
 #'     \code{T}). TRUE by default.
+#' @param remove_duplicates Whether to remove duplicated protospacer sequences
+#'     originating from overlapping genomic ranges. TRUE by default. 
 #' 
 #' @return A \linkS4class{GuideSet} object. 
 #' 
@@ -80,7 +82,8 @@ findSpacers <- function(x,
                         both_strands=TRUE,
                         spacer_len=NULL,
                         strict_overlap=TRUE,
-                        remove_ambiguities=TRUE
+                        remove_ambiguities=TRUE,
+                        remove_duplicates=TRUE
 ){
     if (.isGRanges(x)){
         targetOrigin <- "bsgenome"
@@ -118,6 +121,9 @@ findSpacers <- function(x,
                              crisprNuclease=crisprNuclease,
                              remove_ambiguities=remove_ambiguities)
     gs <- BiocGenerics::sort(gs, ignore.strand=TRUE)
+    if (remove_duplicates){
+        gs <- unique(gs)
+    }
     names(gs) <- paste0("spacer_", seq_along(gs), recycle0=TRUE)
     return(gs)
 }

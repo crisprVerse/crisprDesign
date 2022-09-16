@@ -494,18 +494,114 @@ setMethod("alignments", "GuideSet",
     } else {
         out <- S4Vectors::mcols(object)[[columnName]]
         out <- BiocGenerics::unlist(out, use.names=FALSE)
-        if (!use.names){
-            out <- .namesAsColumn_gr(out)
-            split_factor <- S4Vectors::mcols(out)[["spacer_id"]]
-        } else {
-            split_factor <- names(out)
-        }
         if (!unlist){
-            out <- S4Vectors::split(out, f=split_factor)
+            split_factor <- factor(names(out), levels=names(object))
+            if (!use.names){
+                out <- .namesAsColumn_gr(out)
+            }   
+            out <- S4Vectors::split(out, f=split_factor)[names(object)]
         }
     }
     return(out)
 })
+
+
+
+
+
+#' @rdname GuideSet-class
+#' @importFrom S4Vectors mcols split
+#' @importFrom BiocGenerics unlist
+#' @export
+setMethod("onTargets", "GuideSet", 
+    function(object,
+             columnName="alignments",
+             unlist=TRUE,
+             use.names=TRUE){
+    if (!columnName %in% colnames(S4Vectors::mcols(object)) ||
+        !.isAlignmentsColumn(object, columnName)){
+        out <- NULL
+    } else {
+        out <- S4Vectors::mcols(object)[[columnName]]
+        out <- BiocGenerics::unlist(out, use.names=FALSE)
+        out <- out[out$n_mismatches == 0]
+        if (!unlist){
+            split_factor <- factor(names(out), levels=names(object))
+            if (!use.names){
+                out <- .namesAsColumn_gr(out)
+            } 
+            out <- S4Vectors::split(out, f=split_factor)[names(object)]
+        }
+    }
+    return(out)
+})
+
+
+#' @rdname GuideSet-class
+#' @param max_mismatches What should be the maximum number of 
+#'     mismatches considered for off-targets? 
+#'     Inf by default.
+#' @importFrom S4Vectors mcols split
+#' @importFrom BiocGenerics unlist
+#' @export
+setMethod("offTargets", "GuideSet", 
+    function(object,
+             columnName="alignments",
+             max_mismatches=Inf,
+             unlist=TRUE,
+             use.names=TRUE){
+    
+    stopifnot("max_mismatches must be a non-negative integer" = {
+        is.vector(max_mismatches, mode="numeric") &&
+            length(max_mismatches) == 1 &&
+            max_mismatches == round(max_mismatches) &&
+            max_mismatches >= 0
+    })
+    if (!columnName %in% colnames(S4Vectors::mcols(object)) ||
+        !.isAlignmentsColumn(object, columnName)){
+        out <- NULL
+    } else {
+        out <- S4Vectors::mcols(object)[[columnName]]
+        out <- BiocGenerics::unlist(out, use.names=FALSE)
+        out <- out[out$n_mismatches > 0 & out$n_mismatches <= max_mismatches]
+        if (!unlist){
+            split_factor <- factor(names(out), levels=names(object))
+            if (!use.names){
+                out <- .namesAsColumn_gr(out)
+            } 
+            out <- S4Vectors::split(out, f=split_factor)[names(object)]
+        }
+    }
+    return(out)
+})
+
+
+
+
+
+# setMethod("alignments", "GuideSet", 
+#     function(object,
+#              columnName="alignments",
+#              unlist=TRUE,
+#              use.names=TRUE){
+#     if (!columnName %in% colnames(S4Vectors::mcols(object)) ||
+#         !.isAlignmentsColumn(object, columnName)){
+#         out <- NULL
+#     } else {
+#         out <- S4Vectors::mcols(object)[[columnName]]
+#         out <- BiocGenerics::unlist(out, use.names=FALSE)
+#         if (!use.names){
+#             out <- .namesAsColumn_gr(out)
+#             split_factor <- S4Vectors::mcols(out)[["spacer_id"]]
+#         } else {
+#             split_factor <- names(out)
+#         }
+#         if (!unlist){
+#             out <- S4Vectors::split(out, f=split_factor)
+#         }
+#     }
+#     return(out)
+# })
 
 
 
@@ -557,75 +653,6 @@ setMethod("snps<-", "GuideSet",
 
 
 
-
-
-
-#' @rdname GuideSet-class
-#' @importFrom S4Vectors mcols split
-#' @importFrom BiocGenerics unlist
-#' @export
-setMethod("onTargets", "GuideSet", 
-    function(object,
-             columnName="alignments",
-             unlist=TRUE,
-             use.names=TRUE){
-    out <- alignments(object=object,
-                      columnName=columnName,
-                      unlist=unlist,
-                      use.names=use.names)
-    if (!unlist){
-        out <- BiocGenerics::unlist(out, use.names=FALSE)
-        out <- out[out$n_mismatches == 0]
-        if (use.names){
-            split_factor <- names(out)
-        } else {
-            split_factor <- S4Vectors::mcols(out)[["spacer_id"]]
-        }
-        out <- S4Vectors::split(out, f=split_factor)
-    } else {
-        out <- out[out$n_mismatches == 0]
-    }
-    return(out)
-})
-
-
-#' @rdname GuideSet-class
-#' @param max_mismatches What should be the maximum number of 
-#'     mismatches considered for off-targets? 
-#'     Inf by default.
-#' @importFrom S4Vectors mcols split
-#' @importFrom BiocGenerics unlist
-#' @export
-setMethod("offTargets", "GuideSet", 
-    function(object,
-             columnName="alignments",
-             max_mismatches=Inf,
-             unlist=TRUE,
-             use.names=TRUE){
-    out <- alignments(object=object,
-                      columnName=columnName,
-                      unlist=unlist,
-                      use.names=use.names)
-    stopifnot("max_mismatches must be a non-negative integer" = {
-        is.vector(max_mismatches, mode="numeric") &&
-            length(max_mismatches) == 1 &&
-            max_mismatches == round(max_mismatches) &&
-            max_mismatches >= 0
-    })
-    if (!unlist){
-        out <- BiocGenerics::unlist(out, use.names=FALSE)
-        out <- out[out$n_mismatches > 0 & out$n_mismatches <= max_mismatches]
-        if (use.names){
-            split_factor <- names(out)
-        } else {
-            split_factor <- S4Vectors::mcols(out)[["spacer_id"]]
-        }
-        out <- S4Vectors::split(out, f=split_factor)
-    } else {
-        out <- out[out$n_mismatches > 0 & out$n_mismatches <= max_mismatches]
-    }
-    return(out)
-})
 
 
 
