@@ -476,6 +476,27 @@ compact <- function(x) {
 }
 
 
+.hasGeneAnnotation <- function(guideSet){
+    "geneAnnotation" %in% colnames(mcols(guideSet))
+}
+
+.hasSNPAnnotation <- function(guideSet){
+    "snps" %in% colnames(mcols(guideSet))
+}
+
+.hasTssAnnotation <- function(guideSet){
+    "tssAnnotation" %in% colnames(mcols(guideSet))
+}
+
+.hasEnzymeAnnotation <- function(guideSet){
+    "enzymeAnnotation" %in% colnames(mcols(guideSet))
+}
+
+
+.hasAlignments <- function(guideSet){
+    "alignments" %in% colnames(mcols(guideSet))
+}
+
 
 
 
