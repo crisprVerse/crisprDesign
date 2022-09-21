@@ -647,18 +647,21 @@ setMethod("addGeneAnnotation", "NULL", function(object){
     mart <- biomaRt::useDataset(mart_dataset, mart=mart)
     
     # Get bm of Pfam domains from anchor coordinates:
-    chr <- GenomeInfoDb::seqnames(geneAnn)
-    chr <- gsub('[^0-9]', '', as.character(chr))
+    #chr <- GenomeInfoDb::seqnames(geneAnn)
+    #chr <- gsub('[^0-9]', '', as.character(chr))
     attributes <- c('ensembl_transcript_id', 'pfam', 'pfam_start', 'pfam_end')
-    filters    <- c('chromosome_name', 'start', 'end')
-    values     <- list(chr,
-                       IRanges::pos(geneAnn),
-                       IRanges::pos(geneAnn))
+    #filters    <- c('chromosome_name', 'start', 'end')
+    #values     <- list(chr,
+    #                   IRanges::pos(geneAnn),
+    #                   IRanges::pos(geneAnn))
+    values <- unique(geneAnn$tx_id)
+    filters  <- c('ensembl_transcript_id')
+    cat("[addGeneAnnotation] Obtaining Pfam domains from Ensembl \n")
     bm <- biomaRt::getBM(attributes=attributes,
                          filters=filters,
                          values=values,
                          mart=mart)
-    
+    bm <- unique(bm)
     pfam <- lapply(seq_len(nrow(bm)), function(x){
         txId <- S4Vectors::mcols(geneAnn)$tx_id
         aaIndex <- S4Vectors::mcols(geneAnn)$aminoAcidIndex
