@@ -107,6 +107,8 @@
 #'     Ensembl canonical isoforms. First column must be named "tx_id",
 #'     and second column must be named "gene_id", corresponding to
 #'     Ensembl transcript and gene ids, respectively. 
+#' @param pfamTable A \linkS4class{DataFrame} obtained using
+#'     \code{\link{preparePfamTable}}.
 #' @param verbose Should messages be printed?
 #' 
 #' @return A \code{GuideSet} object.
@@ -146,6 +148,7 @@ designCompleteAnnotation <- function(queryValue=NULL,
                                      nucExtension=9,
                                      binaries=NULL,
                                      canonicalIsoforms=NULL,
+                                     pfamTable=NULL,
                                      verbose=TRUE
 ){
     modality <- match.arg(modality)
@@ -273,6 +276,9 @@ designCompleteAnnotation <- function(queryValue=NULL,
     } 
     out <- addGeneAnnotation(out,
                              txObject=txObject)
+    if (!is.null(pfamTable) & isKO){
+        out <- addPfamDomains(out, pfamTable=pfamTable)
+    }
     out <- addRestrictionEnzymes(out)
 
     if (isA | isI){

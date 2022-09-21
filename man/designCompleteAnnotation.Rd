@@ -29,6 +29,7 @@ designCompleteAnnotation(
   nucExtension = 9,
   binaries = NULL,
   canonicalIsoforms = NULL,
+  pfamTable = NULL,
   verbose = TRUE
 )
 }
@@ -118,6 +119,9 @@ available on the PATH.}
 Ensembl canonical isoforms. First column must be named "tx_id",
 and second column must be named "gene_id", corresponding to
 Ensembl transcript and gene ids, respectively.}
+
+\item{pfamTable}{A \linkS4class{DataFrame} obtained using
+\code{\link{preparePfamTable}}.}
 
 \item{verbose}{Should messages be printed?}
 }
