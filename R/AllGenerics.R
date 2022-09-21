@@ -238,6 +238,14 @@ setGeneric("addTssAnnotation",
            function(object, ...) standardGeneric("addTssAnnotation"))
 
 
+#' @rdname addPfamDomains
+#' @export
+setGeneric("addPfamDomains",
+           function(object, ...) standardGeneric("addPfamDomains"))
+
+
+
+
 #' @rdname addSpacerAlignments
 #' @export
 setGeneric("addSpacerAlignments",
