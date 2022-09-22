@@ -49,9 +49,9 @@ For each nuclease, we rank gRNAs based on several rounds of priority.
     are placed into the fourth round.
 
     If \code{tx_id} is specified, within each round of selection, gRNAs 
-    targeting the first 85% of the specific transcript are prioritized 
-    first. If both \code{tx_id} is specified, and \code{commonExon} is set
-    to TRUE, gRNAs targeting a common exon across isoforms are also
+    targeting the first 85 percent of the specific transcript are 
+    prioritized first. If \code{tx_id} is specified, and \code{commonExon}
+    is set to TRUE, gRNAs targeting common exons across isoforms are also
     prioritized. If a conservation score is available, gRNAs
     targeting conserved regions (phyloP conservation score greater than 0), 
     are also prioritized.
@@ -67,7 +67,7 @@ For each nuclease, we rank gRNAs based on several rounds of priority.
 
     For CasRx, gRNAs targeting all isoforms of a given gene, with no 1- or 
     2-mismatch off-targets, are placed into the first round. gRNAs
-    targeting at least 50% of the isoforms of a given gene, with 
+    targeting at least 50 percent of the isoforms of a given gene, with 
     no 1- or 2-mismatch off-targets, are placed into the second round. 
     Remaining gRNAs are placed into the third round. Within each
     round of selection, gRNAs are further ranked by the CasRxRF

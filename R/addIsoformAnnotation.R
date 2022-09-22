@@ -50,8 +50,8 @@ setMethod("addIsoformAnnotation",
 
     # Let's extract gene id:
     wh <- match(tx_id, geneAnn$tx_id)
-    if (length(wh)==0){
-        stop("tx_id not found")
+    if (is.na(wh)){
+        stop("tx_id not found.")
     }
     gene_id <- geneAnn[wh, "gene_id"]
     geneAnn <- geneAnn[geneAnn$gene_id==gene_id,,drop=FALSE]
