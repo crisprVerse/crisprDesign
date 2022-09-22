@@ -33,28 +33,32 @@ setMethod("addPfamDomains",
     geneAnn <- geneAnnotation(object)
     bm <- pfamTable[pfamTable$ensembl_transcript_id %in% geneAnn$tx_id, ]
 
-    pfam <- lapply(seq_len(nrow(bm)), function(k){
-        txId <- geneAnn$tx_id
-        aaIndex <- geneAnn$aminoAcidIndex
-        hasMatchingTx <- !is.na(txId) & txId == bm$ensembl_transcript_id[k]
-        isNotBeforeDomain <- !is.na(aaIndex) & aaIndex >= bm$pfam_start[k]
-        isNotAfterDomain <- !is.na(aaIndex) & aaIndex <= bm$pfam_end[k]
-        inPfamDomain <- hasMatchingTx & isNotBeforeDomain & isNotAfterDomain
-        spacerPfamDomain <- rep(NA, length(geneAnn))
-        spacerPfamDomain[inPfamDomain] <- bm$pfam[k]
-        spacerPfamDomain
-    })
-    pfam <- as.data.frame(pfam, row.names = NULL)
-    pfam <- apply(pfam, 1, function(x){
-        domains <- x[!is.na(x)]
-        domains <- unique(domains)
-        if (length(domains) > 0){
-            paste0(domains, collapse=';')
-        } else {
-            NA
-        }
-    })
-    geneAnn[["pfam"]] <- pfam
+    if (nrow(bm)!=0){
+        pfam <- lapply(seq_len(nrow(bm)), function(k){
+            txId <- geneAnn$tx_id
+            aaIndex <- geneAnn$aminoAcidIndex
+            hasMatchingTx <- !is.na(txId) & txId == bm$ensembl_transcript_id[k]
+            isNotBeforeDomain <- !is.na(aaIndex) & aaIndex >= bm$pfam_start[k]
+            isNotAfterDomain <- !is.na(aaIndex) & aaIndex <= bm$pfam_end[k]
+            inPfamDomain <- hasMatchingTx & isNotBeforeDomain & isNotAfterDomain
+            spacerPfamDomain <- rep(NA, length(geneAnn))
+            spacerPfamDomain[inPfamDomain] <- bm$pfam[k]
+            spacerPfamDomain
+        })
+        pfam <- as.data.frame(pfam, row.names = NULL)
+        pfam <- apply(pfam, 1, function(x){
+            domains <- x[!is.na(x)]
+            domains <- unique(domains)
+            if (length(domains) > 0){
+                paste0(domains, collapse=';')
+            } else {
+                NA
+            }
+        })
+        geneAnn[["pfam"]] <- pfam
+    } else {
+        geneAnn[["pfam"]] <- NA
+    }
     splitFactor <- factor(BiocGenerics::rownames(geneAnn),
                           levels=names(object))
     geneAnn <- S4Vectors::split(geneAnn, f=splitFactor)
