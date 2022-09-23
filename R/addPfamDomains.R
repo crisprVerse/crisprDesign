@@ -41,7 +41,7 @@ setMethod("addPfamDomains",
             isNotBeforeDomain <- !is.na(aaIndex) & aaIndex >= bm$pfam_start[k]
             isNotAfterDomain <- !is.na(aaIndex) & aaIndex <= bm$pfam_end[k]
             inPfamDomain <- hasMatchingTx & isNotBeforeDomain & isNotAfterDomain
-            spacerPfamDomain <- rep(NA, length(geneAnn))
+            spacerPfamDomain <- rep(NA, nrow(geneAnn))
             spacerPfamDomain[inPfamDomain] <- bm$pfam[k]
             spacerPfamDomain
         })
