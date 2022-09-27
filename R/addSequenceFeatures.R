@@ -219,7 +219,7 @@ setMethod("addSequenceFeatures", "NULL", function(object,
          package="crisprBase",
          envir=environment())
     if (!.identicalNucleases(SpCas9, nuc)){
-        stop(".addTp53Toxicity only works for SpCas9.")
+        return(guideSet)
     }
     NNGG <- .getExtendedSequences(guideSet,
                                   start=-1,
