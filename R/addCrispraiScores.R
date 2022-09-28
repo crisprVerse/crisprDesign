@@ -145,9 +145,6 @@ setMethod("addCrispraiScores", "NULL", function(object){
     if (sum(out$promoter=="")>0){
         stop("promoter has some empty values.")
     }
-    #if (sum(is.na(out$transcripts))>0){
-    #    stop("tx_id has some missing values.")
-    #}
     if (sum(is.na(out$position))>0){
         stop("start has some missing values.")
     }
@@ -157,6 +154,13 @@ setMethod("addCrispraiScores", "NULL", function(object){
     if (sum(is.na(out$seqnames))>0){
         stop("strand has some missing values.")
     }
+
+    # Checking for final compatibility:
+    good <- all(out$tss_id==paste0(out$gene_symbol, "_", out$promoter))
+    if (!good){
+        stop("The ID does not seem to be of the form geneCol_promoter.")
+    }
+
     return(out)
 }
 
