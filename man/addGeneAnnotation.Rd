@@ -11,7 +11,7 @@ addGeneAnnotation(object, ...)
 \S4method{addGeneAnnotation}{GuideSet}(
   object,
   txObject,
-  anchor = c("cut_site", "pam_site"),
+  anchor = c("cut_site", "pam_site", "editing_site"),
   ignore_introns = TRUE,
   ignore.strand = TRUE,
   addPfam = FALSE,
@@ -21,7 +21,7 @@ addGeneAnnotation(object, ...)
 \S4method{addGeneAnnotation}{PairedGuideSet}(
   object,
   txObject,
-  anchor = c("cut_site", "pam_site"),
+  anchor = c("cut_site", "pam_site", "editing_site"),
   ignore_introns = TRUE,
   ignore.strand = TRUE,
   addPfam = FALSE,
@@ -41,7 +41,7 @@ gene model annotation.}
 
 \item{anchor}{String specifying which relative coordinate
 of gRNAs should be used to locate gRNAs within gene.
-Must be either "cut_site" or "pam_site".}
+Must be either "cut_site", "pam_site" or "editing_site".}
 
 \item{ignore_introns}{Should gene introns be ignored when annotating?
 TRUE by default.}

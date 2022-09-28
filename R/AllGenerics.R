@@ -244,6 +244,11 @@ setGeneric("addPfamDomains",
            function(object, ...) standardGeneric("addPfamDomains"))
 
 
+#' @rdname addEditingSites
+#' @export
+setGeneric("addEditingSites",
+           function(object, ...) standardGeneric("addEditingSites"))
+
 
 
 #' @rdname addSpacerAlignments

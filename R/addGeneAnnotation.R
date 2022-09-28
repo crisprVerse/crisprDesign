@@ -9,7 +9,7 @@
 #'     gene model annotation. 
 #' @param anchor String specifying which relative coordinate
 #'     of gRNAs should be used to locate gRNAs within gene.
-#'     Must be either "cut_site" or "pam_site".
+#'     Must be either "cut_site", "pam_site" or "editing_site".
 #' @param ignore_introns Should gene introns be ignored when annotating?
 #'     TRUE by default. 
 #' @param ignore.strand Should gene strand be ignored when annotating?
@@ -106,7 +106,7 @@ setMethod("addGeneAnnotation",
           "GuideSet", 
           function(object,
                    txObject,
-                   anchor=c("cut_site", "pam_site"),
+                   anchor=c("cut_site", "pam_site", "editing_site"),
                    ignore_introns=TRUE,
                    ignore.strand=TRUE,
                    addPfam=FALSE,
@@ -136,7 +136,7 @@ setMethod("addGeneAnnotation",
           "PairedGuideSet", 
           function(object,
                    txObject,
-                   anchor=c("cut_site", "pam_site"),
+                   anchor=c("cut_site", "pam_site", "editing_site"),
                    ignore_introns=TRUE,
                    ignore.strand=TRUE,
                    addPfam=FALSE,
