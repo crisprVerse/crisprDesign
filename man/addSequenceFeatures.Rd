@@ -41,19 +41,24 @@ sequence complementarity. FALSE by default. See details.}
 to hairpin formation with a complementary region in the spacer sequence.}
 
 \item{tp53}{Should TP53-related toxicity features be added? 
-TRUE by default.}
+TRUE by default. See details.}
 }
 \value{
-\code{guideSet} with the following columns appended to
-   \code{mcols(guideSet)}: 
+The original \code{object} with the following columns appended to
+   \code{mcols(object)}: 
    \itemize{
        \item \code{percentGC} — percent GC content
        \item \code{polyA}, \code{polyC}, \code{polyG}, \code{polyT} —
        presence of homopolymers of 4nt or longer
        \item \code{selfHairpin} — prediction of hairpin formation within the
-       spacer sequence via self-complementarity
+       spacer sequence via self-complementarity if \code{addHairpin} is
+       \code{TRUE}. 
        \item \code{backboneHairpin} — prediction of hairpin formation with
-       the backbone sequence via complementarity
+       the backbone sequence via complementarity if \code{addHairpin} is
+       \code{TRUE}. 
+       \item \code{NNGG} -- extended PAM sequence for SpCas9 if  \code{tp53}
+       is \code{TRUE} corresponding to one nucleotide upstream of the PAM
+       sequence followed by the PAM sequence itself. 
    }
 }
 \description{
@@ -62,11 +67,22 @@ Add spacer sequence feature annotation columns, such as
     \linkS4class{GuideSet} object.
 }
 \details{
-\code{addSequenceFeatures} predicts spacers to form internal
-    hairpins when there is a palindromic sequence within the spacer having
+The \code{addHairpin} argument set to \code{TRUE} will indicates
+    which spacers are predicted to form internal hairpins. Such hairpins
+    can happen when there is a palindromic sequence within the spacer having
     arms of >=4nt and >=50\% GC content, and are separated by a loop of
     >=4nt. Backbone hairpin formation is predicted when the spacer and
     backbone share a complementary sequence of >=5nt and >=50\% GC content.
+    The argument \code{backbone} allows users to specify the vector 
+    backbone sequence directly downstream of the spacer sequence. 
+
+    The \code{tp53} argument set to \code{TRUE} will add sequence-based
+    features that have been reported to make SpCas9 gRNAs toxic for 
+    cells with wildtype TP53
+    (see https://doi.org/10.1038/s41467-022-32285-1). Currently, only 
+    one feature is reported and consists of the extended NNGG PAM sequence
+    (1 nucleotide + PAM sequence) for SpCas9. gRNAs with extended CNGG
+    PAM sequences, and in particular CCGG, should be avoided.
 }
 \examples{
 custom_seq <- c("ATTTCCGGAGGCGGAGAGGCGGGAGGAGCG")
