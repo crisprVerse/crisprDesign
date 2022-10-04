@@ -52,8 +52,10 @@ setMethod("addCompositeScores", "GuideSet",
 ){
     object <- .validateGuideSet(object)
     crisprNuclease <- crisprNuclease(object)
-    methods <- .validateOnTargetScoreMethods(methods=methods,
-                                             crisprNuclease=crisprNuclease)
+    if (!"crispra" %in% methods & !"crispri" %in% methods){
+        methods <- .validateOnTargetScoreMethods(methods=methods,
+                                                 crisprNuclease=crisprNuclease)
+    }
     score_columns <- paste0("score_", methods)
     missing <- methods[!score_columns %in% colnames(mcols(object))]
     if (length(missing)>0){
