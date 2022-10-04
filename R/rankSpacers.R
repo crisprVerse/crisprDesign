@@ -209,7 +209,7 @@ rankSpacers <- function(guideSet,
         if (hasCrispriScore){
             scores <- "crispri"
         }
-        if (hasCrispriScore & hasCrispriScore){
+        if (hasCrispraScore & hasCrispriScore){
             stop("Both CRISPRi and CRISPRa scores are added.",
                  "Please remove one.")
         }
