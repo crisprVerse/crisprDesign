@@ -204,10 +204,10 @@ rankSpacers <- function(guideSet,
         hasCrispraScore <- "score_crispra" %in% colnames(mcols(guideSet))
         hasCrispriScore <- "score_crispri" %in% colnames(mcols(guideSet))
         if (hasCrispraScore){
-            scores <- "score_crispra"
+            scores <- "crispra"
         }
         if (hasCrispriScore){
-            scores <- "score_crispri"
+            scores <- "crispri"
         }
         if (hasCrispriScore & hasCrispriScore){
             stop("Both CRISPRi and CRISPRa scores are added.",
