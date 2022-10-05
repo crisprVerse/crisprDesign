@@ -347,7 +347,11 @@ setMethod("addGeneAnnotation", "NULL", function(object){
                                             targetAnnotation,
                                             ignore.strand=ignore.strand)
     geneAnn <- anchorSites[S4Vectors::queryHits(overlaps)]
-    targetAnnotationCols <- c("gene_symbol", "gene_id", "tx_id", "protein_id")
+    targetAnnotationCols <- c("gene_symbol",
+                              "gene_id",
+                              "tx_id",
+                              "protein_id",
+                              "exon_id")
     for (i in targetAnnotationCols){
         indices <- S4Vectors::subjectHits(overlaps)
         S4Vectors::mcols(geneAnn)[[i]] <-
