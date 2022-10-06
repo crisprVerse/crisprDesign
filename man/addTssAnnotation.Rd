@@ -38,7 +38,7 @@ and annotation.}
 
 \item{anchor}{A character string specifying which gRNA-specific coordinate
 to use (\code{cut_site} or \code{pam_site}) when searching for
-overlapping TSS regions.}
+overlapping TSS regions. "cut_site" by default.}
 
 \item{tss_window}{A numeric vector of length 2 establishing the window size
 of the genomic region around the TSS to include as the "TSS region".

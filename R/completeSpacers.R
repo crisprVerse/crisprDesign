@@ -190,10 +190,27 @@ getSpacerSequence <- function(chr,
 
 
 
-# Convert original GuideSet coordinates (pam_site) to protospacer coordinates
+#' @title Convert PAM site coordinates to protospacer start and end coordinates
+#' 
+#' @description  Convert PAM site coordinates to protospacer start
+#'     and end coordinates.
+#' 
+#' @param guideSet A \linkS4class{GuideSet} object.
+#' 
+#' @return A \linkS4class{GuideSet} object with start and end coordinates
+#'     corresponding to the start and end coordinates of the protospacer
+#'     sequences. 
+
+#' @examples
+#' data(guideSetExample, package="crisprDesign")
+#' gr <- convertToProtospacerGRanges(guideSetExample)
+#' 
+#' @author Jean-Philippe Fortin
+#' 
 #' @importFrom S4Vectors metadata DataFrame
 #' @importFrom BiocGenerics start end start<- end<- strand
 #' @importFrom crisprBase pamSide pamLength spacerLength
+#' @export
 convertToProtospacerGRanges <- function(guideSet){
     guideSet <- .validateGuideSet(guideSet)
     crisprNuclease <- crisprNuclease(guideSet)
@@ -221,6 +238,59 @@ convertToProtospacerGRanges <- function(guideSet){
     return(gr.new)
 }
 
+
+
+
+#' @title Convert a GuideSet object into a GRanges storing the range of 
+#'     all gRNAs.
+
+#' @description  Convert a GuideSet object into a GRanges object containing 
+#'    the minimum and maximum coordinates of all gRNAs. 
+#' 
+#' @param guideSet A \linkS4class{GuideSet} object.
+#' @param anchor A character string specifying which gRNA-specific coordinate
+#'     to use (\code{cut_site} or \code{pam_site}) when definining the min
+#'     and max coordinates of \linkS4class{GuideSet} object.
+#' 
+#' @return A GRanges object with start and end coordinates
+#'     corresponding to the minimum and maximum coordinates of the GuideSet
+#'     object sites defined by \code{anchor}.
+#' 
+#' @examples
+#' data(guideSetExample, package="crisprDesign")
+#' gr <- convertToMinMaxGRanges(guideSetExample)
+#' 
+#' @author Jean-Philippe Fortin
+#' 
+#' @importFrom GenomicRanges GRanges
+#' @importFrom IRanges IRanges
+#' @importFrom GenomeInfoDb seqlevels seqlevels<-
+#' @importFrom GenomeInfoDb seqinfo seqinfo<-
+#' @export
+convertToMinMaxGRanges <- function(guideSet,
+                                   anchor=c("cut_site", "pam_site")
+){
+    anchor <- match.arg(anchor)
+    grs <- split(guideSet, f=as.character(seqnames(guideSet)))
+    grs <- lapply(grs, function(gr){
+        if (anchor=="cut_site"){
+            start <- min(cutSites(gr), na.rm=TRUE)
+            end   <- max(cutSites(gr), na.rm=TRUE)
+        } else if (anchor=="pam_site"){
+            start <- min(pamSites(gr), na.rm=TRUE)
+            end   <- max(pamSites(gr), na.rm=TRUE)
+        }
+    
+        chr <- as.character(seqnames(gr))[1]
+        out <- GRanges(chr,
+                       IRanges(start=start,end=end))
+        seqlevels(out) <- seqlevels(gr)
+        seqinfo(out) <- seqinfo(gr)
+        out
+    })
+    gr <- Reduce(c,grs)
+    return(gr)
+}
 
 
 
