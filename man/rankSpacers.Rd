@@ -7,7 +7,6 @@
 rankSpacers(
   guideSet,
   tx_id = NULL,
-  useCodingInfo = TRUE,
   commonExon = FALSE,
   modality = c("CRISPRko", "CRISPRa", "CRISPRi")
 )
@@ -17,9 +16,6 @@ rankSpacers(
 
 \item{tx_id}{Optional string specifying transcript ID to use
 isoform-specific information for gRNA ranking.}
-
-\item{useCodingInfo}{Should protein coding annotation be used to rank 
-gRNAs based on the number of off-targets? TRUE by default.}
 
 \item{commonExon}{Should gRNAs targeting common exons by prioritized?
 FALSE by default. If TRUE, \code{tx_id} must be provided.}

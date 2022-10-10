@@ -18,8 +18,6 @@
 #' @param guideSet A \linkS4class{GuideSet} object.
 #' @param tx_id Optional string specifying transcript ID to use
 #'     isoform-specific information for gRNA ranking.
-#' @param useCodingInfo Should protein coding annotation be used to rank 
-#'    gRNAs based on the number of off-targets? TRUE by default. 
 #' @param commonExon Should gRNAs targeting common exons by prioritized?
 #'     FALSE by default. If TRUE, \code{tx_id} must be provided.
 #' @param modality String specifying the CRISPR modality. Should be one
@@ -77,9 +75,10 @@
 #' @export
 rankSpacers <- function(guideSet,
                         tx_id=NULL,
-                        useCodingInfo=TRUE,
                         commonExon=FALSE,
-                        modality=c("CRISPRko", "CRISPRa", "CRISPRi")
+                        modality=c("CRISPRko",
+                                   "CRISPRa",
+                                   "CRISPRi")
 ){
     modality <- match.arg(modality)
     crisprNuclease <- crisprNuclease(guideSet)
@@ -114,7 +113,7 @@ rankSpacers <- function(guideSet,
         guideSet$score_exon <- exon
     }
     guideSet <- .createDefaultSelectionRounds(guideSet,
-                                              useCodingInfo=useCodingInfo)
+                                              modality=modality)
     guideSet <- .getDefaultCompositeScores(guideSet)
     if (modality=="CRISPRko"){
         rankingCols <- c("round",
@@ -124,6 +123,7 @@ rankSpacers <- function(guideSet,
                          "score_composite")
     } else if (modality=="CRISPRa" | modality=="CRISPRi"){
         rankingCols <- c("round",
+                         "distBin",
                          "score_composite")
     }
 
@@ -145,39 +145,52 @@ rankSpacers <- function(guideSet,
 
 
 
+
+
 .createDefaultSelectionRounds <- function(guideSet,
-                                          useCodingInfo=TRUE
+                                          modality=c("CRISPRko",
+                                                     "CRISPRa",
+                                                     "CRISPRi")
 ){
+    modality <- match.arg(modality)
+    isKO <- modality=="CRISPRko"
+    isA  <- modality=="CRISPRa"
+    isI  <- modality=="CRISPRi"
+    isAorI <- isA|isI
+    
+    cols <- colnames(mcols(guideSet))
+    if (!"dist_to_tss" %in% cols  & isAorI){
+        stop("dist_to_tss column is missing. Please call addDistanceToTss first.")
+    }
+    if (!"polyT" %in% cols){
+        stop("poly column is missing. Please call addSequenceFeatures first.")
+    }
+    if (!"percentGC" %in% cols){
+        stop("percentGC column is missing. Please call addSequenceFeatures first.")
+    }
     n0     <- guideSet$n0
     n1     <- guideSet$n1
     n2     <- guideSet$n2
     n1_c   <- guideSet$n1_c
     n2_c   <- guideSet$n2_c
+    n1_p   <- guideSet$n1_p
+    n2_p   <- guideSet$n2_p
     polyT  <- guideSet$polyT
     hasSNP <- guideSet$hasSNP
     gc     <- guideSet$percentGC
+  
 
-    # Creating bins:
-    guideSet$round <- NA
-    if (useCodingInfo){
-        if (is.null(n1_c) | is.null(n2_c)){
-            stop("n1_c or n2_c columns don't exist. Please", 
-                 " use addSpacerAlignments first with a specified",
-                 " txObject.")
-        }
-        guideSet$round[n0!=1 | (n1 + n2_c)>5] <- 3
+    # Creating off-target bins:
+    if (isAorI){
+        guideSet$round <- NA
+        guideSet$round[n0!=1 | (n1_p + n2_p)>5] <- 3
+        guideSet$round[n0==1 & (n1_p + n2_p)<=5]  <- 2
+        guideSet$round[n0==1 & n1_p==0 & n2_p==0] <- 1
+    } else {
+        guideSet$round <- NA
+        guideSet$round[n0!=1 | (n1_c + n2_c)>5] <- 3
         guideSet$round[n0==1 & (n1_c + n2_c)<=5]  <- 2
         guideSet$round[n0==1 & n1_c==0 & n2_c==0] <- 1
-    } else {
-        guideSet$round[n0!=1 | n1>5]  <- 3
-        guideSet$round[n0==1 & n1<=5] <- 2
-        guideSet$round[n0==1 & n1==0 & n2<=3] <- 1
-    }
-
-    # Undesirable gRNAs:
-    if (is.null(polyT) | is.null(gc)){
-        stop("poly or percentGC columns are missing. Please use",
-             " addSequenceFeatures first.")
     }
     guideSet$round[polyT] <- 4
     guideSet$round[gc<20] <- 4
@@ -187,8 +200,37 @@ rankSpacers <- function(guideSet,
     if (!is.null(hasSNP)){
         guideSet$round[hasSNP] <- 4
     }
+ 
+    # Creating distance bins:
+    if (isA){
+        dist    <- guideSet$dist_to_tss
+        distBin <- dist
+        starts <- c(-150, -175, -200, -250, -300, -350, -400, -500)
+        ends   <- c(-75,   -50,  -25,    0,    0,    0,    0,    0)
+        nbins <- length(starts)
+        for (k in rev(seq_len(nbins))){
+            distBin[dist>=starts[k] & dist<=ends[k]] <- k
+        }
+        guideSet$distBin <- distBin
+    } else if (isI){
+        #bin1: 25 to 75
+        #bin2: 0 to 25
+        #bin3: 75 to 100 and 175 to 250
+        #bin4: -25 to 0, and 100 to 175 and <250
+        dist    <- guideSet$dist_to_tss
+        distBin <- dist
+        distBin[dist>=25 & dist<=75] <- 1
+        distBin[dist>=0 & dist<25] <- 2
+        distBin[(dist>75 & dist<=100) | (dist>=175 & dist<250)] <- 3
+        distBin[dist<0 | dist >=250 | (dist>100 & dist<175)] <- 4
+        guideSet$distBin <- distBin
+    } else {
+        guideSet$distBin <- NA
+    }
+    
     return(guideSet)
 }
+
 
 
 .getDefaultCompositeScores <- function(guideSet){
