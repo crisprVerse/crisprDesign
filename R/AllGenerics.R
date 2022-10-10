@@ -202,6 +202,15 @@ setGeneric("addIsoformAnnotation",
            function(object, ...) standardGeneric("addIsoformAnnotation"))
 
 
+
+#' @rdname addDistanceToTss
+#' @export
+setGeneric("addDistanceToTss",
+           function(object, ...) standardGeneric("addDistanceToTss"))
+
+
+
+
 #' @rdname addRestrictionEnzymes
 #' @export
 setGeneric("addRestrictionEnzymes",
