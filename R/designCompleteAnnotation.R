@@ -292,6 +292,8 @@ designCompleteAnnotation <- function(queryValue=NULL,
         out <- addTssAnnotation(out,
                                 tssObject=tssObject,
                                 tss_window=tss_window)
+        out <- addDistanceToTss(out,
+                                tss_id=queryValue)
     }
 
     if (verbose){
