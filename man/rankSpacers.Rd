@@ -8,7 +8,8 @@ rankSpacers(
   guideSet,
   tx_id = NULL,
   commonExon = FALSE,
-  modality = c("CRISPRko", "CRISPRa", "CRISPRi")
+  modality = c("CRISPRko", "CRISPRa", "CRISPRi"),
+  useDistanceToTss = TRUE
 )
 }
 \arguments{
@@ -22,6 +23,11 @@ FALSE by default. If TRUE, \code{tx_id} must be provided.}
 
 \item{modality}{String specifying the CRISPR modality. Should be one
 of the following: "CRISPRko", "CRISPRa", or "CRISPRi".}
+
+\item{useDistanceToTss}{Should distance to TSS be used to rank gRNAs 
+for CRISPRa and CRISPRi applications? TRUE by default. 
+For SpCas9 and human targets, this should be set to FALSE if
+\code{addCrispraiScores} was used.}
 }
 \value{
 A \linkS4class{GuideSet} object ranked from best to worst gRNAs,
