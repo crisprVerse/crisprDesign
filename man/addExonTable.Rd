@@ -5,7 +5,13 @@
 \title{Add a gene-specific exon table to a 
      \linkS4class{GuideSet} object.}
 \usage{
-addExonTable(guideSet, gene_id, txObject, valueColumn = "percentCDS")
+addExonTable(
+  guideSet,
+  gene_id,
+  txObject,
+  valueColumn = "percentCDS",
+  useConsensusIsoform = FALSE
+)
 }
 \arguments{
 \item{guideSet}{A \linkS4class{GuideSet} object or a 
@@ -21,9 +27,13 @@ gene model annotation.}
 \item{valueColumn}{String specifying column in
 \code{geneAnnotation(guideSet)} to use as values in the 
 output exon table.}
+
+\item{useConsensusIsoform}{Should a consensus isoform be used to 
+annotate exons? FALSE by default. If TRUE, the isoform constructed
+by \code{getConsensusIsoform} will be used.}
 }
 \value{
-A \linkS4class{GuideSet} object with a "exinTable" DataFrame
+A \linkS4class{GuideSet} object with a "exonTable" DataFrame
     stored in \code{mcols(guideSet)}. The entries in the DataFrame
     correspond to the values specified by \code{valueColumn}.
     Rows correspond to gRNAs in the GuideSet, columns correspond to 

@@ -14,8 +14,11 @@
 #' @param valueColumn String specifying column in
 #'     \code{geneAnnotation(guideSet)} to use as values in the 
 #'     output exon table. 
+#' @param useConsensusIsoform Should a consensus isoform be used to 
+#'     annotate exons? FALSE by default. If TRUE, the isoform constructed
+#'     by \code{getConsensusIsoform} will be used. 
 #' 
-#' @return A \linkS4class{GuideSet} object with a "exinTable" DataFrame
+#' @return A \linkS4class{GuideSet} object with a "exonTable" DataFrame
 #'     stored in \code{mcols(guideSet)}. The entries in the DataFrame
 #'     correspond to the values specified by \code{valueColumn}.
 #'     Rows correspond to gRNAs in the GuideSet, columns correspond to 
@@ -43,7 +46,57 @@
 addExonTable <- function(guideSet,
                          gene_id,
                          txObject,
-                         valueColumn="percentCDS"
+                         valueColumn="percentCDS",
+                         useConsensusIsoform=FALSE
+){
+    if (useConsensusIsoform){
+        gs <- addExonTable_consensusIsoform(guideSet=guideSet,
+                                            gene_id=gene_id,
+                                            txObject=txObject)
+    } else {
+        gs <- addExonTable_allIsoforms(guideSet=guideSet,
+                                       gene_id=gene_id,
+                                       txObject=txObject,
+                                       valueColumn=valueColumn)
+    }
+    return(gs)
+}
+
+
+
+addExonTable_consensusIsoform <- function(guideSet,
+                                          gene_id,
+                                          txObject
+){
+    consensus <- getConsensusIsoform(gene_id=gene_id,
+                                     txObject=txObject)
+    exonids <- unique(consensus$exon_id)
+    guides <- names(guideSet)
+    out <- matrix(NA,
+                  nrow=length(guides),
+                  ncol=length(exonids))
+    rownames(out) <- guides
+    colnames(out) <- exonids
+    out <- as.data.frame(out)
+
+    # Looking at overlap:
+    gr <- getCutSiteRanges(guideSet,
+                           nuclease=crisprNuclease(guideSet))
+    df <- findOverlaps(gr, consensus, ignore.strand=TRUE)
+    df <- as.data.frame(df)
+    for (k in seq_len(nrow(df))){
+        out[df[k,1],df[k,2]] <- 1
+    }    
+    out <- DataFrame(out)
+    mcols(guideSet)$exonTable <- out
+    return(guideSet)
+}
+
+
+addExonTable_allIsoforms <- function(guideSet,
+                                     gene_id,
+                                     txObject,
+                                     valueColumn="percentCDS"
 ){
     stopifnot(.hasGeneAnnotation(guideSet))
 
@@ -75,4 +128,8 @@ addExonTable <- function(guideSet,
     mcols(guideSet)$exonTable <- out
     return(guideSet)
 }
+
+
+
+
 
