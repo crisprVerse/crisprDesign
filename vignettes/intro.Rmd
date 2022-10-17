@@ -25,7 +25,8 @@ bibliography: references.bib
 # Introduction
 
 `crisprDesign` is the core package of the
-[crisprVerse](https://github.com/crisprVerse), and plays the role of a 
+[crisprVerse](https://github.com/crisprVerse) ecosystem,
+and plays the role of a 
 one-stop shop for designing and annotating
 CRISPR guide RNA (gRNA) sequences. This includes the characterization of 
 on-targets and off-targets using different aligners, on- and off-target

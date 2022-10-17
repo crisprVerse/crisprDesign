@@ -63,9 +63,9 @@ Date: July 1, 2022
 # Introduction
 
 `crisprDesign` is the core package of the
-[crisprVerse](https://github.com/crisprVerse), and plays the role of a
-one-stop shop for designing and annotating CRISPR guide RNA (gRNA)
-sequences. This includes the characterization of on-targets and
+[crisprVerse](https://github.com/crisprVerse) ecosystem, and plays the
+role of a one-stop shop for designing and annotating CRISPR guide RNA
+(gRNA) sequences. This includes the characterization of on-targets and
 off-targets using different aligners, on- and off-target scoring, gene
 context annotation, SNP annotation, sequence feature characterization,
 repeat annotation, and many more.  
@@ -416,7 +416,7 @@ guideSet <- addSequenceFeatures(guideSet)
 head(guideSet)
 ```
 
-    ## GuideSet object with 6 ranges and 11 metadata columns:
+    ## GuideSet object with 6 ranges and 12 metadata columns:
     ##              seqnames    ranges strand |          protospacer            pam
     ##                 <Rle> <IRanges>  <Rle> |       <DNAStringSet> <DNAStringSet>
     ##   spacer_107    chr12     67371      + | CCGAGTTGCTGCGCTGCTGC            CGG
@@ -433,14 +433,14 @@ head(guideSet)
     ##   spacer_112     67396     67399    region_1        80     FALSE     FALSE
     ##    spacer_76     67244     67247    region_1        85     FALSE      TRUE
     ##    spacer_55     67153     67156    region_1        60     FALSE     FALSE
-    ##                  polyG     polyT startingGGGGG
-    ##              <logical> <logical>     <logical>
-    ##   spacer_107     FALSE     FALSE         FALSE
-    ##     spacer_9     FALSE     FALSE         FALSE
-    ##    spacer_74     FALSE     FALSE         FALSE
-    ##   spacer_112     FALSE     FALSE         FALSE
-    ##    spacer_76      TRUE     FALSE         FALSE
-    ##    spacer_55     FALSE     FALSE         FALSE
+    ##                  polyG     polyT startingGGGGG        NNGG
+    ##              <logical> <logical>     <logical> <character>
+    ##   spacer_107     FALSE     FALSE         FALSE        CCGG
+    ##     spacer_9     FALSE     FALSE         FALSE        ATGG
+    ##    spacer_74     FALSE     FALSE         FALSE        ACGG
+    ##   spacer_112     FALSE     FALSE         FALSE        GGGG
+    ##    spacer_76      TRUE     FALSE         FALSE        CAGG
+    ##    spacer_55     FALSE     FALSE         FALSE        TGGG
     ##   -------
     ##   seqinfo: 640 sequences (1 circular) from hg38 genome
     ##   crisprNuclease: SpCas9
@@ -545,7 +545,7 @@ Let’s look at what was added to the `GuideSet`:
 guideSet
 ```
 
-    ## GuideSet object with 20 ranges and 16 metadata columns:
+    ## GuideSet object with 20 ranges and 17 metadata columns:
     ##              seqnames    ranges strand |          protospacer            pam
     ##                 <Rle> <IRanges>  <Rle> |       <DNAStringSet> <DNAStringSet>
     ##   spacer_107    chr12     67371      + | CCGAGTTGCTGCGCTGCTGC            CGG
@@ -572,32 +572,32 @@ guideSet
     ##    spacer_24     67069     67072    region_1        80     FALSE     FALSE
     ##    spacer_13     66976     66979    region_1        60     FALSE     FALSE
     ##    spacer_95     67308     67305    region_1        60     FALSE      TRUE
-    ##                  polyG     polyT startingGGGGG        n0        n1      n0_c
-    ##              <logical> <logical>     <logical> <numeric> <numeric> <numeric>
-    ##   spacer_107     FALSE     FALSE         FALSE         1         0         1
-    ##     spacer_9     FALSE     FALSE         FALSE         1         0         1
-    ##    spacer_74     FALSE     FALSE         FALSE         1         0         1
-    ##   spacer_112     FALSE     FALSE         FALSE         1         0         1
-    ##    spacer_76      TRUE     FALSE         FALSE         1         0         1
-    ##          ...       ...       ...           ...       ...       ...       ...
-    ##   spacer_121     FALSE     FALSE         FALSE         1         0         1
-    ##    spacer_34      TRUE     FALSE         FALSE         1         0         1
-    ##    spacer_24     FALSE     FALSE         FALSE         1         0         1
-    ##    spacer_13     FALSE     FALSE         FALSE         1         0         1
-    ##    spacer_95     FALSE     FALSE         FALSE         1         0         1
-    ##                   n1_c    alignments
-    ##              <numeric> <GRangesList>
-    ##   spacer_107         0 chr12:67371:+
-    ##     spacer_9         0 chr12:66943:-
-    ##    spacer_74         0 chr12:67233:+
-    ##   spacer_112         0 chr12:67396:-
-    ##    spacer_76         0 chr12:67244:-
-    ##          ...       ...           ...
-    ##   spacer_121         0 chr12:67413:+
-    ##    spacer_34         0 chr12:67093:-
-    ##    spacer_24         0 chr12:67069:-
-    ##    spacer_13         0 chr12:66976:-
-    ##    spacer_95         0 chr12:67308:+
+    ##                  polyG     polyT startingGGGGG        NNGG        n0        n1
+    ##              <logical> <logical>     <logical> <character> <numeric> <numeric>
+    ##   spacer_107     FALSE     FALSE         FALSE        CCGG         1         0
+    ##     spacer_9     FALSE     FALSE         FALSE        ATGG         1         0
+    ##    spacer_74     FALSE     FALSE         FALSE        ACGG         1         0
+    ##   spacer_112     FALSE     FALSE         FALSE        GGGG         1         0
+    ##    spacer_76      TRUE     FALSE         FALSE        CAGG         1         0
+    ##          ...       ...       ...           ...         ...       ...       ...
+    ##   spacer_121     FALSE     FALSE         FALSE        AGGG         1         0
+    ##    spacer_34      TRUE     FALSE         FALSE        GGGG         1         0
+    ##    spacer_24     FALSE     FALSE         FALSE        TGGG         1         0
+    ##    spacer_13     FALSE     FALSE         FALSE        TGGG         1         0
+    ##    spacer_95     FALSE     FALSE         FALSE        TGGG         1         0
+    ##                   n0_c      n1_c    alignments
+    ##              <numeric> <numeric> <GRangesList>
+    ##   spacer_107         1         0 chr12:67371:+
+    ##     spacer_9         1         0 chr12:66943:-
+    ##    spacer_74         1         0 chr12:67233:+
+    ##   spacer_112         1         0 chr12:67396:-
+    ##    spacer_76         1         0 chr12:67244:-
+    ##          ...       ...       ...           ...
+    ##   spacer_121         1         0 chr12:67413:+
+    ##    spacer_34         1         0 chr12:67093:-
+    ##    spacer_24         1         0 chr12:67069:-
+    ##    spacer_13         1         0 chr12:66976:-
+    ##    spacer_95         1         0 chr12:67308:+
     ##   -------
     ##   seqinfo: 640 sequences (1 circular) from hg38 genome
     ##   crisprNuclease: SpCas9
@@ -718,7 +718,7 @@ guideSet <- addOffTargetScores(guideSet)
 guideSet
 ```
 
-    ## GuideSet object with 17 ranges and 19 metadata columns:
+    ## GuideSet object with 17 ranges and 20 metadata columns:
     ##              seqnames    ranges strand |          protospacer            pam
     ##                 <Rle> <IRanges>  <Rle> |       <DNAStringSet> <DNAStringSet>
     ##   spacer_107    chr12     67371      + | CCGAGTTGCTGCGCTGCTGC            CGG
@@ -745,32 +745,32 @@ guideSet
     ##    spacer_24     67069     67072    region_1        80     FALSE     FALSE
     ##    spacer_13     66976     66979    region_1        60     FALSE     FALSE
     ##    spacer_95     67308     67305    region_1        60     FALSE      TRUE
-    ##                  polyG     polyT startingGGGGG        n0        n1      n0_c
-    ##              <logical> <logical>     <logical> <numeric> <numeric> <numeric>
-    ##   spacer_107     FALSE     FALSE         FALSE         1         0         1
-    ##     spacer_9     FALSE     FALSE         FALSE         1         0         1
-    ##    spacer_74     FALSE     FALSE         FALSE         1         0         1
-    ##   spacer_112     FALSE     FALSE         FALSE         1         0         1
-    ##    spacer_76      TRUE     FALSE         FALSE         1         0         1
+    ##                  polyG     polyT startingGGGGG        NNGG        n0        n1
+    ##              <logical> <logical>     <logical> <character> <numeric> <numeric>
+    ##   spacer_107     FALSE     FALSE         FALSE        CCGG         1         0
+    ##     spacer_9     FALSE     FALSE         FALSE        ATGG         1         0
+    ##    spacer_74     FALSE     FALSE         FALSE        ACGG         1         0
+    ##   spacer_112     FALSE     FALSE         FALSE        GGGG         1         0
+    ##    spacer_76      TRUE     FALSE         FALSE        CAGG         1         0
+    ##          ...       ...       ...           ...         ...       ...       ...
+    ##    spacer_71     FALSE     FALSE         FALSE        GCGG         1         0
+    ##   spacer_121     FALSE     FALSE         FALSE        AGGG         1         0
+    ##    spacer_24     FALSE     FALSE         FALSE        TGGG         1         0
+    ##    spacer_13     FALSE     FALSE         FALSE        TGGG         1         0
+    ##    spacer_95     FALSE     FALSE         FALSE        TGGG         1         0
+    ##                   n0_c      n1_c    alignments inRepeats score_cfd score_mit
+    ##              <numeric> <numeric> <GRangesList> <logical> <numeric> <numeric>
+    ##   spacer_107         1         0 chr12:67371:+     FALSE         1         1
+    ##     spacer_9         1         0 chr12:66943:-     FALSE         1         1
+    ##    spacer_74         1         0 chr12:67233:+     FALSE         1         1
+    ##   spacer_112         1         0 chr12:67396:-     FALSE         1         1
+    ##    spacer_76         1         0 chr12:67244:-     FALSE         1         1
     ##          ...       ...       ...           ...       ...       ...       ...
-    ##    spacer_71     FALSE     FALSE         FALSE         1         0         1
-    ##   spacer_121     FALSE     FALSE         FALSE         1         0         1
-    ##    spacer_24     FALSE     FALSE         FALSE         1         0         1
-    ##    spacer_13     FALSE     FALSE         FALSE         1         0         1
-    ##    spacer_95     FALSE     FALSE         FALSE         1         0         1
-    ##                   n1_c    alignments inRepeats score_cfd score_mit
-    ##              <numeric> <GRangesList> <logical> <numeric> <numeric>
-    ##   spacer_107         0 chr12:67371:+     FALSE         1         1
-    ##     spacer_9         0 chr12:66943:-     FALSE         1         1
-    ##    spacer_74         0 chr12:67233:+     FALSE         1         1
-    ##   spacer_112         0 chr12:67396:-     FALSE         1         1
-    ##    spacer_76         0 chr12:67244:-     FALSE         1         1
-    ##          ...       ...           ...       ...       ...       ...
-    ##    spacer_71         0 chr12:67218:-     FALSE         1         1
-    ##   spacer_121         0 chr12:67413:+     FALSE         1         1
-    ##    spacer_24         0 chr12:67069:-     FALSE         1         1
-    ##    spacer_13         0 chr12:66976:-     FALSE         1         1
-    ##    spacer_95         0 chr12:67308:+     FALSE         1         1
+    ##    spacer_71         1         0 chr12:67218:-     FALSE         1         1
+    ##   spacer_121         1         0 chr12:67413:+     FALSE         1         1
+    ##    spacer_24         1         0 chr12:67069:-     FALSE         1         1
+    ##    spacer_13         1         0 chr12:66976:-     FALSE         1         1
+    ##    spacer_95         1         0 chr12:67308:+     FALSE         1         1
     ##   -------
     ##   seqinfo: 640 sequences (1 circular) from hg38 genome
     ##   crisprNuclease: SpCas9
@@ -843,7 +843,7 @@ guideSet <- addOnTargetScores(guideSet, methods="crisprater")
 head(guideSet)
 ```
 
-    ## GuideSet object with 6 ranges and 20 metadata columns:
+    ## GuideSet object with 6 ranges and 21 metadata columns:
     ##              seqnames    ranges strand |          protospacer            pam
     ##                 <Rle> <IRanges>  <Rle> |       <DNAStringSet> <DNAStringSet>
     ##   spacer_107    chr12     67371      + | CCGAGTTGCTGCGCTGCTGC            CGG
@@ -860,22 +860,22 @@ head(guideSet)
     ##   spacer_112     67396     67399    region_1        80     FALSE     FALSE
     ##    spacer_76     67244     67247    region_1        85     FALSE      TRUE
     ##    spacer_55     67153     67156    region_1        60     FALSE     FALSE
-    ##                  polyG     polyT startingGGGGG        n0        n1      n0_c
-    ##              <logical> <logical>     <logical> <numeric> <numeric> <numeric>
-    ##   spacer_107     FALSE     FALSE         FALSE         1         0         1
-    ##     spacer_9     FALSE     FALSE         FALSE         1         0         1
-    ##    spacer_74     FALSE     FALSE         FALSE         1         0         1
-    ##   spacer_112     FALSE     FALSE         FALSE         1         0         1
-    ##    spacer_76      TRUE     FALSE         FALSE         1         0         1
-    ##    spacer_55     FALSE     FALSE         FALSE         1         0         1
-    ##                   n1_c    alignments inRepeats score_cfd score_mit
-    ##              <numeric> <GRangesList> <logical> <numeric> <numeric>
-    ##   spacer_107         0 chr12:67371:+     FALSE         1         1
-    ##     spacer_9         0 chr12:66943:-     FALSE         1         1
-    ##    spacer_74         0 chr12:67233:+     FALSE         1         1
-    ##   spacer_112         0 chr12:67396:-     FALSE         1         1
-    ##    spacer_76         0 chr12:67244:-     FALSE         1         1
-    ##    spacer_55         0 chr12:67153:-     FALSE         1         1
+    ##                  polyG     polyT startingGGGGG        NNGG        n0        n1
+    ##              <logical> <logical>     <logical> <character> <numeric> <numeric>
+    ##   spacer_107     FALSE     FALSE         FALSE        CCGG         1         0
+    ##     spacer_9     FALSE     FALSE         FALSE        ATGG         1         0
+    ##    spacer_74     FALSE     FALSE         FALSE        ACGG         1         0
+    ##   spacer_112     FALSE     FALSE         FALSE        GGGG         1         0
+    ##    spacer_76      TRUE     FALSE         FALSE        CAGG         1         0
+    ##    spacer_55     FALSE     FALSE         FALSE        TGGG         1         0
+    ##                   n0_c      n1_c    alignments inRepeats score_cfd score_mit
+    ##              <numeric> <numeric> <GRangesList> <logical> <numeric> <numeric>
+    ##   spacer_107         1         0 chr12:67371:+     FALSE         1         1
+    ##     spacer_9         1         0 chr12:66943:-     FALSE         1         1
+    ##    spacer_74         1         0 chr12:67233:+     FALSE         1         1
+    ##   spacer_112         1         0 chr12:67396:-     FALSE         1         1
+    ##    spacer_76         1         0 chr12:67244:-     FALSE         1         1
+    ##    spacer_55         1         0 chr12:67153:-     FALSE         1         1
     ##              score_crisprater
     ##                     <numeric>
     ##   spacer_107         0.782780
@@ -953,7 +953,7 @@ The gene annotation can be retrieved using the function
 geneAnnotation(guideSet)
 ```
 
-    ## DataFrame with 17 rows and 23 columns
+    ## DataFrame with 17 rows and 24 columns
     ##                 chr anchor_site   strand gene_symbol         gene_id
     ##            <factor>   <integer> <factor> <character>     <character>
     ## spacer_107    chr12       67368        +      IQSEC3 ENSG00000120645
@@ -967,58 +967,71 @@ geneAnnotation(guideSet)
     ## spacer_24     chr12       67072        -      IQSEC3 ENSG00000120645
     ## spacer_13     chr12       66979        -      IQSEC3 ENSG00000120645
     ## spacer_95     chr12       67305        +      IQSEC3 ENSG00000120645
-    ##                      tx_id      protein_id   cut_cds cut_fiveUTRs cut_threeUTRs
-    ##                <character>     <character> <logical>    <logical>     <logical>
-    ## spacer_107 ENST00000538872 ENSP00000437554      TRUE        FALSE         FALSE
-    ## spacer_9   ENST00000538872 ENSP00000437554      TRUE        FALSE         FALSE
-    ## spacer_74  ENST00000538872 ENSP00000437554      TRUE        FALSE         FALSE
-    ## spacer_112 ENST00000538872 ENSP00000437554      TRUE        FALSE         FALSE
-    ## spacer_76  ENST00000538872 ENSP00000437554      TRUE        FALSE         FALSE
-    ## ...                    ...             ...       ...          ...           ...
-    ## spacer_71  ENST00000538872 ENSP00000437554      TRUE        FALSE         FALSE
-    ## spacer_121 ENST00000538872 ENSP00000437554      TRUE        FALSE         FALSE
-    ## spacer_24  ENST00000538872 ENSP00000437554      TRUE        FALSE         FALSE
-    ## spacer_13  ENST00000538872 ENSP00000437554      TRUE        FALSE         FALSE
-    ## spacer_95  ENST00000538872 ENSP00000437554      TRUE        FALSE         FALSE
-    ##            cut_introns percentCDS aminoAcidIndex downtreamATG percentTx
-    ##              <logical>  <numeric>      <numeric>    <numeric> <numeric>
-    ## spacer_107       FALSE       13.7            162            1       8.5
-    ## spacer_9         FALSE        1.8             22            0       2.5
-    ## spacer_74        FALSE        9.8            116            0       6.5
-    ## spacer_112       FALSE       14.6            173            1       8.9
-    ## spacer_76        FALSE       10.3            122            0       6.8
-    ## ...                ...        ...            ...          ...       ...
-    ## spacer_71        FALSE        9.6            113            0       6.4
-    ## spacer_121       FALSE       14.9            176            1       9.1
-    ## spacer_24        FALSE        5.4             64            0       4.3
-    ## spacer_13        FALSE        2.7             33            0       3.0
-    ## spacer_95        FALSE       11.9            141            1       7.6
-    ##            nIsoforms totalIsoforms percentIsoforms isCommonExon nCodingIsoforms
-    ##            <integer>     <numeric>       <numeric>    <logical>       <integer>
-    ## spacer_107         1             2              50        FALSE               1
-    ## spacer_9           1             2              50        FALSE               1
-    ## spacer_74          1             2              50        FALSE               1
-    ## spacer_112         1             2              50        FALSE               1
-    ## spacer_76          1             2              50        FALSE               1
-    ## ...              ...           ...             ...          ...             ...
-    ## spacer_71          1             2              50        FALSE               1
-    ## spacer_121         1             2              50        FALSE               1
-    ## spacer_24          1             2              50        FALSE               1
-    ## spacer_13          1             2              50        FALSE               1
-    ## spacer_95          1             2              50        FALSE               1
-    ##            totalCodingIsoforms percentCodingIsoforms isCommonCodingExon
-    ##                      <numeric>             <numeric>          <logical>
-    ## spacer_107                   2                    50              FALSE
-    ## spacer_9                     2                    50              FALSE
-    ## spacer_74                    2                    50              FALSE
-    ## spacer_112                   2                    50              FALSE
-    ## spacer_76                    2                    50              FALSE
-    ## ...                        ...                   ...                ...
-    ## spacer_71                    2                    50              FALSE
-    ## spacer_121                   2                    50              FALSE
-    ## spacer_24                    2                    50              FALSE
-    ## spacer_13                    2                    50              FALSE
-    ## spacer_95                    2                    50              FALSE
+    ##                      tx_id      protein_id         exon_id   cut_cds
+    ##                <character>     <character>     <character> <logical>
+    ## spacer_107 ENST00000538872 ENSP00000437554 ENSE00002310174      TRUE
+    ## spacer_9   ENST00000538872 ENSP00000437554 ENSE00002310174      TRUE
+    ## spacer_74  ENST00000538872 ENSP00000437554 ENSE00002310174      TRUE
+    ## spacer_112 ENST00000538872 ENSP00000437554 ENSE00002310174      TRUE
+    ## spacer_76  ENST00000538872 ENSP00000437554 ENSE00002310174      TRUE
+    ## ...                    ...             ...             ...       ...
+    ## spacer_71  ENST00000538872 ENSP00000437554 ENSE00002310174      TRUE
+    ## spacer_121 ENST00000538872 ENSP00000437554 ENSE00002310174      TRUE
+    ## spacer_24  ENST00000538872 ENSP00000437554 ENSE00002310174      TRUE
+    ## spacer_13  ENST00000538872 ENSP00000437554 ENSE00002310174      TRUE
+    ## spacer_95  ENST00000538872 ENSP00000437554 ENSE00002310174      TRUE
+    ##            cut_fiveUTRs cut_threeUTRs cut_introns percentCDS aminoAcidIndex
+    ##               <logical>     <logical>   <logical>  <numeric>      <numeric>
+    ## spacer_107        FALSE         FALSE       FALSE       13.7            162
+    ## spacer_9          FALSE         FALSE       FALSE        1.8             22
+    ## spacer_74         FALSE         FALSE       FALSE        9.8            116
+    ## spacer_112        FALSE         FALSE       FALSE       14.6            173
+    ## spacer_76         FALSE         FALSE       FALSE       10.3            122
+    ## ...                 ...           ...         ...        ...            ...
+    ## spacer_71         FALSE         FALSE       FALSE        9.6            113
+    ## spacer_121        FALSE         FALSE       FALSE       14.9            176
+    ## spacer_24         FALSE         FALSE       FALSE        5.4             64
+    ## spacer_13         FALSE         FALSE       FALSE        2.7             33
+    ## spacer_95         FALSE         FALSE       FALSE       11.9            141
+    ##            downtreamATG percentTx nIsoforms totalIsoforms percentIsoforms
+    ##               <numeric> <numeric> <integer>     <numeric>       <numeric>
+    ## spacer_107            1       8.5         1             2              50
+    ## spacer_9              0       2.5         1             2              50
+    ## spacer_74             0       6.5         1             2              50
+    ## spacer_112            1       8.9         1             2              50
+    ## spacer_76             0       6.8         1             2              50
+    ## ...                 ...       ...       ...           ...             ...
+    ## spacer_71             0       6.4         1             2              50
+    ## spacer_121            1       9.1         1             2              50
+    ## spacer_24             0       4.3         1             2              50
+    ## spacer_13             0       3.0         1             2              50
+    ## spacer_95             1       7.6         1             2              50
+    ##            isCommonExon nCodingIsoforms totalCodingIsoforms
+    ##               <logical>       <integer>           <numeric>
+    ## spacer_107        FALSE               1                   2
+    ## spacer_9          FALSE               1                   2
+    ## spacer_74         FALSE               1                   2
+    ## spacer_112        FALSE               1                   2
+    ## spacer_76         FALSE               1                   2
+    ## ...                 ...             ...                 ...
+    ## spacer_71         FALSE               1                   2
+    ## spacer_121        FALSE               1                   2
+    ## spacer_24         FALSE               1                   2
+    ## spacer_13         FALSE               1                   2
+    ## spacer_95         FALSE               1                   2
+    ##            percentCodingIsoforms isCommonCodingExon
+    ##                        <numeric>          <logical>
+    ## spacer_107                    50              FALSE
+    ## spacer_9                      50              FALSE
+    ## spacer_74                     50              FALSE
+    ## spacer_112                    50              FALSE
+    ## spacer_76                     50              FALSE
+    ## ...                          ...                ...
+    ## spacer_71                     50              FALSE
+    ## spacer_121                    50              FALSE
+    ## spacer_24                     50              FALSE
+    ## spacer_13                     50              FALSE
+    ## spacer_95                     50              FALSE
 
 It contains a lot of information that contextualizes the genomic
 location of the protospacer sequences.
@@ -1142,7 +1155,7 @@ guideSet <- guideSet[o]
 head(guideSet)
 ```
 
-    ## GuideSet object with 6 ranges and 25 metadata columns:
+    ## GuideSet object with 6 ranges and 26 metadata columns:
     ##              seqnames    ranges strand |          protospacer            pam
     ##                 <Rle> <IRanges>  <Rle> |       <DNAStringSet> <DNAStringSet>
     ##     spacer_9    chr12     66943      - | GCTCTGCTGGTTCTGCACGA            TGG
@@ -1159,22 +1172,22 @@ head(guideSet)
     ##    spacer_74     67233     67230    region_1        80     FALSE     FALSE
     ##    spacer_76     67244     67247    region_1        85     FALSE      TRUE
     ##   spacer_121     67413     67410    region_1        75     FALSE      TRUE
-    ##                  polyG     polyT startingGGGGG        n0        n1      n0_c
-    ##              <logical> <logical>     <logical> <numeric> <numeric> <numeric>
-    ##     spacer_9     FALSE     FALSE         FALSE         1         0         1
-    ##   spacer_112     FALSE     FALSE         FALSE         1         0         1
-    ##   spacer_107     FALSE     FALSE         FALSE         1         0         1
-    ##    spacer_74     FALSE     FALSE         FALSE         1         0         1
-    ##    spacer_76      TRUE     FALSE         FALSE         1         0         1
-    ##   spacer_121     FALSE     FALSE         FALSE         1         0         1
-    ##                   n1_c    alignments inRepeats score_cfd score_mit
-    ##              <numeric> <GRangesList> <logical> <numeric> <numeric>
-    ##     spacer_9         0 chr12:66943:-     FALSE         1         1
-    ##   spacer_112         0 chr12:67396:-     FALSE         1         1
-    ##   spacer_107         0 chr12:67371:+     FALSE         1         1
-    ##    spacer_74         0 chr12:67233:+     FALSE         1         1
-    ##    spacer_76         0 chr12:67244:-     FALSE         1         1
-    ##   spacer_121         0 chr12:67413:+     FALSE         1         1
+    ##                  polyG     polyT startingGGGGG        NNGG        n0        n1
+    ##              <logical> <logical>     <logical> <character> <numeric> <numeric>
+    ##     spacer_9     FALSE     FALSE         FALSE        ATGG         1         0
+    ##   spacer_112     FALSE     FALSE         FALSE        GGGG         1         0
+    ##   spacer_107     FALSE     FALSE         FALSE        CCGG         1         0
+    ##    spacer_74     FALSE     FALSE         FALSE        ACGG         1         0
+    ##    spacer_76      TRUE     FALSE         FALSE        CAGG         1         0
+    ##   spacer_121     FALSE     FALSE         FALSE        AGGG         1         0
+    ##                   n0_c      n1_c    alignments inRepeats score_cfd score_mit
+    ##              <numeric> <numeric> <GRangesList> <logical> <numeric> <numeric>
+    ##     spacer_9         1         0 chr12:66943:-     FALSE         1         1
+    ##   spacer_112         1         0 chr12:67396:-     FALSE         1         1
+    ##   spacer_107         1         0 chr12:67371:+     FALSE         1         1
+    ##    spacer_74         1         0 chr12:67233:+     FALSE         1         1
+    ##    spacer_76         1         0 chr12:67244:-     FALSE         1         1
+    ##   spacer_121         1         0 chr12:67413:+     FALSE         1         1
     ##              score_crisprater      enzymeAnnotation       geneAnnotation
     ##                     <numeric>  <SplitDataFrameList> <SplitDataFrameList>
     ##     spacer_9         0.834319 FALSE:FALSE:FALSE:...    chr12:66946:-:...
@@ -1206,7 +1219,7 @@ guideSet <- guideSet[o]
 head(guideSet)
 ```
 
-    ## GuideSet object with 6 ranges and 25 metadata columns:
+    ## GuideSet object with 6 ranges and 26 metadata columns:
     ##              seqnames    ranges strand |          protospacer            pam
     ##                 <Rle> <IRanges>  <Rle> |       <DNAStringSet> <DNAStringSet>
     ##     spacer_9    chr12     66943      - | GCTCTGCTGGTTCTGCACGA            TGG
@@ -1223,22 +1236,22 @@ head(guideSet)
     ##    spacer_74     67233     67230    region_1        80     FALSE     FALSE
     ##    spacer_76     67244     67247    region_1        85     FALSE      TRUE
     ##   spacer_121     67413     67410    region_1        75     FALSE      TRUE
-    ##                  polyG     polyT startingGGGGG        n0        n1      n0_c
-    ##              <logical> <logical>     <logical> <numeric> <numeric> <numeric>
-    ##     spacer_9     FALSE     FALSE         FALSE         1         0         1
-    ##   spacer_112     FALSE     FALSE         FALSE         1         0         1
-    ##   spacer_107     FALSE     FALSE         FALSE         1         0         1
-    ##    spacer_74     FALSE     FALSE         FALSE         1         0         1
-    ##    spacer_76      TRUE     FALSE         FALSE         1         0         1
-    ##   spacer_121     FALSE     FALSE         FALSE         1         0         1
-    ##                   n1_c    alignments inRepeats score_cfd score_mit
-    ##              <numeric> <GRangesList> <logical> <numeric> <numeric>
-    ##     spacer_9         0 chr12:66943:-     FALSE         1         1
-    ##   spacer_112         0 chr12:67396:-     FALSE         1         1
-    ##   spacer_107         0 chr12:67371:+     FALSE         1         1
-    ##    spacer_74         0 chr12:67233:+     FALSE         1         1
-    ##    spacer_76         0 chr12:67244:-     FALSE         1         1
-    ##   spacer_121         0 chr12:67413:+     FALSE         1         1
+    ##                  polyG     polyT startingGGGGG        NNGG        n0        n1
+    ##              <logical> <logical>     <logical> <character> <numeric> <numeric>
+    ##     spacer_9     FALSE     FALSE         FALSE        ATGG         1         0
+    ##   spacer_112     FALSE     FALSE         FALSE        GGGG         1         0
+    ##   spacer_107     FALSE     FALSE         FALSE        CCGG         1         0
+    ##    spacer_74     FALSE     FALSE         FALSE        ACGG         1         0
+    ##    spacer_76      TRUE     FALSE         FALSE        CAGG         1         0
+    ##   spacer_121     FALSE     FALSE         FALSE        AGGG         1         0
+    ##                   n0_c      n1_c    alignments inRepeats score_cfd score_mit
+    ##              <numeric> <numeric> <GRangesList> <logical> <numeric> <numeric>
+    ##     spacer_9         1         0 chr12:66943:-     FALSE         1         1
+    ##   spacer_112         1         0 chr12:67396:-     FALSE         1         1
+    ##   spacer_107         1         0 chr12:67371:+     FALSE         1         1
+    ##    spacer_74         1         0 chr12:67233:+     FALSE         1         1
+    ##    spacer_76         1         0 chr12:67244:-     FALSE         1         1
+    ##   spacer_121         1         0 chr12:67413:+     FALSE         1         1
     ##              score_crisprater      enzymeAnnotation       geneAnnotation
     ##                     <numeric>  <SplitDataFrameList> <SplitDataFrameList>
     ##     spacer_9         0.834319 FALSE:FALSE:FALSE:...    chr12:66946:-:...
@@ -2098,8 +2111,8 @@ sessionInfo()
     ##  [5] Biostrings_2.65.3                 XVector_0.37.1                   
     ##  [7] GenomicRanges_1.49.1              GenomeInfoDb_1.33.7              
     ##  [9] IRanges_2.31.2                    S4Vectors_0.35.3                 
-    ## [11] BiocGenerics_0.43.4               crisprDesign_0.99.140            
-    ## [13] crisprBase_1.1.5                 
+    ## [11] BiocGenerics_0.43.4               crisprDesign_0.99.176            
+    ## [13] crisprBase_1.1.8                 
     ## 
     ## loaded via a namespace (and not attached):
     ##   [1] bitops_1.0-7                  matrixStats_0.62.0           
