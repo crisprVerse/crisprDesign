@@ -540,7 +540,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
     }
     cdsPositionAnnotation <- list("percentCDS"=percentCDS,
                                   "aminoAcidIndex"=aminoAcidIndex,
-                                  "downtreamATG"=downstreamATG)
+                                  "downstreamATG"=downstreamATG)
     return(cdsPositionAnnotation)
 }
 
