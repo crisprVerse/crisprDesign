@@ -7,7 +7,7 @@
 validateOpsLibrary(
   df,
   min_dist_edit = 2,
-  dist_method = c("hamming", "levenstein")
+  dist_method = c("hamming", "levenshtein")
 )
 }
 \arguments{
@@ -18,7 +18,7 @@ gRNAs from which to build the OPS library. See details.}
 required for barcodes to be considered dissimilar.}
 
 \item{dist_method}{String specifying distance method. Must be
-either "hamming" (default) or "levenstein".}
+either "hamming" (default) or "levenshtein".}
 }
 \value{
 The original \code{df} is all checks pass.

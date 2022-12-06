@@ -932,9 +932,9 @@ head(guideSetExample$opsBarcode)
 
 The function `getBarcodeDistanceMatrix` calculates the nucleotide distance 
 between a set of query barcodes and a set of target barcodes. The type of 
-distance (hamming or levenstein) can be specified using the `dist_method` 
+distance (hamming or levenshtein) can be specified using the `dist_method` 
 argument. The Hamming distance (default) only considers substitutions when
-calculating distances, while the Levenstein distance allows insertions and 
+calculating distances, while the Levenshtein distance allows insertions and 
 deletions. 
 
 When the argument `binnarize` is set to `FALSE`, the return object is a 

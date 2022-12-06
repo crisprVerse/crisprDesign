@@ -66,7 +66,7 @@ addOpsBarcodes <- function(guideSet,
 #'     required for barcodes to be considered dissimilar when
 #'     \code{binnarize=TRUE}, ignored otherwise.
 #' @param dist_method String specifying distance method. Must be
-#'     either "hamming" (default) or "levenstein". 
+#'     either "hamming" (default) or "levenshtein". 
 #' @param ignore_diagonal When \code{targetBarcodes=NULL}, should the
 #'     diagonal distances be set to 0 to ignore self distances?
 #'     TRUE by default. 
@@ -98,7 +98,7 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
                                      targetBarcodes=NULL,
                                      binnarize=TRUE,
                                      min_dist_edit=NULL,
-                                     dist_method=c("hamming","levenstein"),
+                                     dist_method=c("hamming","levenshtein"),
                                      ignore_diagonal=TRUE,
                                      splitByChunks=FALSE,
                                      n_chunks=NULL
@@ -158,7 +158,7 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
                                     targetBarcodes,
                                     min_dist_edit=NULL,
                                     binnarize=TRUE,
-                                    dist_method=c("hamming","levenstein"),
+                                    dist_method=c("hamming","levenshtein"),
                                     sparse=TRUE
 ){
     dist_method <- match.arg(dist_method)
@@ -202,7 +202,7 @@ getBarcodeDistanceMatrix <- function(queryBarcodes,
 #'     have edit distances less than the min_dist_edit will not be
 #'     included in the library. 2 by default. 
 #' @param dist_method String specifying distance method. 
-#'     Must be either "hamming" (default) or "levenstein".
+#'     Must be either "hamming" (default) or "levenshtein".
 #' @param splitByChunks Should distances be calculated in a chunk-wise
 #'     manner? FALSE by default. Highly recommended when the set of query
 #'     barcodes is large to reduce memory footprint. 
@@ -232,7 +232,7 @@ designOpsLibrary <- function(df,
                              n_guides=4,
                              gene_field="gene",
                              min_dist_edit=2,
-                             dist_method=c("hamming","levenstein"),
+                             dist_method=c("hamming","levenshtein"),
                              splitByChunks=FALSE
 ){
     dist_method <- match.arg(dist_method)
@@ -278,7 +278,7 @@ designOpsLibrary <- function(df,
 #'     have edit distances less than the min_dist_edit will not be
 #'     included in the library. 2 by default. 
 #' @param dist_method String specifying distance method. 
-#'     Must be either "hamming" (default) or "levenstein". 
+#'     Must be either "hamming" (default) or "levenshtein". 
 #' @param splitByChunks Should distances be calculated in a chunk-wise
 #'     manner? FALSE by default. Highly recommended when the set of query
 #'     barcodes is large to reduce memory footprint.
@@ -317,7 +317,7 @@ updateOpsLibrary <- function(opsLibrary,
                              n_guides=4,
                              gene_field="gene",
                              min_dist_edit=2,
-                             dist_method=c("hamming","levenstein"),
+                             dist_method=c("hamming","levenshtein"),
                              splitByChunks=FALSE
 ){
     dist_method <- match.arg(dist_method)
@@ -542,7 +542,7 @@ updateOpsLibrary <- function(opsLibrary,
 #' @param min_dist_edit Integer specifying the minimum distance edit
 #'     required for barcodes to be considered dissimilar.
 #' @param dist_method String specifying distance method. Must be
-#'     either "hamming" (default) or "levenstein". 
+#'     either "hamming" (default) or "levenshtein". 
 #' 
 #' @examples
 #' data(guideSetExample, package="crisprDesign")
@@ -565,7 +565,7 @@ updateOpsLibrary <- function(opsLibrary,
 #' @export
 validateOpsLibrary <- function(df,
                                min_dist_edit=2,
-                               dist_method=c("hamming","levenstein")
+                               dist_method=c("hamming","levenshtein")
 ){
     dist <- getBarcodeDistanceMatrix(df[["opsBarcode"]],
                                      dist_method=dist_method,
@@ -590,7 +590,7 @@ validateOpsLibrary <- function(df,
 
 
 # Get distance costs 
-.getCosts <- function(dist_method=c("hamming","levenstein")
+.getCosts <- function(dist_method=c("hamming","levenshtein")
 ){
     dist_method <- match.arg(dist_method)
     if (dist_method=="hamming"){

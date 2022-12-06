@@ -9,7 +9,7 @@ getBarcodeDistanceMatrix(
   targetBarcodes = NULL,
   binnarize = TRUE,
   min_dist_edit = NULL,
-  dist_method = c("hamming", "levenstein"),
+  dist_method = c("hamming", "levenshtein"),
   ignore_diagonal = TRUE,
   splitByChunks = FALSE,
   n_chunks = NULL
@@ -30,7 +30,7 @@ required for barcodes to be considered dissimilar when
 \code{binnarize=TRUE}, ignored otherwise.}
 
 \item{dist_method}{String specifying distance method. Must be
-either "hamming" (default) or "levenstein".}
+either "hamming" (default) or "levenshtein".}
 
 \item{ignore_diagonal}{When \code{targetBarcodes=NULL}, should the
 diagonal distances be set to 0 to ignore self distances?

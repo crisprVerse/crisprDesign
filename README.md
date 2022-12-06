@@ -1,60 +1,60 @@
 Introduction to crisprDesign
 ================
 
--   <a href="#introduction" id="toc-introduction">Introduction</a>
--   <a href="#installation" id="toc-installation">Installation</a>
--   <a href="#terminology" id="toc-terminology">Terminology</a>
--   <a href="#crisprko-design" id="toc-crisprko-design">CRISPRko design</a>
-    -   <a href="#nuclease-specification"
-        id="toc-nuclease-specification">Nuclease specification</a>
-    -   <a href="#target-dna-specification"
-        id="toc-target-dna-specification">Target DNA specification</a>
-    -   <a href="#designing-spacer-sequences"
-        id="toc-designing-spacer-sequences">Designing spacer sequences</a>
-    -   <a href="#sequence-features-characterization"
-        id="toc-sequence-features-characterization">Sequence features
-        characterization</a>
-    -   <a href="#off-target-search" id="toc-off-target-search">Off-target
-        search</a>
-        -   <a href="#iterative-spacer-alignments"
-            id="toc-iterative-spacer-alignments">Iterative spacer alignments</a>
-        -   <a href="#faster-alignment-by-removing-repeat-elements"
-            id="toc-faster-alignment-by-removing-repeat-elements">Faster alignment
-            by removing repeat elements</a>
-    -   <a href="#off-target-scoring" id="toc-off-target-scoring">Off-target
-        scoring</a>
-    -   <a href="#on-target-scoring" id="toc-on-target-scoring">On-target
-        scoring</a>
-    -   <a href="#restriction-enzymes" id="toc-restriction-enzymes">Restriction
-        enzymes</a>
-    -   <a href="#gene-annotation" id="toc-gene-annotation">Gene annotation</a>
-    -   <a href="#tss-annotation" id="toc-tss-annotation">TSS annotation</a>
-    -   <a href="#snp-information" id="toc-snp-information">SNP information</a>
-    -   <a href="#filtering-and-ranking-grnas"
-        id="toc-filtering-and-ranking-grnas">Filtering and ranking gRNAs</a>
--   <a href="#crispracrispri-design"
-    id="toc-crispracrispri-design">CRISPRa/CRISPRi design</a>
--   <a href="#crispr-base-editing-with-be4max"
-    id="toc-crispr-base-editing-with-be4max">CRISPR base editing with
-    BE4max</a>
--   <a href="#crispr-knockdown-with-cas13d"
-    id="toc-crispr-knockdown-with-cas13d">CRISPR knockdown with Cas13d</a>
--   <a href="#design-for-optical-pooled-screening-ops"
-    id="toc-design-for-optical-pooled-screening-ops">Design for optical
-    pooled screening (OPS)</a>
--   <a href="#design-of-grna-pairs-with-the--object"
-    id="toc-design-of-grna-pairs-with-the--object">Design of gRNA pairs with
-    the object</a>
--   <a href="#miscellaneous-design-use-cases"
-    id="toc-miscellaneous-design-use-cases">Miscellaneous design use
-    cases</a>
-    -   <a href="#design-with-custom-sequences"
-        id="toc-design-with-custom-sequences">Design with custom sequences</a>
-    -   <a href="#off-target-search-in-custom-sequences"
-        id="toc-off-target-search-in-custom-sequences">Off-target search in
-        custom sequences</a>
--   <a href="#session-info" id="toc-session-info">Session Info</a>
--   <a href="#references" id="toc-references">References</a>
+- <a href="#introduction" id="toc-introduction">Introduction</a>
+- <a href="#installation" id="toc-installation">Installation</a>
+- <a href="#terminology" id="toc-terminology">Terminology</a>
+- <a href="#crisprko-design" id="toc-crisprko-design">CRISPRko design</a>
+  - <a href="#nuclease-specification"
+    id="toc-nuclease-specification">Nuclease specification</a>
+  - <a href="#target-dna-specification"
+    id="toc-target-dna-specification">Target DNA specification</a>
+  - <a href="#designing-spacer-sequences"
+    id="toc-designing-spacer-sequences">Designing spacer sequences</a>
+  - <a href="#sequence-features-characterization"
+    id="toc-sequence-features-characterization">Sequence features
+    characterization</a>
+  - <a href="#off-target-search" id="toc-off-target-search">Off-target
+    search</a>
+    - <a href="#iterative-spacer-alignments"
+      id="toc-iterative-spacer-alignments">Iterative spacer alignments</a>
+    - <a href="#faster-alignment-by-removing-repeat-elements"
+      id="toc-faster-alignment-by-removing-repeat-elements">Faster alignment
+      by removing repeat elements</a>
+  - <a href="#off-target-scoring" id="toc-off-target-scoring">Off-target
+    scoring</a>
+  - <a href="#on-target-scoring" id="toc-on-target-scoring">On-target
+    scoring</a>
+  - <a href="#restriction-enzymes" id="toc-restriction-enzymes">Restriction
+    enzymes</a>
+  - <a href="#gene-annotation" id="toc-gene-annotation">Gene annotation</a>
+  - <a href="#tss-annotation" id="toc-tss-annotation">TSS annotation</a>
+  - <a href="#snp-information" id="toc-snp-information">SNP information</a>
+  - <a href="#filtering-and-ranking-grnas"
+    id="toc-filtering-and-ranking-grnas">Filtering and ranking gRNAs</a>
+- <a href="#crispracrispri-design"
+  id="toc-crispracrispri-design">CRISPRa/CRISPRi design</a>
+- <a href="#crispr-base-editing-with-be4max"
+  id="toc-crispr-base-editing-with-be4max">CRISPR base editing with
+  BE4max</a>
+- <a href="#crispr-knockdown-with-cas13d"
+  id="toc-crispr-knockdown-with-cas13d">CRISPR knockdown with Cas13d</a>
+- <a href="#design-for-optical-pooled-screening-ops"
+  id="toc-design-for-optical-pooled-screening-ops">Design for optical
+  pooled screening (OPS)</a>
+- <a href="#design-of-grna-pairs-with-the--object"
+  id="toc-design-of-grna-pairs-with-the--object">Design of gRNA pairs with
+  the object</a>
+- <a href="#miscellaneous-design-use-cases"
+  id="toc-miscellaneous-design-use-cases">Miscellaneous design use
+  cases</a>
+  - <a href="#design-with-custom-sequences"
+    id="toc-design-with-custom-sequences">Design with custom sequences</a>
+  - <a href="#off-target-search-in-custom-sequences"
+    id="toc-off-target-search-in-custom-sequences">Off-target search in
+    custom sequences</a>
+- <a href="#session-info" id="toc-session-info">Session Info</a>
+- <a href="#references" id="toc-references">References</a>
 
 Authors: Jean-Philippe Fortin, Aaron Lun, Luke Hoberecht
 
@@ -114,16 +114,16 @@ BiocManager::install("crisprDesign")
 Users interested in contributing to `crisprDesign` might want to look at
 the following CRISPR-related package dependencies:
 
--   [crisprBase](https://github.com/crisprVerse/crisprBase): core CRISPR
-    functions and S4 objects
--   [crisprBowtie](https://github.com/crisprVerse/crisprBowtie): aligns
-    gRNA spacers to genomes using the ungapped aligner `bowtie`
--   [crisprBwa](https://github.com/crisprVerse/crisprBWa): aligns gRNA
-    spacers to genomes using the ungapped aligner `BWA`
--   [crisprScore](https://github.com/crisprVerse/crisprScore):
-    implements state-of-the-art on- and off-target scoring algorithms
--   [crisprViz](https://github.com/crisprVerse/crisprViz): gRNA
-    visualization using genomic tracks
+- [crisprBase](https://github.com/crisprVerse/crisprBase): core CRISPR
+  functions and S4 objects
+- [crisprBowtie](https://github.com/crisprVerse/crisprBowtie): aligns
+  gRNA spacers to genomes using the ungapped aligner `bowtie`
+- [crisprBwa](https://github.com/crisprVerse/crisprBWa): aligns gRNA
+  spacers to genomes using the ungapped aligner `BWA`
+- [crisprScore](https://github.com/crisprVerse/crisprScore): implements
+  state-of-the-art on- and off-target scoring algorithms
+- [crisprViz](https://github.com/crisprVerse/crisprViz): gRNA
+  visualization using genomic tracks
 
 You can contribute to the package by submitting pull requests to our
 [GitHub repo](https://github.com/crisprVerse/crisprDesign).
@@ -156,11 +156,11 @@ genome (i.e. it may map to multiple protospacers in the host genome), we
 can, for a given reference genome, uniquely identify a protospacer
 sequence with a combination of 3 attributes:
 
--   `chr`: chromosome name
--   `strand`: forward (+) or reverse (-)
--   `pam_site`: genomic coordinate of the first nucleotide of the
-    nuclease-specific PAM sequence (e.g. for SpCas9, the “N” in the NGG
-    PAM sequence; for AsCas12a, the first “T” of the TTTV PAM sequence)
+- `chr`: chromosome name
+- `strand`: forward (+) or reverse (-)
+- `pam_site`: genomic coordinate of the first nucleotide of the
+  nuclease-specific PAM sequence (e.g. for SpCas9, the “N” in the NGG
+  PAM sequence; for AsCas12a, the first “T” of the TTTV PAM sequence)
 
 For CRISPRko, we use an additional genomic coordinate, called
 `cut_site`, to represent where the double-stranded break (DSB) occurs.
@@ -400,13 +400,13 @@ There are specific spacer sequence features, independent of the genomic
 context of the protospacer sequence, that can reduce or even eliminate
 gRNA activity:
 
--   **Poly-T stretches**: four or more consecutive T nucleotides in the
-    spacer sequence may act as a transcriptional termination signal for
-    the U6 promoter.
--   **Self-complementarity**: complementary sites with the gRNA backbone
-    can compete with the targeted genomic sequence.
--   **Percent GC**: gRNAs with GC content between 20% and 80% are
-    preferred.
+- **Poly-T stretches**: four or more consecutive T nucleotides in the
+  spacer sequence may act as a transcriptional termination signal for
+  the U6 promoter.
+- **Self-complementarity**: complementary sites with the gRNA backbone
+  can compete with the targeted genomic sequence.
+- **Percent GC**: gRNAs with GC content between 20% and 80% are
+  preferred.
 
 Use the function `addSequenceFeatures` to adds these spacer sequence
 characteristics to the `GuideSet` object:
@@ -606,13 +606,12 @@ A few columns were added to the `GuideSet` object to summarize the
 number of on- and off-targets for each spacer sequence, taking into
 account genomic context:
 
--   **n0, n1, n2, n3**: specify number of alignments with 0, 1, 2 and 3
-    mismatches, respectively.
--   **n0_c, n1_c, n2_c, n3_c**: specify number of alignments in a coding
-    region, with 0, 1, 2 and 3 mismatches, respectively.
--   **n0_p, n1_p, n2_p, n3_p**: specify number of alignments in a
-    promoter region of a coding gene, with 0, 1, 2 and 3 mismatches,
-    respectively.
+- **n0, n1, n2, n3**: specify number of alignments with 0, 1, 2 and 3
+  mismatches, respectively.
+- **n0_c, n1_c, n2_c, n3_c**: specify number of alignments in a coding
+  region, with 0, 1, 2 and 3 mismatches, respectively.
+- **n0_p, n1_p, n2_p, n3_p**: specify number of alignments in a promoter
+  region of a coding gene, with 0, 1, 2 and 3 mismatches, respectively.
 
 To look at the individual on- and off-targets and their context, use the
 `alignments` function to retrieve a table of all genomic alignments
@@ -1328,10 +1327,10 @@ more information.
 
 For more information, please see the following two tutorials:
 
--   [CRISPR activation (CRISPRa)
-    design](https://github.com/crisprVerse/Tutorials/tree/master/Design_CRISPRa)
--   [CRISPR interference (CRISPRi)
-    design](https://github.com/crisprVerse/Tutorials/tree/master/Design_CRISPRi)
+- [CRISPR activation (CRISPRa)
+  design](https://github.com/crisprVerse/Tutorials/tree/master/Design_CRISPRa)
+- [CRISPR interference (CRISPRi)
+  design](https://github.com/crisprVerse/Tutorials/tree/master/Design_CRISPRi)
 
 # CRISPR base editing with BE4max
 
@@ -1557,8 +1556,8 @@ gRNA, and is based on the maximum aggregated score, which is stored in
 
 For more information, please see the following tutorial:
 
--   [CRISPR base editing (CRISPRbe)
-    design](https://github.com/crisprVerse/Tutorials/tree/master/Design_CRISPRbe)
+- [CRISPR base editing (CRISPRbe)
+  design](https://github.com/crisprVerse/Tutorials/tree/master/Design_CRISPRbe)
 
 # CRISPR knockdown with Cas13d
 
@@ -1753,8 +1752,8 @@ the `crisprBowtie` vignette for more detail.
 
 For more information, please see the following tutorial:
 
--   [CRISPR knockdown (CRISPRkd) design with
-    CasRxdesign](https://github.com/crisprVerse/Tutorials/tree/master/Design_CRISPRkd_CasRx)
+- [CRISPR knockdown (CRISPRkd) design with
+  CasRxdesign](https://github.com/crisprVerse/Tutorials/tree/master/Design_CRISPRkd_CasRx)
 
 # Design for optical pooled screening (OPS)
 
@@ -1796,9 +1795,9 @@ head(guideSetExample$opsBarcode)
 
 The function `getBarcodeDistanceMatrix` calculates the nucleotide
 distance between a set of query barcodes and a set of target barcodes.
-The type of distance (hamming or levenstein) can be specified using the
+The type of distance (hamming or levenshtein) can be specified using the
 `dist_method` argument. The Hamming distance (default) only considers
-substitutions when calculating distances, while the Levenstein distance
+substitutions when calculating distances, while the Levenshtein distance
 allows insertions and deletions.
 
 When the argument `binnarize` is set to `FALSE`, the return object is a
@@ -1846,8 +1845,8 @@ library design; see `?designOpsLibrary` for documentation.
 
 For more information, please see the following tutorial:
 
--   [Design for
-    OPS](https://github.com/crisprVerse/Tutorials/tree/master/Design_OPS)
+- [Design for
+  OPS](https://github.com/crisprVerse/Tutorials/tree/master/Design_OPS)
 
 # Design of gRNA pairs with the  object
 
@@ -2012,8 +2011,8 @@ distance between the two spacer sequences of the gRNAs.
 
 For more information, please see the following tutorial:
 
--   [Paired gRNA
-    design](https://github.com/crisprVerse/Tutorials/tree/master/Design_PairedGuides)
+- [Paired gRNA
+  design](https://github.com/crisprVerse/Tutorials/tree/master/Design_PairedGuides)
 
 # Miscellaneous design use cases
 
@@ -2081,8 +2080,8 @@ head(alignments(gs))
 
 For more information, please see the following tutorial:
 
--   [Working with custom DNA
-    sequences](https://github.com/crisprVerse/Tutorials/tree/master/Design_Custom_Sequence)
+- [Working with custom DNA
+  sequences](https://github.com/crisprVerse/Tutorials/tree/master/Design_Custom_Sequence)
 
 # Session Info
 
@@ -2090,7 +2089,7 @@ For more information, please see the following tutorial:
 sessionInfo()
 ```
 
-    ## R version 4.2.1 (2022-06-23)
+    ## R version 4.2.2 (2022-10-31)
     ## Platform: x86_64-apple-darwin17.0 (64-bit)
     ## Running under: macOS Catalina 10.15.7
     ## 
@@ -2106,66 +2105,66 @@ sessionInfo()
     ## [8] base     
     ## 
     ## other attached packages:
-    ##  [1] Rbowtie_1.37.0                    BSgenome.Hsapiens.UCSC.hg38_1.4.4
-    ##  [3] BSgenome_1.65.2                   rtracklayer_1.57.0               
-    ##  [5] Biostrings_2.65.3                 XVector_0.37.1                   
-    ##  [7] GenomicRanges_1.49.1              GenomeInfoDb_1.33.7              
-    ##  [9] IRanges_2.31.2                    S4Vectors_0.35.3                 
-    ## [11] BiocGenerics_0.43.4               crisprDesign_0.99.176            
-    ## [13] crisprBase_1.1.8                 
+    ##  [1] Rbowtie_1.36.0                    BSgenome.Hsapiens.UCSC.hg38_1.4.4
+    ##  [3] BSgenome_1.64.0                   rtracklayer_1.56.1               
+    ##  [5] Biostrings_2.64.0                 XVector_0.36.0                   
+    ##  [7] GenomicRanges_1.48.0              GenomeInfoDb_1.32.3              
+    ##  [9] IRanges_2.30.0                    S4Vectors_0.34.0                 
+    ## [11] BiocGenerics_0.42.0               crisprDesign_1.1.0               
+    ## [13] crisprBase_1.3.0                 
     ## 
     ## loaded via a namespace (and not attached):
     ##   [1] bitops_1.0-7                  matrixStats_0.62.0           
     ##   [3] bit64_4.0.5                   filelock_1.0.2               
     ##   [5] progress_1.2.2                httr_1.4.4                   
-    ##   [7] tools_4.2.1                   utf8_1.2.2                   
+    ##   [7] tools_4.2.2                   utf8_1.2.2                   
     ##   [9] R6_2.5.1                      DBI_1.1.3                    
     ##  [11] tidyselect_1.1.2              prettyunits_1.1.1            
     ##  [13] bit_4.0.4                     curl_4.3.2                   
-    ##  [15] compiler_4.2.1                crisprBowtie_1.1.1           
-    ##  [17] cli_3.4.0                     Biobase_2.57.1               
-    ##  [19] basilisk.utils_1.9.3          crisprScoreData_1.1.3        
-    ##  [21] xml2_1.3.3                    DelayedArray_0.23.1          
+    ##  [15] compiler_4.2.2                crisprBowtie_1.1.1           
+    ##  [17] cli_3.3.0                     Biobase_2.56.0               
+    ##  [19] basilisk.utils_1.9.1          crisprScoreData_1.1.3        
+    ##  [21] xml2_1.3.3                    DelayedArray_0.22.0          
     ##  [23] randomForest_4.7-1.1          readr_2.1.2                  
-    ##  [25] rappdirs_0.3.3                stringr_1.4.1                
-    ##  [27] digest_0.6.29                 Rsamtools_2.13.4             
-    ##  [29] rmarkdown_2.16                crisprScore_1.1.15           
-    ##  [31] basilisk_1.9.6                pkgconfig_2.0.3              
-    ##  [33] htmltools_0.5.3               MatrixGenerics_1.9.1         
+    ##  [25] rappdirs_0.3.3                stringr_1.4.0                
+    ##  [27] digest_0.6.29                 Rsamtools_2.12.0             
+    ##  [29] rmarkdown_2.15                crisprScore_1.1.14           
+    ##  [31] basilisk_1.9.2                pkgconfig_2.0.3              
+    ##  [33] htmltools_0.5.3               MatrixGenerics_1.8.1         
     ##  [35] dbplyr_2.2.1                  fastmap_1.1.0                
-    ##  [37] rlang_1.0.5                   rstudioapi_0.14              
+    ##  [37] rlang_1.0.4                   rstudioapi_0.13              
     ##  [39] RSQLite_2.2.16                shiny_1.7.2                  
-    ##  [41] BiocIO_1.7.1                  generics_0.1.3               
+    ##  [41] BiocIO_1.6.0                  generics_0.1.3               
     ##  [43] jsonlite_1.8.0                vroom_1.5.7                  
-    ##  [45] BiocParallel_1.31.12          dplyr_1.0.10                 
-    ##  [47] VariantAnnotation_1.43.3      RCurl_1.98-1.8               
+    ##  [45] BiocParallel_1.30.3           dplyr_1.0.9                  
+    ##  [47] VariantAnnotation_1.42.1      RCurl_1.98-1.8               
     ##  [49] magrittr_2.0.3                GenomeInfoDbData_1.2.8       
-    ##  [51] Matrix_1.4-1                  Rcpp_1.0.9                   
-    ##  [53] fansi_1.0.3                   reticulate_1.26              
+    ##  [51] Matrix_1.5-1                  Rcpp_1.0.9                   
+    ##  [53] fansi_1.0.3                   reticulate_1.25              
     ##  [55] lifecycle_1.0.1               stringi_1.7.8                
-    ##  [57] yaml_2.3.5                    SummarizedExperiment_1.27.2  
-    ##  [59] zlibbioc_1.43.0               BiocFileCache_2.5.0          
-    ##  [61] AnnotationHub_3.5.1           grid_4.2.1                   
+    ##  [57] yaml_2.3.5                    SummarizedExperiment_1.26.1  
+    ##  [59] zlibbioc_1.42.0               BiocFileCache_2.4.0          
+    ##  [61] AnnotationHub_3.4.0           grid_4.2.2                   
     ##  [63] blob_1.2.3                    promises_1.2.0.1             
-    ##  [65] parallel_4.2.1                ExperimentHub_2.5.0          
+    ##  [65] parallel_4.2.2                ExperimentHub_2.4.0          
     ##  [67] crayon_1.5.1                  crisprBwa_1.1.3              
-    ##  [69] dir.expiry_1.5.1              lattice_0.20-45              
-    ##  [71] GenomicFeatures_1.49.6        hms_1.1.2                    
-    ##  [73] KEGGREST_1.37.3               knitr_1.40                   
-    ##  [75] pillar_1.8.1                  rjson_0.2.21                 
-    ##  [77] codetools_0.2-18              biomaRt_2.53.2               
-    ##  [79] BiocVersion_3.16.0            XML_3.99-0.10                
+    ##  [69] dir.expiry_1.4.0              lattice_0.20-45              
+    ##  [71] GenomicFeatures_1.48.3        hms_1.1.1                    
+    ##  [73] KEGGREST_1.36.3               knitr_1.39                   
+    ##  [75] pillar_1.8.0                  rjson_0.2.21                 
+    ##  [77] codetools_0.2-18              biomaRt_2.52.0               
+    ##  [79] BiocVersion_3.15.2            XML_3.99-0.10                
     ##  [81] glue_1.6.2                    evaluate_0.16                
     ##  [83] BiocManager_1.30.18           httpuv_1.6.5                 
     ##  [85] png_0.1-7                     vctrs_0.4.1                  
     ##  [87] tzdb_0.3.0                    purrr_0.3.4                  
     ##  [89] assertthat_0.2.1              cachem_1.0.6                 
     ##  [91] xfun_0.32                     mime_0.12                    
-    ##  [93] Rbwa_1.1.0                    xtable_1.8-4                 
+    ##  [93] Rbwa_1.0.0                    xtable_1.8-4                 
     ##  [95] restfulr_0.0.15               later_1.3.0                  
-    ##  [97] tibble_3.1.8                  GenomicAlignments_1.33.1     
-    ##  [99] AnnotationDbi_1.59.1          memoise_2.0.1                
-    ## [101] interactiveDisplayBase_1.35.0 ellipsis_0.3.2
+    ##  [97] tibble_3.1.8                  GenomicAlignments_1.32.1     
+    ##  [99] AnnotationDbi_1.58.0          memoise_2.0.1                
+    ## [101] interactiveDisplayBase_1.34.0 ellipsis_0.3.2
 
 # References
 
