@@ -22,6 +22,7 @@
 \alias{enzymeAnnotation<-}
 \alias{snps<-}
 \alias{alignments<-}
+\alias{addCutSites}
 \alias{GuideSet-class}
 \alias{GuideSet}
 \alias{targetOrigin,GuideSet-method}
@@ -32,6 +33,7 @@
 \alias{pams,GuideSet-method}
 \alias{pamSites,GuideSet-method}
 \alias{cutSites,GuideSet-method}
+\alias{addCutSites,GuideSet-method}
 \alias{protospacers,GuideSet-method}
 \alias{spacerLength,GuideSet-method}
 \alias{prototypeSequence,GuideSet-method}
@@ -92,6 +94,8 @@ snps(object) <- value
 
 alignments(object) <- value
 
+addCutSites(object, ...)
+
 GuideSet(
   ids = NA_character_,
   protospacers = NA_character_,
@@ -123,6 +127,8 @@ GuideSet(
 \S4method{pamSites}{GuideSet}(object)
 
 \S4method{cutSites}{GuideSet}(object)
+
+\S4method{addCutSites}{GuideSet}(object)
 
 \S4method{protospacers}{GuideSet}(
   object,

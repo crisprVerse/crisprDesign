@@ -275,9 +275,6 @@ setMethod("bsgenome", "GuideSet",
 
 
 
-
-
-
 #' @rdname GuideSet-class
 #' @param object \linkS4class{GuideSet} object.
 #' @export
@@ -362,6 +359,26 @@ setMethod("cutSites", "GuideSet",
     names(out) <- names(object)
     return(out)
 })
+
+
+#' @rdname GuideSet-class
+#' @param object \linkS4class{GuideSet} object.
+#' @export
+#' @importFrom crisprBase getCutSiteFromPamSite
+#' @importFrom S4Vectors mcols<-
+setMethod("addCutSites", "GuideSet", 
+    function(object){
+
+    nuc <- crisprNuclease(object)
+    strand <- as.character(BiocGenerics::strand(object))
+    cutSite <- getCutSiteFromPamSite(pam_site=pamSites(object),
+                                     strand=strand,
+                                     nuclease=nuc)
+    mcols(object)[["cut_site"]] <- cutSite
+    return(object)
+})
+
+
 
 
 

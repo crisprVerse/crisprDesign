@@ -260,6 +260,16 @@ setGeneric("addEditingSites",
 
 
 
+
+#' @rdname GuideSet-class
+#' @export
+setGeneric("addCutSites",
+           function(object, ...) standardGeneric("addCutSites"))
+
+
+
+
+
 #' @rdname addSpacerAlignments
 #' @export
 setGeneric("addSpacerAlignments",
