@@ -4,8 +4,10 @@
 #' 
 #' @param object A \linkS4class{GuideSet} or a 
 #'     \linkS4class{PairedGuideSet} object.
-#' @param ntcs A character vector of NTC sequences. Sequences must consist of
-#'     appropriate DNA or RNA bases, and have the same spacer length as spacers
+#' @param ntcs A named character vector of NTC sequences. Sequences must
+#'     consist of appropriate DNA or RNA bases, and have the same spacer length
+#'     as spacers in \code{object}. Vector names are assigned as IDs and
+#'     seqlevels, and must be unique and distinct from IDs and seqnames present
 #'     in \code{object}.
 #' @param ... Additional arguments, currently ignored.
 #'     
@@ -33,6 +35,7 @@
 #'     seq <- sample(c("A", "C", "G", "T"), 20, replace=TRUE)
 #'     paste0(seq, collapse="")
 #' }, FUN.VALUE=character(1))
+#' names(ntcs) <- paste0("ntc_", 1:4)
 #' gs <- addNtcs(guideSetExample, ntcs)
 #' gs
 #' 
@@ -44,6 +47,9 @@ setMethod("addNtcs", "GuideSet", function(object,
 ){
     object <- .validateGuideSet(object)
     ntcs <- .validateNtcs(object, ntcs)
+    if (length(ntcs) == 0){
+        return(object)
+    }
     
     newSeqinfo <- .updateSeqinfo(object, ntcs)
     ntcGuideSet <- .createNtcGuideSet(object, ntcs, newSeqinfo)
@@ -82,33 +88,42 @@ setMethod("addNtcs", "NULL", function(object,
 
 
 #' @importFrom crisprBase targetType
-#' @importFrom Biostrings DNA_BASES RNA_BASES
 .validateNtcs <- function(object,
                           ntcs
                           
 ){
     stopifnot(
-        "ntcs must be a character vector." =
-            is.vector(ntcs, mode="character")
+        "ntcs must be a named character vector." =
+            is.vector(ntcs, mode="character") ||
+            !is.null(names(ntcs))
     )
     
     ntcs <- toupper(ntcs)
     
-    if (crisprBase::targetType(crisprNuclease(object)) == "DNA"){
-        baseSet <- Biostrings::DNA_BASES
-    } else {
-        baseSet <- Biostrings::RNA_BASES
-    }
-    pattern <- paste0(baseSet, collapse="")
+    pattern <- paste0(c("A", "C", "G", "T"), collapse="")
     pattern <- paste0("^[", pattern, "]+$")
     stopifnot(
-        "ntcs must exclusively contain appropriate DNA or RNA bases." =
+        "ntcs must exclusively contain DNA bases." =
             all(grepl(pattern, ntcs))
     )
     
     stopifnot(
         "ntcs must have same length as protospacers in object." =
             all(nchar(ntcs) == spacerLength(object))
+    )
+    
+    ntcNames <- names(ntcs)
+    stopifnot(
+        "ntcs must have unique names." =
+            !any(duplicated(ntcNames))
+    )
+    
+    objectIds <- names(object)
+    objectSeqlevels <- GenomeInfoDb::seqlevels(object)
+    reservedNames <- c(objectIds, objectSeqlevels)
+    stopifnot(
+        "ntcs must have names distinct from object IDs and seqlevels." =
+            length(intersect(ntcNames, reservedNames)) == 0
     )
     
     return(ntcs)
@@ -125,22 +140,11 @@ setMethod("addNtcs", "NULL", function(object,
     ntcCount <- length(ntcs)
     currentSeqlevels <- GenomeInfoDb::seqlevels(object)
     
-    ## appended seqlevels must be unique
-    ntcNames <- character(0)
-    tally <- 0
-    while(length(ntcNames) < ntcCount){
-        newNames <- paste0("ntc_", seq(from=tally+1, to=tally+ntcCount))
-        newNames <- setdiff(newNames, currentSeqlevels)
-        ntcNames <- c(ntcNames, newNames)
-        tally <- tally + ntcCount
-    }
-    ntcNames <- ntcNames[seq(ntcCount)] # trim excess names, if any
-    
     ntcLengths <- rep(spacerLength(object), ntcCount)
     isCircular <- rep(TRUE, ntcCount)
     genome <- rep("ntc", ntcCount)
     
-    ntcSeqinfo <- GenomeInfoDb::Seqinfo(seqnames=ntcNames,
+    ntcSeqinfo <- GenomeInfoDb::Seqinfo(seqnames=names(ntcs),
                                         seqlengths=ntcLengths,
                                         isCircular=isCircular,
                                         genome=genome)
@@ -161,15 +165,11 @@ setMethod("addNtcs", "NULL", function(object,
                                ntcs,
                                newSeqinfo
 ){
-    ntcCount <- length(ntcs)
-    ntcSeqlevels <- setdiff(GenomeInfoDb::seqlevels(newSeqinfo),
-                            GenomeInfoDb::seqlevels(object))
-    
     ntc_gs <- GuideSet(
-        ids=ntcSeqlevels,
+        ids=names(ntcs),
         protospacers=ntcs,
-        pams=rep("NA", ntcCount),
-        seqnames=ntcSeqlevels,
+        pams=rep("NA", length(ntcs)),
+        seqnames=names(ntcs),
         pam_site=0,
         strand="*",
         CrisprNuclease=crisprNuclease(object),
@@ -188,10 +188,12 @@ setMethod("addNtcs", "NULL", function(object,
 .mergeNtcGuideSet <- function(object,
                               ntcGuideSet
 ){
-    cols <- colnames(S4Vectors::mcols(object))
-    for (i in cols){
-        data <- S4Vectors::mcols(object)[[i]]
-        if (!is.atomic(data) && !methods::is(data, "XStringSet")){
+    annotationCols <- colnames(S4Vectors::mcols(object))
+    baseCols <- colnames(S4Vectors::mcols(ntcGuideSet))
+    annotationCols <- setdiff(annotationCols, baseCols)
+    for (i in annotationCols){
+        dataColumn <- S4Vectors::mcols(object)[[i]]
+        if (!is.atomic(dataColumn)){
             S4Vectors::mcols(ntcGuideSet)[[i]] <-
                 lapply(seq_along(ntcGuideSet), function(x){
                     S4Vectors::mcols(object)[[i]][0]

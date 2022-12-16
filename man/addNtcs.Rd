@@ -21,8 +21,10 @@ addNtcs(object, ...)
 
 \item{...}{Additional arguments, currently ignored.}
 
-\item{ntcs}{A character vector of NTC sequences. Sequences must consist of
-appropriate DNA or RNA bases, and have the same spacer length as spacers
+\item{ntcs}{A named character vector of NTC sequences. Sequences must
+consist of appropriate DNA or RNA bases, and have the same spacer length
+as spacers in \code{object}. Vector names are assigned as IDs and
+seqlevels, and must be unique and distinct from IDs and seqnames present
 in \code{object}.}
 }
 \value{
@@ -53,6 +55,7 @@ ntcs <- vapply(1:4, function(x){
     seq <- sample(c("A", "C", "G", "T"), 20, replace=TRUE)
     paste0(seq, collapse="")
 }, FUN.VALUE=character(1))
+names(ntcs) <- paste0("ntc_", 1:4)
 gs <- addNtcs(guideSetExample, ntcs)
 gs
 
