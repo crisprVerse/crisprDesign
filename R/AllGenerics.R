@@ -282,3 +282,10 @@ setGeneric("addSpacerAlignmentsIterative",
            function(object, ...) standardGeneric("addSpacerAlignmentsIterative"))
 
 
+
+
+#' @rdname addNtcs
+#' @export
+setGeneric("addNtcs",
+           function(object, ...) standardGeneric("addNtcs"))
+
