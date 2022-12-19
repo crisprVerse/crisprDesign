@@ -1097,7 +1097,30 @@ For more information, please see the following tutorial:
 
 - [Working with custom DNA sequences](https://github.com/crisprVerse/Tutorials/tree/master/Design_Custom_Sequence)
 
+## Adding non-targeting controls (NTCs)
 
+It is common to include non-targeting controls (NTCs) in screening experiments. Such controls are usually designed to be random sequences that do not align anywhere in the target genome, and therefore can serve as non-cutting negative controls. Given that they cannot be represented by a genomic range specific to a chromosome, they require a special treatment. 
+
+The function `addNtcs` can be used to add a named vector of ntcs to a targeting `GuideSet` object as follows:
+
+```{r}
+gs <- guideSetExample
+ntcs <- c(ntc_1="AGTGCTGTGTGTGTGATGCT", 
+          ntc_2="GGGTGCCTTTTTACTCGATG")
+gs <- addNtcs(gs, ntcs)
+print(gs)
+```
+
+One can see that additional sequence names (ntc_1 and ntc_2) were added to the set of human chromosomes to allow NTCs to be represented in the `GuideSet` object, with strand set to `*`, and `pam_site` set to 0. 
+
+Other design functions can be used as usual on such `GuideSet`
+objects; let's use `addSequenceFeatures` as an example:
+
+          
+```{r}
+gs <- addSequenceFeatures(gs)
+print(gs)
+```
 
 
 

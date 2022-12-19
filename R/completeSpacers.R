@@ -323,10 +323,19 @@ convertToMinMaxGRanges <- function(guideSet,
     }
 
     gr <- GenomicRanges::trim(gr) #Taking care of invalid values
+
+
+
+    good <- which(as.character(strand(gr)) %in% c("+", "-"))
+    out <- rep(NA_character_, length(gr))
+    names(out) <- names(gr)
+    if (length(good)==0){
+        return(out)
+    } 
     if (targetOrigin(guideSet)=="customSequences"){
-        seqs <- getSeq(customSequences(guideSet),gr)
+        seqs <- getSeq(customSequences(guideSet),gr[good])
     } else {
-        seqs <- getSeq(bsgenome(guideSet), gr)
+        seqs <- getSeq(bsgenome(guideSet), gr[good])
     }
     seqs <- as.character(seqs)
 
@@ -334,7 +343,8 @@ convertToMinMaxGRanges <- function(guideSet,
     len <- end-start+1 # Expected length
     seqs[seqs==""] <- NA
     seqs[nchar(seqs)<len] <- NA
-    return(seqs)
+    out[good] <- seqs
+    return(out)
 }
 
 
