@@ -120,6 +120,9 @@ setMethod("addSNPAnnotation", "NULL", function(object){
                               maf,
                               vcf
 ){
+    ## ignore NTCs
+    guideSet <- .dropNtcs(guideSet)
+
     genome <- .getGenome(guideSet)
     stopifnot("SNPs are only applicable for hg38 (human) genome" = {
         genome == "hg38"
@@ -225,7 +228,8 @@ setMethod("addSNPAnnotation", "NULL", function(object){
             stop(missingFileMessage)
         } else {
             # MtDNA not in tabix index
-            validChrs <- paste0("chr", c(seq_len(22),"X","Y"))
+            guideSet <- .dropNtcs(guideSet)
+            validChrs <- paste0("chr", c(seq_len(22), "X", "Y"))
             guidesetChrs <- as.character(GenomeInfoDb::seqnames(guideSet))
             validChrs <- guidesetChrs %in% validChrs
             guideSet <- guideSet[validChrs]
@@ -233,6 +237,7 @@ setMethod("addSNPAnnotation", "NULL", function(object){
             if (length(protoGR) == 0){
                 return(NULL)
             }
+            
             GenomeInfoDb::seqlevelsStyle(protoGR) <- "Ensembl"
             genome <- GenomeInfoDb::seqinfo(protoGR)
             genome <- GenomeInfoDb::genome(genome)

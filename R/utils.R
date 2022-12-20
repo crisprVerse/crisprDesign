@@ -413,6 +413,21 @@ S4Vectors::mcols
 }
 
 
+#' @importFrom GenomeInfoDb seqinfo seqnames genome dropSeqlevels
+.dropNtcs <- function(object
+){
+    ntcs <- GenomeInfoDb::seqinfo(object)
+    ntcs <- GenomeInfoDb::seqnames(ntcs)[GenomeInfoDb::genome(ntcs) == "ntc"]
+    if (length(ntcs) > 0){
+        object <- GenomeInfoDb::dropSeqlevels(object,
+                                              ntcs,
+                                              pruning.mode="coarse")
+    }
+    return(object)
+}
+
+
+
 #' @importFrom crisprBase pamSide cutSites spacerLength pams weights motifs
 .identicalNucleases <- function(nuc1,
                                 nuc2,

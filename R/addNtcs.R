@@ -94,7 +94,7 @@ setMethod("addNtcs", "NULL", function(object,
 ){
     stopifnot(
         "ntcs must be a named character vector." =
-            is.vector(ntcs, mode="character") ||
+            is.vector(ntcs, mode="character") &&
             !is.null(names(ntcs))
     )
     
@@ -196,8 +196,16 @@ setMethod("addNtcs", "NULL", function(object,
         if (!is.atomic(dataColumn)){
             S4Vectors::mcols(ntcGuideSet)[[i]] <-
                 lapply(seq_along(ntcGuideSet), function(x){
-                    S4Vectors::mcols(object)[[i]][0]
-            })
+                    x <- S4Vectors::mcols(object)[[i]][0]
+                    if (methods::is(x, "GRangesList")){
+                        x <- unlist(x)
+                    }
+                    x
+                })
+            if (is(dataColumn, "GRangesList")){
+                S4Vectors::mcols(ntcGuideSet)[[i]] <-
+                    GRangesList(S4Vectors::mcols(ntcGuideSet)[[i]])
+            }
         }
     }
     gs <- c(object, ntcGuideSet)

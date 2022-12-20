@@ -124,6 +124,7 @@ setMethod("addTssAnnotation", "NULL", function(object){
                               tss_window,
                               ignore.strand
 ){
+    guideSet <- .dropNtcs(guideSet)
     tssAnn <- .annotateTssOverlaps(guideSet=guideSet,
                                    tssObject=tssObject,
                                    anchor=anchor,

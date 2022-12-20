@@ -183,6 +183,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 ){
 
     nuc <- crisprNuclease(guideSet)
+    guideSet <- .dropNtcs(guideSet)
     if (crisprBase::isRnase(nuc)){
         geneAnn <- .getGeneAnnotation_rna_nuclease(guideSet=guideSet,
                                                    txObject=txObject)

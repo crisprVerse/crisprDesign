@@ -58,7 +58,7 @@ setMethod("addOffTargetScores",
                                     offset=offset)
     
     object <- .addOffTargetScoresToAlignments(guideSet=object,
-                                                includeDistance=includeDistance)
+                                              includeDistance=includeDistance)
     object <- .addOffTargetScoresToGuideSet(guideSet=object,
                                               max_mm=max_mm,
                                               offset=offset)

@@ -369,11 +369,14 @@ setMethod("cutSites", "GuideSet",
 setMethod("addCutSites", "GuideSet", 
     function(object){
 
-    nuc <- crisprNuclease(object)
+    nuclease <- crisprNuclease(object)
     strand <- as.character(BiocGenerics::strand(object))
-    cutSite <- getCutSiteFromPamSite(pam_site=pamSites(object),
-                                     strand=strand,
-                                     nuclease=nuc)
+    ambiguousStrand <- strand == "*"
+    cutSite <- rep(NA, length(object))
+    cutSite[!ambiguousStrand] <- getCutSiteFromPamSite(
+        pam_site=pamSites(object)[!ambiguousStrand],
+        strand=strand[!ambiguousStrand],
+        nuclease=nuclease)
     mcols(object)[["cut_site"]] <- cutSite
     return(object)
 })
