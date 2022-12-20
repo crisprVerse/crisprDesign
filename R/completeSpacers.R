@@ -241,11 +241,11 @@ convertToProtospacerGRanges <- function(guideSet){
 
 
 
-#' @title Convert a GuideSet object into a GRanges storing the range of 
-#'     all gRNAs.
+#' @title Convert a GuideSet object into a GRanges containing the range of 
+#'     all targeting gRNAs.
 
 #' @description  Convert a GuideSet object into a GRanges object containing 
-#'    the minimum and maximum coordinates of all gRNAs. 
+#'    the minimum and maximum coordinates for all targeting gRNAs. 
 #' 
 #' @param guideSet A \linkS4class{GuideSet} object.
 #' @param anchor A character string specifying which gRNA-specific coordinate
@@ -260,18 +260,25 @@ convertToProtospacerGRanges <- function(guideSet){
 #' data(guideSetExample, package="crisprDesign")
 #' gr <- convertToMinMaxGRanges(guideSetExample)
 #' 
-#' @author Jean-Philippe Fortin
+#' @author Jean-Philippe Fortin, Luke Hoberecht
 #' 
-#' @importFrom GenomicRanges GRanges
-#' @importFrom IRanges IRanges
-#' @importFrom GenomeInfoDb seqlevels seqlevels<-
-#' @importFrom GenomeInfoDb seqinfo seqinfo<-
+#' @importClassesFrom GenomicRanges GRanges
+#' @importClassesFrom IRanges IRanges
+#' @importFrom GenomeInfoDb seqlevels seqlevels<- genome dropSeqlevels
+#' @importFrom GenomeInfoDb seqinfo seqinfo<- seqnames
 #' @export
 convertToMinMaxGRanges <- function(guideSet,
                                    anchor=c("cut_site", "pam_site")
 ){
     anchor <- match.arg(anchor)
-    grs <- split(guideSet, f=as.character(seqnames(guideSet)))
+    genomeSeqlevels <- GenomeInfoDb::genome(guideSet)
+    ntc_seqs <- names(genomeSeqlevels)[genomeSeqlevels == "ntc"]
+    if (length(ntc_seqs) > 0){
+        guideSet <- GenomeInfoDb::dropSeqlevels(guideSet,
+                                                ntc_seqs,
+                                                pruning.mode="coarse")
+    }
+    grs <- split(guideSet, f=as.character(GenomeInfoDb::seqnames(guideSet)))
     grs <- lapply(grs, function(gr){
         if (anchor=="cut_site"){
             start <- min(cutSites(gr), na.rm=TRUE)
@@ -281,11 +288,11 @@ convertToMinMaxGRanges <- function(guideSet,
             end   <- max(pamSites(gr), na.rm=TRUE)
         }
     
-        chr <- as.character(seqnames(gr))[1]
-        out <- GRanges(chr,
-                       IRanges(start=start,end=end))
-        seqlevels(out) <- seqlevels(gr)
-        seqinfo(out) <- seqinfo(gr)
+        chr <- as.character(GenomeInfoDb::seqnames(gr))[1]
+        out <- GenomicRanges::GRanges(chr,
+                                      IRanges::IRanges(start=start,end=end))
+        GenomeInfoDb::seqlevels(out) <- GenomeInfoDb::seqlevels(gr)
+        GenomeInfoDb::seqinfo(out) <- GenomeInfoDb::seqinfo(gr)
         out
     })
     gr <- Reduce(c,grs)

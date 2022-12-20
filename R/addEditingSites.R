@@ -30,10 +30,13 @@ setMethod("addEditingSites",
     }
     pamSites <- pamSites(object)
     strand <- as.character(strand(object))
-    editingSite <- getEditingSiteFromPamSite(pam_site=pamSites,
-                                             strand=strand,
-                                             baseEditor=nuc,
-                                             substitution=substitution)
+    ambiguousStrand <- strand == "*"
+    editingSite <- rep(NA, length(object))
+    editingSite[!ambiguousStrand] <- getEditingSiteFromPamSite(
+        pam_site=pamSites[!ambiguousStrand],
+        strand=strand[!ambiguousStrand],
+        baseEditor=nuc,
+        substitution=substitution)
     mcols(object)$editing_site <- editingSite 
     return(object)
 })

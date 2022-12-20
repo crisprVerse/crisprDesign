@@ -80,10 +80,18 @@ addEditedAlleles <- function(guideSet,
                 "each gRNA target site.")
     }
     alleles <- lapply(seq_along(guideSet), function(guide){
-        .getEditedAllelesPerGuide(gs=guideSet[guide],
-                                  baseEditor=baseEditor,
-                                  editingWindow=editingWindow,
-                                  nMaxAlleles=nMaxAlleles)
+        seqname <- as.character(GenomeInfoDb::seqnames(guideSet[guide]))
+        genome <- GenomeInfoDb::genome(guideSet[guide])
+        genome <- genome[seqname]
+        if (genome == "ntc"){
+            S4Vectors::DataFrame(seq=DNAStringSet(character(0)),
+                                 score=numeric(0))
+        } else {
+            .getEditedAllelesPerGuide(gs=guideSet[guide],
+                                      baseEditor=baseEditor,
+                                      editingWindow=editingWindow,
+                                      nMaxAlleles=nMaxAlleles)
+        }
     })
     if (addFunctionalConsequence){
         if (verbose){
@@ -175,7 +183,6 @@ addEditedAlleles <- function(guideSet,
                              editingWindow)
     nucChanges <- .getPossibleNucChanges(ws)
 
-
     # Getting gRNA information:
     pamSite <- pamSites(gs)
     strand <- as.character(strand(gs))
@@ -188,7 +195,7 @@ addEditedAlleles <- function(guideSet,
     pos <- seq(editingWindow[1],
                editingWindow[2])
     names(nucs) <- pos
-
+    
 
     # Getting scores for the edited nucleotides:
     nucsReduced <- nucs[nucs %in% names(nucChanges)]
@@ -423,6 +430,12 @@ addEditedAlleles <- function(guideSet,
 .addFunctionalConsequences <- function(editedAlleles,
                                        txTable
 ){
+    if (nrow(editedAlleles) == 0){
+        editedAlleles$variant <- character(0)
+        editedAlleles$aa <- character(0)
+        return(editedAlleles)
+    }
+    
     if (txTable$chr[[1]]!=metadata(editedAlleles)$chr){
         stop("editedAlleles are not on the same chromosome.")
     }
@@ -519,8 +532,8 @@ addEditedAlleles <- function(guideSet,
 ){
     ws <- editingWeights(baseEditor)
     ws <- .rescaleWeights(ws)
-    ws <- ws[, as.numeric(colnames(ws))>=editingWindow[1],drop=FALSE]
-    ws <- ws[, as.numeric(colnames(ws))<=editingWindow[2],drop=FALSE]
+    ws <- ws[, as.numeric(colnames(ws)) >= editingWindow[1], drop=FALSE]
+    ws <- ws[, as.numeric(colnames(ws)) <= editingWindow[2], drop=FALSE]
     ws <- crisprBase:::.getReducedEditingMatrix(ws)
     ws <- .addWildtypeWeights(ws)
     return(ws)

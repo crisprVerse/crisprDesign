@@ -353,9 +353,12 @@ setMethod("cutSites", "GuideSet",
     pamSites <- mcols(object)[["pam_site"]]
     nuc <- metadata(object)[["CrisprNuclease"]]
     strand <- as.character(strand(object))
-    out <- getCutSiteFromPamSite(pam_site=pamSites,
-                                 strand=strand,
-                                 nuclease=nuc)
+    ambiguousStrand <- strand == "*"
+    out <- rep(NA, length(object))
+    out[!ambiguousStrand] <- getCutSiteFromPamSite(
+        pam_site=pamSites[!ambiguousStrand],
+        strand=strand[!ambiguousStrand],
+        nuclease=nuc)
     names(out) <- names(object)
     return(out)
 })

@@ -185,6 +185,8 @@ setMethod("addNtcs", "NULL", function(object,
 
 #' @importFrom S4Vectors mcols mcols<-
 #' @importFrom methods is
+#' @importClassesFrom GenomicRanges GRangesList
+#' @importClassesFrom IRanges DataFrameList
 .mergeNtcGuideSet <- function(object,
                               ntcGuideSet
 ){
@@ -196,15 +198,15 @@ setMethod("addNtcs", "NULL", function(object,
         if (!is.atomic(dataColumn)){
             S4Vectors::mcols(ntcGuideSet)[[i]] <-
                 lapply(seq_along(ntcGuideSet), function(x){
-                    x <- S4Vectors::mcols(object)[[i]][0]
-                    if (methods::is(x, "GRangesList")){
-                        x <- unlist(x)
-                    }
-                    x
+                    unlist(S4Vectors::mcols(object)[[i]][0])
                 })
-            if (is(dataColumn, "GRangesList")){
+            ## set generic list to appropriate type
+            if (methods::is(dataColumn, "GRangesList")){
                 S4Vectors::mcols(ntcGuideSet)[[i]] <-
-                    GRangesList(S4Vectors::mcols(ntcGuideSet)[[i]])
+                    GenomicRanges::GRangesList(S4Vectors::mcols(ntcGuideSet)[[i]])
+            } else if (methods::is(dataColumn, "DFrameList")){
+                S4Vectors::mcols(ntcGuideSet)[[i]] <-
+                    IRanges::DataFrameList(S4Vectors::mcols(ntcGuideSet)[[i]])
             }
         }
     }

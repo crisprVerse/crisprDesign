@@ -98,7 +98,11 @@ test_that("added ntcs have NA or empty list annotations", {
     out_ntcs <- out[intersect(names(out), names(all_ntcs))]
     lapply(listcols, function(i){
         lapply(seq_along(out_ntcs), function(ii){
-            expect_equal(length(mcols(out_ntcs)[[i]][[ii]]), 0)
+            if (is(mcols(out_ntcs)[[i]], "GRangesList")){
+                expect_equal(length(mcols(out_ntcs)[[i]][[ii]]), 0)
+            } else {
+                expect_equal(nrow(mcols(out_ntcs)[[i]][[ii]]), 0)
+            }
         })
     })
     lapply(atomicCols, function(x){
@@ -129,9 +133,8 @@ test_that("ntcs names must be unique and distinct from object ids, seqnames", {
 
 test_that("crisprDesign computational functions handle ntcs in GuideSet", {
     out <- addNtcs(guideSetExample, all_ntcs)
-    # getPAMSequence(seqnames(out), pamSites(out), strand(out)) # error
-    # getSpacerSequence(seqnames(out), pamSites(out), strand(out)) # error
-    # convertToMinMaxGRanges(out) # issue with strand
+    expect_error(convertToMinMaxGRanges(out),
+                 regex=NA)
     expect_error(convertToProtospacerGRanges(out),
                  regexp=NA) # no error, but meaningless output for ntcs
 })
@@ -147,7 +150,62 @@ out <- addNtcs(head(guideSetExample), all_ntcs[1])
 out_full <- addNtcs(head(guideSetExampleFullAnnotation), all_ntcs[1])
 
 
+## ACCESSOR FUNCTIONS =========================================================
 
+test_that("atomic accessor functions handle ntcs in GuideSet gracefully", {
+    expect_error(spacers(out_full), regexp=NA)
+    expect_error(pams(out_full), regexp=NA)
+    expect_error(pamSites(out_full), regexp=NA)
+    expect_error(cutSites(out_full), regexp=NA)
+    expect_error(protospacers(out_full), regexp=NA)
+})
+
+test_that("snps accessor handles ntcs in GuideSet gracefully", {
+    expect_error(snps(out_full),
+                 regexp=NA)
+    expect_false(is.null(snps(out_full)))
+})
+
+test_that("alignments accessors handles ntcs in GuideSet gracefully", {
+    expect_error(alignments(out_full),
+                 regexp=NA)
+    expect_error(onTargets(out_full),
+                 regexp=NA)
+    expect_error(offTargets(out_full),
+                 regexp=NA)
+    expect_false(is.null(alignments(out_full)))
+    expect_false(is.null(onTargets(out_full)))
+    expect_false(is.null(offTargets(out_full)))
+})
+
+test_that("geneAnnotation accessor handles ntcs in GuideSet gracefully", {
+    expect_error(geneAnnotation(out_full),
+                 regexp=NA)
+    expect_false(is.null(geneAnnotation(out_full)))
+})
+
+test_that("tssAnnotation accessor handles ntcs in GuideSet gracefully", {
+    expect_error(tssAnnotation(out_full),
+                 regexp=NA)
+    expect_false(is.null(tssAnnotation(out_full)))
+})
+
+test_that("enzymeAnnotation accessor handles ntcs in GuideSet gracefully", {
+    expect_error(enzymeAnnotation(out_full),
+                 regexp=NA)
+    expect_false(is.null(enzymeAnnotation(out_full)))
+})
+
+## guideSetExampleFullAnnotation lacks editedAlleles annotation
+# test_that("editedAlleles accessor handles ntcs in GuideSet gracefully", {
+#     expect_error(editedAlleles(out_full),
+#                  regexp=NA)
+#     expect_false(is.null(editedAlleles(out_full)))
+# })
+
+
+
+## ANNOTATION FUNCTIONS =======================================================
 
 ## split for each crisprDesign function (so more helpful message if test fails)
 test_that("addCutSites handles ntcs in GuideSet gracefully", {
@@ -167,20 +225,29 @@ test_that("addSNPAnnotation handles ntcs in GuideSet gracefully", {
     VCF_PATH <- system.file("extdata",
                             file="common_snps_dbsnp151_example.vcf.gz",
                             package="crisprDesign")
-    expect_error(addSNPAnnotation(out, vcf=VCF_PATH),
+    expect_error(res <- addSNPAnnotation(out, vcf=VCF_PATH),
                  regexp=NA)
+    expect_error(snps(res),
+                 regexp=NA)
+    expect_false(is.null(snps(res)))
 })
 
 
 test_that("addGeneAnnotation handles ntcs in GuideSet gracefully", {
-    expect_error(addGeneAnnotation(out, txObject=txdb_human),
+    expect_error(res <- addGeneAnnotation(out, txObject=txdb_human),
                  regexp=NA)
+    expect_error(geneAnnotation(res),
+                 regexp=NA)
+    expect_false(is.null(geneAnnotation(res)))
 })
 
 
 test_that("addTssAnnotation handles ntcs in GuideSet gracefully", {
-    expect_error(addTssAnnotation(out, tssObject=tss_human),
+    expect_error(res <- addTssAnnotation(out, tssObject=tss_human),
                  regexp=NA)
+    expect_error(tssAnnotation(res),
+                 regexp=NA)
+    expect_false(is.null(tssAnnotation(res)))
 })
 
 
@@ -197,8 +264,11 @@ test_that("addPamScores handles ntcs in GuideSet gracefully", {
 
 
 test_that("addRestrictionEnzymes handles ntcs in GuideSet gracefully", {
-    expect_error(addRestrictionEnzymes(out),
+    expect_error(res <- addRestrictionEnzymes(out),
                  regexp=NA)
+    expect_error(enzymeAnnotation(res),
+                 regexp=NA)
+    expect_false(is.null(enzymeAnnotation(res)))
 })
 
 
@@ -211,7 +281,7 @@ test_that("addSpacerAlignments/Iterative handles ntcs in GuideSet gracefully", {
                           force=TRUE,
                           prefix="tempIndex")
     index <- file.path(outdir, "tempIndex")
-    expect_error(addSpacerAlignments(
+    expect_error(res <- addSpacerAlignments(
         out,
         txObject=txdb_human,
         tssObject=tss_human,
@@ -225,12 +295,15 @@ test_that("addSpacerAlignments/Iterative handles ntcs in GuideSet gracefully", {
         aligner_index=index,
         bsgenome=BSgenome.Hsapiens.UCSC.hg38),
                  regexp=NA)
+    expect_error(alignments(res),
+                 regexp=NA)
+    expect_false(is.null(alignments(res)))
 })
 
 
 test_that("addOnTargetScores handles ntcs in GuideSet gracefully", {
     expect_error(addOnTargetScores(out, methods=c("deephf")),
-                 regexp=NA) # need to test all methods?
+                 regexp=NA) # need to test all methods
 })
 
 
@@ -246,20 +319,99 @@ test_that("GuideSet with ntcs can be converted to data.frame", {
 })
 
 
+test_that("addEditingSites handles ntcs in GuideSet gracefully", {
+    gs <- out
+    metadata(gs)$CrisprNuclease <- BE4max
+    expect_error(addEditingSites(gs, "C2T"),
+                 regexp=NA)
+})
 
 
+test_that("addExonTable handles ntcs in the GuideSet gracefully", {
+    outga <- addGeneAnnotation(out, txObject=txdb_human)
+    expect_error(addExonTable(outga,
+                              gene_id="ENSG00000120645",
+                              txObject=txdb_human),
+                 regexp=NA)
+})
 
-## other crisprDesign functions that may need testing
-# addEditingSites
-# addExonTable_consensusIsoform
-# addConservationScores
-# addDistanceToTss
-# addExonTable
-# addTxTable
-# addCrispraiScores
-# addEditedAlleles
-# addExonTable_allIsoforms
-# addIsoformAnnotation
-# addPfamDomains
 
-## check that function can also handle PairedGuideSet?
+## uses local file
+# test_that("addConservationScores handles ntcs in the GuideSet gracefully", {
+#     conservationFile <- getConservationFiles("human")
+#     expect_error(addConservationScores(out,
+#                                        conservationFile=conservationFile),
+#                  regexp=NA)
+# })
+
+
+test_that("addDistanceToTss handles ntcs in the GuideSet gracefully", {
+    tss_id <- "ENSG00000120645_P1"
+    expect_error(addDistanceToTss(out_full, tss_id),
+                 regexp=NA)
+})
+
+
+test_that("addTxTable handles ntcs in the GuideSet gracefully", {
+    gene_id <- "ENSG00000120645"
+    expect_error(addTxTable(out_full, gene_id, txdb_human),
+                 regexp=NA)
+})
+
+
+## uses local files
+test_that("addCrispraiScores handles ntcs in the GuideSet gracefully", {
+    # gr <- queryTss(tss_human,
+    #                "gene_symbol",
+    #                "IQSEC3")
+    # gs <- findSpacers(gr,
+    #                   crisprNuclease=SpCas9,
+    #                   bsgenome=BSgenome.Hsapiens.UCSC.hg38)
+    # gs <- addNtcs(head(gs), all_ntcs[1])
+    # chromatinFiles <- "~/crisprIndices/chromatin/hg38"
+    # chromatinFiles <- file.path(chromatinFiles, list.files(chromatinFiles))
+    # names(chromatinFiles) <- c("dnase", "faire", "mnase")
+    # fastaFile <- "~/crisprIndices/genomes/hg38/hg38.fa.gz"
+    # addCrispraiScores(gs,
+    #                   gr=gr,
+    #                   tssObject=tss_human,
+    #                   chromatinFiles=chromatinFiles,
+    #                   fastaFile=fastaFile)
+})
+
+
+test_that("addEditedAlleles handles ntcs in the GuideSet gracefully", {
+    gs <- out
+    metadata(gs)$CrisprNuclease <- BE4max
+    txTable <- getTxInfoDataFrame(tx_id="ENST00000538872",
+                                  txObject=txdb_human,
+                                  bsgenome=BSgenome.Hsapiens.UCSC.hg38)
+    
+    expect_error(res <- addEditedAlleles(gs,
+                                         baseEditor=BE4max,
+                                         txTable=txTable,
+                                         editingWindow=c(-20, -8)),
+                 regexp=NA)
+    expect_error(editedAlleles(res),
+                 regexp=NA)
+    expect_false(is.null(editedAlleles(res)))
+})
+
+
+test_that("addIsoformAnnotation handles ntcs in the GuideSet gracefully", {
+    tx_id <- "ENST00000538872"
+    expect_error(addIsoformAnnotation(out_full,
+                                      tx_id="ENST00000538872"),
+                 regexp=NA)
+})
+
+
+test_that("addPfamDomains handles ntcs in the GuideSet gracefully", {
+    pfamTable <- preparePfamTable(txdb_human,
+                                  mart_dataset="hsapiens_gene_ensembl")
+    expect_error(addPfamDomains(out_full,
+                                pfamTable=pfamTable),
+                 regexp=NA)
+    
+})
+

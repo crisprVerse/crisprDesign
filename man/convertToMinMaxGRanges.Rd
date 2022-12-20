@@ -2,8 +2,8 @@
 % Please edit documentation in R/completeSpacers.R
 \name{convertToMinMaxGRanges}
 \alias{convertToMinMaxGRanges}
-\title{Convert a GuideSet object into a GRanges storing the range of 
-    all gRNAs.}
+\title{Convert a GuideSet object into a GRanges containing the range of 
+    all targeting gRNAs.}
 \usage{
 convertToMinMaxGRanges(guideSet, anchor = c("cut_site", "pam_site"))
 }
@@ -21,7 +21,7 @@ A GRanges object with start and end coordinates
 }
 \description{
 Convert a GuideSet object into a GRanges object containing 
-   the minimum and maximum coordinates of all gRNAs.
+   the minimum and maximum coordinates for all targeting gRNAs.
 }
 \examples{
 data(guideSetExample, package="crisprDesign")
@@ -29,5 +29,5 @@ gr <- convertToMinMaxGRanges(guideSetExample)
 
 }
 \author{
-Jean-Philippe Fortin
+Jean-Philippe Fortin, Luke Hoberecht
 }
