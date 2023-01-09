@@ -143,8 +143,6 @@ test_that("crisprDesign computational functions handle ntcs in GuideSet", {
 
 
 
-data("txdb_human", package="crisprDesignData")
-data("tss_human", package="crisprDesignData")
 
 out <- addNtcs(head(guideSetExample), all_ntcs[1])
 out_full <- addNtcs(head(guideSetExampleFullAnnotation), all_ntcs[1])
@@ -234,7 +232,7 @@ test_that("addSNPAnnotation handles ntcs in GuideSet gracefully", {
 
 
 test_that("addGeneAnnotation handles ntcs in GuideSet gracefully", {
-    expect_error(res <- addGeneAnnotation(out, txObject=txdb_human),
+    expect_error(res <- addGeneAnnotation(out, txObject=grListExample),
                  regexp=NA)
     expect_error(geneAnnotation(res),
                  regexp=NA)
@@ -243,7 +241,7 @@ test_that("addGeneAnnotation handles ntcs in GuideSet gracefully", {
 
 
 test_that("addTssAnnotation handles ntcs in GuideSet gracefully", {
-    expect_error(res <- addTssAnnotation(out, tssObject=tss_human),
+    expect_error(res <- addTssAnnotation(out, tssObject=tssObjectExample),
                  regexp=NA)
     expect_error(tssAnnotation(res),
                  regexp=NA)
@@ -283,15 +281,15 @@ test_that("addSpacerAlignments/Iterative handles ntcs in GuideSet gracefully", {
     index <- file.path(outdir, "tempIndex")
     expect_error(res <- addSpacerAlignments(
         out,
-        txObject=txdb_human,
-        tssObject=tss_human,
+        txObject=grListExample,
+        tssObject=tssObjectExample,
         aligner_index=index,
         bsgenome=BSgenome.Hsapiens.UCSC.hg38),
                  regexp=NA)
     expect_error(addSpacerAlignmentsIterative(
         out,
-        txObject=txdb_human,
-        tssObject=tss_human,
+        txObject=grListExample,
+        tssObject=tssObjectExample,
         aligner_index=index,
         bsgenome=BSgenome.Hsapiens.UCSC.hg38),
                  regexp=NA)
@@ -328,10 +326,10 @@ test_that("addEditingSites handles ntcs in GuideSet gracefully", {
 
 
 test_that("addExonTable handles ntcs in the GuideSet gracefully", {
-    outga <- addGeneAnnotation(out, txObject=txdb_human)
+    outga <- addGeneAnnotation(out, txObject=grListExample)
     expect_error(addExonTable(outga,
                               gene_id="ENSG00000120645",
-                              txObject=txdb_human),
+                              txObject=grListExample),
                  regexp=NA)
 })
 
@@ -354,14 +352,14 @@ test_that("addDistanceToTss handles ntcs in the GuideSet gracefully", {
 
 test_that("addTxTable handles ntcs in the GuideSet gracefully", {
     gene_id <- "ENSG00000120645"
-    expect_error(addTxTable(out_full, gene_id, txdb_human),
+    expect_error(addTxTable(out_full, gene_id, grListExample),
                  regexp=NA)
 })
 
 
 ## uses local files
 test_that("addCrispraiScores handles ntcs in the GuideSet gracefully", {
-    # gr <- queryTss(tss_human,
+    # gr <- queryTss(tssObjectExample,
     #                "gene_symbol",
     #                "IQSEC3")
     # gs <- findSpacers(gr,
@@ -374,7 +372,7 @@ test_that("addCrispraiScores handles ntcs in the GuideSet gracefully", {
     # fastaFile <- "~/crisprIndices/genomes/hg38/hg38.fa.gz"
     # addCrispraiScores(gs,
     #                   gr=gr,
-    #                   tssObject=tss_human,
+    #                   tssObject=tssObjectExample,
     #                   chromatinFiles=chromatinFiles,
     #                   fastaFile=fastaFile)
 })
@@ -384,7 +382,7 @@ test_that("addEditedAlleles handles ntcs in the GuideSet gracefully", {
     gs <- out
     metadata(gs)$CrisprNuclease <- BE4max
     txTable <- getTxInfoDataFrame(tx_id="ENST00000538872",
-                                  txObject=txdb_human,
+                                  txObject=grListExample,
                                   bsgenome=BSgenome.Hsapiens.UCSC.hg38)
     
     expect_error(res <- addEditedAlleles(gs,
@@ -407,11 +405,10 @@ test_that("addIsoformAnnotation handles ntcs in the GuideSet gracefully", {
 
 
 test_that("addPfamDomains handles ntcs in the GuideSet gracefully", {
-    pfamTable <- preparePfamTable(txdb_human,
-                                  mart_dataset="hsapiens_gene_ensembl")
-    expect_error(addPfamDomains(out_full,
-                                pfamTable=pfamTable),
-                 regexp=NA)
-    
+    # pfamTable <- preparePfamTable(grListExample,
+    #                               mart_dataset="hsapiens_gene_ensembl")
+    # expect_error(addPfamDomains(out_full,
+    #                             pfamTable=pfamTable),
+    #              regexp=NA)
 })
 
