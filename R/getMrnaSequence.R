@@ -60,3 +60,54 @@ getMrnaSequences <- function(txids,
     
     return(sequences)
 }
+
+
+
+#' @title Retrieve pre-mRNA sequences
+#' 
+#' @description A function for retrieving pre-mRNA sequences of
+#'     select transcripts.
+#' 
+#' @param txids A character vector of Ensembl transcript IDs. IDs not present
+#'     in \code{txObject} will be silently ignored.
+#' @param txObject A \linkS4class{TxDb} object or a \linkS4class{GRangesList}
+#'     object obtained from \code{\link{TxDb2GRangesList}}. Defines genomic
+#'     ranges for \code{txids}.
+#' @param bsgenome A \linkS4class{BSgenome} object from which to extract
+#'     pre-mRNA sequences.
+#' 
+#' @return A \linkS4class{DNAStringSet} object of mRNA sequences. Note that
+#'     sequences are returned as DNA rather than RNA.
+#' 
+#' @author Jean-Philippe Fortin
+#' 
+#' @examples
+#' 
+#' library(BSgenome.Hsapiens.UCSC.hg38)
+#' data(grListExample)
+#' bsgenome <- BSgenome.Hsapiens.UCSC.hg38
+#' txids <- c("ENST00000538872", "ENST00000382841")
+#' out <- getPreMrnaSequences(txids, grListExample, bsgenome)
+#' 
+#' @importFrom Biostrings getSeq DNAStringSet
+#' @export
+getPreMrnaSequences <- function(txids,
+                                txObject,
+                                bsgenome
+){
+    stopifnot("txids must be a character vector of Ensembl transcript IDs" = {
+        is.vector(txids, mode="character")
+    })
+    txObject <- .validateGRangesList(txObject)
+    .isBSGenome(bsgenome)
+    
+    txs <- txObject[["transcripts"]]
+    txs <- txs[txs$tx_id %in% txids]
+    sequences <- Biostrings::getSeq(bsgenome, txs)
+    sequences <- Biostrings::DNAStringSet(sequences, use.names=TRUE)
+    names(sequences) <- txids
+    return(sequences)
+}
+
+
+
