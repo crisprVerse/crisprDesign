@@ -181,7 +181,6 @@ setMethod("addGeneAnnotation", "NULL", function(object){
                                addPfam,
                                mart_dataset
 ){
-
     nuc <- crisprNuclease(guideSet)
     guideSet <- .dropNtcs(guideSet)
     if (crisprBase::isRnase(nuc)){
@@ -298,10 +297,10 @@ setMethod("addGeneAnnotation", "NULL", function(object){
     geneAnn <- .addCutRegions(geneAnn=geneAnn,
                               txObject=txObject,
                               ignore.strand=ignore.strand)
-    geneAnn <- .addCdsPositionAnnotation(geneAnn=geneAnn,
+    geneAnn <- .addCdsPositionAnnotation(geneAnn=geneAnn, # problem?
                                          txObject=txObject,
                                          bsgenome=bsgenome)
-    geneAnn <- .addTxPositionAnnotation(geneAnn=geneAnn,
+    geneAnn <- .addTxPositionAnnotation(geneAnn=geneAnn, # problem?
                                         bsgenome=bsgenome,
                                         txObject=txObject)
     geneAnn <- .addTranscriptIsoformSummary(geneAnn=geneAnn,
@@ -411,10 +410,10 @@ setMethod("addGeneAnnotation", "NULL", function(object){
     txAnn <- .getTxAnnotationList(geneAnn=geneAnn,
                                   txObject=txObject,
                                   featureType="cds")
-    coordSeq <- .getTxCoordinateSequences(txAnn)
+    exonCoords <- .getTxCoordinates(txAnn)
     aaSeq <- .getAminoAcidSequences(txAnn, bsgenome)
     cdsPositionAnnotation <- .getCdsPositionAnnotation(geneAnn=geneAnn,
-                                                       coordSeq=coordSeq,
+                                                       exonCoords=exonCoords,
                                                        aaSeq=aaSeq)
     for (i in seq_along(cdsPositionAnnotation)){
         mcolname <- names(cdsPositionAnnotation)[i]
@@ -434,16 +433,31 @@ setMethod("addGeneAnnotation", "NULL", function(object){
     txAnn <- .getTxAnnotationList(geneAnn=geneAnn,
                                   txObject=txObject,
                                   featureType="exons")
-    coordSeq <- .getTxCoordinateSequences(txAnn)
+    exonCoords <- .getTxCoordinates(txAnn)
     
     percentTx <- rep(NA, length(geneAnn))
-    for (i in seq_along(coordSeq)){
-        txId <- names(coordSeq)[i]
+    for (i in seq_along(exonCoords)){
+        txId <- names(exonCoords)[i]
+        exonBoundaries <- exonCoords[[i]]
         geneAnnIndices <- S4Vectors::mcols(geneAnn)$tx_id == txId
+        genomicCoord <- IRanges::pos(geneAnn)[geneAnnIndices]
         
-        coordinateIndices <- match(IRanges::pos(geneAnn)[geneAnnIndices],
-                                   coordSeq[[i]])
-        txLength <- length(coordSeq[[i]])
+        coordinateIndices <- vapply(genomicCoord, function(x){
+            codingExonNumber <- which(exonBoundaries$start <= x &
+                                          x <= exonBoundaries$end)
+            newExonLimits <- exonBoundaries[codingExonNumber, , drop=FALSE]
+            txStrand <- unique(newExonLimits$strand)
+            if (txStrand == "+"){
+                coords <- newExonLimits$start:newExonLimits$end
+            } else {
+                coords <- newExonLimits$end:newExonLimits$start
+            }
+            wh <- which(coords == x)
+            coordinateIndices <- newExonLimits$cumWidth - (length(coords) - wh)
+            coordinateIndices
+        }, FUN.VALUE=numeric(1))
+        
+        txLength <- max(exonBoundaries$cumWidth)
         coordinatePercent <- round(coordinateIndices/txLength*100, 1)
         percentTx[geneAnnIndices] <- coordinatePercent
     }
@@ -472,20 +486,15 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 
 
 # Get genomic coordinates of transcripts
-#' @importFrom BiocGenerics strand start end
-.getTxCoordinateSequences <- function(txAnn
+#' @importFrom BiocGenerics strand start end width
+.getTxCoordinates <- function(txAnn
 ){
-    coordinateSequences <- lapply(txAnn, function(tx){
-        txStrand <- unique(as.character(BiocGenerics::strand(tx)))
-        txCoordinates <- lapply(seq_along(tx), function(exon){
-            exonCoordinates <- seq(BiocGenerics::start(tx)[exon],
-                                   BiocGenerics::end(tx)[exon])
-            if (txStrand == '-'){
-                exonCoordinates <- rev(exonCoordinates)
-            }
-            exonCoordinates
-        })
-        unlist(txCoordinates)
+    coordinateSequences <- lapply(txAnn, function(x){
+        data.frame(start=BiocGenerics::start(x),
+                   end=BiocGenerics::end(x),
+                   cumWidth=cumsum(BiocGenerics::width(x)),
+                   strand=unique(as.character(BiocGenerics::strand(x)))
+                   )
     })
     return(coordinateSequences)
 }
@@ -509,20 +518,36 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 #' @importFrom S4Vectors mcols
 #' @importFrom IRanges pos
 #' @importFrom Biostrings matchPattern
-#' @importFrom BiocGenerics start
+#' @importFrom BiocGenerics start strand
 .getCdsPositionAnnotation <- function(geneAnn,
-                                      coordSeq,
+                                      exonCoords,
                                       aaSeq
 ){
     percentCDS <- aminoAcidIndex <- downstreamATG <- rep(NA, length(geneAnn))
     inCDS <- S4Vectors::mcols(geneAnn)$cut_cds
-    for (i in seq_along(coordSeq)){
-        txId <- names(coordSeq)[i]
+    for (i in seq_along(exonCoords)){
+        txId <- names(exonCoords)[i]
+        exonLimits <- exonCoords[[i]]
         geneAnnIndices <- S4Vectors::mcols(geneAnn)$tx_id == txId & inCDS
+        genomicCoord <- IRanges::pos(geneAnn)[geneAnnIndices]
         
-        coordinateIndices <- match(IRanges::pos(geneAnn)[geneAnnIndices],
-                                   coordSeq[[i]])
-        txLength <- length(coordSeq[[i]])
+        coordinateIndices <- vapply(genomicCoord, function(x){
+            codingExonNumber <- which(exonLimits$start <= x &
+                                          x <= exonLimits$end)
+            newExonLimits <- exonLimits[codingExonNumber, , drop=FALSE]
+            txStrand <- unique(newExonLimits$strand)
+            
+            if (txStrand == "+"){
+                coords <- newExonLimits$start:newExonLimits$end
+            } else {
+                coords <- newExonLimits$end:newExonLimits$start
+            }
+            wh <- which(coords == x)
+            coordinateIndices <- newExonLimits$cumWidth - (length(coords) - wh)
+            coordinateIndices
+        }, FUN.VALUE=numeric(1))
+        
+        txLength <- max(exonLimits$cumWidth)
         coordinatePercent <- round(coordinateIndices/txLength*100, 1)
         percentCDS[geneAnnIndices] <- coordinatePercent
         aminoAcidIndex[geneAnnIndices] <- ceiling(coordinateIndices/3)
