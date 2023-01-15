@@ -297,10 +297,10 @@ setMethod("addGeneAnnotation", "NULL", function(object){
     geneAnn <- .addCutRegions(geneAnn=geneAnn,
                               txObject=txObject,
                               ignore.strand=ignore.strand)
-    geneAnn <- .addCdsPositionAnnotation(geneAnn=geneAnn, # problem?
+    geneAnn <- .addCdsPositionAnnotation(geneAnn=geneAnn,
                                          txObject=txObject,
                                          bsgenome=bsgenome)
-    geneAnn <- .addTxPositionAnnotation(geneAnn=geneAnn, # problem?
+    geneAnn <- .addTxPositionAnnotation(geneAnn=geneAnn,
                                         bsgenome=bsgenome,
                                         txObject=txObject)
     geneAnn <- .addTranscriptIsoformSummary(geneAnn=geneAnn,
@@ -407,14 +407,16 @@ setMethod("addGeneAnnotation", "NULL", function(object){
                                       txObject,
                                       bsgenome
 ){
-    txAnn <- .getTxAnnotationList(geneAnn=geneAnn,
+    cdsAnn <- .getTxAnnotationList(geneAnn=geneAnn,
                                   txObject=txObject,
                                   featureType="cds")
-    exonCoords <- .getTxCoordinates(txAnn)
-    aaSeq <- .getAminoAcidSequences(txAnn, bsgenome)
-    cdsPositionAnnotation <- .getCdsPositionAnnotation(geneAnn=geneAnn,
-                                                       exonCoords=exonCoords,
-                                                       aaSeq=aaSeq)
+    aaSeq <- .getAminoAcidSequences(cdsAnn=cdsAnn,
+                                    bsgenome=bsgenome)
+    cdsPositionAnnotation <- .getCdsPositionAnnotation(
+        geneAnn=geneAnn,
+        cdsAnn=cdsAnn,
+        seqlengths=GenomeInfoDb::seqlengths(txObject),
+        aaSeq=aaSeq)
     for (i in seq_along(cdsPositionAnnotation)){
         mcolname <- names(cdsPositionAnnotation)[i]
         S4Vectors::mcols(geneAnn)[[mcolname]] <- cdsPositionAnnotation[[i]]
@@ -468,6 +470,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 
 # Get transcript annotation 
 #' @importFrom S4Vectors split
+#' @importFrom GenomicRanges granges
 .getTxAnnotationList <- function(geneAnn,
                                  txObject,
                                  featureType
@@ -479,8 +482,9 @@ setMethod("addGeneAnnotation", "NULL", function(object){
                              queryColumn="tx_id",
                              queryValue=txIds)
     # need to handle cases where length(txAnn)==0
-    txAnn   <- txAnn[order(txAnn$tx_id, txAnn$exon_rank)]
+    txAnn <- txAnn[order(S4Vectors::mcols(txAnn)$exon_rank)]
     txAnn  <- S4Vectors::split(txAnn, txAnn$tx_id)
+    # txAnn <- GenomicRanges::grglist(txAnn)
     return(txAnn)
 }
 
@@ -494,7 +498,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
                    end=BiocGenerics::end(x),
                    cumWidth=cumsum(BiocGenerics::width(x)),
                    strand=unique(as.character(BiocGenerics::strand(x)))
-                   )
+        )
     })
     return(coordinateSequences)
 }
@@ -503,13 +507,14 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 # Get amino sequences information
 #' @importFrom BSgenome getSeq
 #' @importFrom Biostrings translate
-.getAminoAcidSequences <- function(txAnn,
+#' @importClassesFrom Biostrings DNAStringSet
+.getAminoAcidSequences <- function(cdsAnn,
                                    bsgenome
 ){
-    nucleotideSequences <- BSgenome::getSeq(bsgenome, names=txAnn)
-    aminoAcidSequences <- lapply(nucleotideSequences, function(x){
-        Biostrings::translate(unlist(x))
-    })
+    nucleotideSequences <- BSgenome::getSeq(bsgenome, names=cdsAnn)
+    nucleotideSequences <- lapply(nucleotideSequences, unlist)
+    nucleotideSequences <- Biostrings::DNAStringSet(nucleotideSequences)
+    aminoAcidSequences <- Biostrings::translate(nucleotideSequences)
     return(aminoAcidSequences)
 }
 
@@ -518,57 +523,88 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 #' @importFrom S4Vectors mcols
 #' @importFrom IRanges pos
 #' @importFrom Biostrings matchPattern
-#' @importFrom BiocGenerics start strand
+#' @importFrom BiocGenerics start strand width
 .getCdsPositionAnnotation <- function(geneAnn,
-                                      exonCoords,
+                                      cdsAnn,
+                                      seqlengths,
                                       aaSeq
 ){
     percentCDS <- aminoAcidIndex <- downstreamATG <- rep(NA, length(geneAnn))
-    inCDS <- S4Vectors::mcols(geneAnn)$cut_cds
-    for (i in seq_along(exonCoords)){
-        txId <- names(exonCoords)[i]
-        exonLimits <- exonCoords[[i]]
-        geneAnnIndices <- S4Vectors::mcols(geneAnn)$tx_id == txId & inCDS
-        genomicCoord <- IRanges::pos(geneAnn)[geneAnnIndices]
-        
-        coordinateIndices <- vapply(genomicCoord, function(x){
-            codingExonNumber <- which(exonLimits$start <= x &
-                                          x <= exonLimits$end)
-            newExonLimits <- exonLimits[codingExonNumber, , drop=FALSE]
-            txStrand <- unique(newExonLimits$strand)
-            
-            if (txStrand == "+"){
-                coords <- newExonLimits$start:newExonLimits$end
-            } else {
-                coords <- newExonLimits$end:newExonLimits$start
-            }
-            wh <- which(coords == x)
-            coordinateIndices <- newExonLimits$cumWidth - (length(coords) - wh)
-            coordinateIndices
-        }, FUN.VALUE=numeric(1))
-        
-        txLength <- max(exonLimits$cumWidth)
-        coordinatePercent <- round(coordinateIndices/txLength*100, 1)
-        percentCDS[geneAnnIndices] <- coordinatePercent
-        aminoAcidIndex[geneAnnIndices] <- ceiling(coordinateIndices/3)
-        
-        metPositions <- Biostrings::matchPattern("M", aaSeq[[i]])
-        metPositions <- BiocGenerics::start(metPositions)
-        downstreamATG[geneAnnIndices] <- vapply(
-            aminoAcidIndex[geneAnnIndices],
-            function(x){
-                distToMet <- metPositions - x
-                metIsDownstream <- distToMet > 0
-                metIsInWindow <- distToMet <= 84     # ~250nt
-                sum(metIsDownstream & metIsInWindow)
-            },
-            FUN.VALUE=numeric(1))
-    }
+    ## subset by annotations overlapping CDS
+    inCDS <- which(S4Vectors::mcols(geneAnn)$cut_cds)
+    geneAnn <- geneAnn[inCDS]
+    txIds <- geneAnn$tx_id
+    cdsAnn <- cdsAnn[txIds]
+    aaSeq <- aaSeq[txIds]
+    
+    ## create GRanges covering all bases upstream of anchor sites
+    chrs <- as.character(GenomeInfoDb::seqnames(geneAnn))
+    strands <- vapply(cdsAnn, function(x){
+        as.character(unique(BiocGenerics::strand(x)))
+    }, FUN.VALUE=character(1))
+    limits <- seqlengths[chrs]
+    limits[strands == "+"] <- 1
+    allUpstream <- GenomicRanges::GRanges(
+        seqnames=GenomeInfoDb::seqnames(geneAnn),
+        ranges=IRanges::IRanges(
+            start=pmin(limits, GenomicRanges::pos(geneAnn)),
+            end=pmax(limits, GenomicRanges::pos(geneAnn))
+        ),
+        strand=BiocGenerics::strand(geneAnn)
+    )
+    
+    ## find upstream bases in CDS of target genes
+    temp <- GenomicRanges::pintersect(cdsAnn, allUpstream, ignore.strand=TRUE)
+    
+    txPos <- vapply(temp, function(x){
+        sum(BiocGenerics::width(x))
+    }, FUN.VALUE=numeric(1))
+    
+    cdsLens <- vapply(cdsAnn, function(x){
+        sum(BiocGenerics::width(x))
+    }, FUN.VALUE=numeric(1))
+    
+    percentCDS[inCDS] <- round(txPos / cdsLens * 100, 1)
+    aminoAcidIndex[inCDS] <- ceiling(txPos / 3)
+    
+    starts <- pmin(aminoAcidIndex[inCDS]+1, floor(cdsLens/3))
+    ## 84aa to approximate 250nt
+    ends <- pmin(aminoAcidIndex[inCDS]+84, floor(cdsLens/3))
+    aaSeq <- Biostrings::subseq(aaSeq,
+                                start=starts,
+                                end=ends)
+    nMet <- Biostrings::letterFrequency(aaSeq, letters="M")
+    nMet <- as.numeric(nMet)
+    downstreamATG[inCDS] <- nMet
+    
     cdsPositionAnnotation <- list("percentCDS"=percentCDS,
                                   "aminoAcidIndex"=aminoAcidIndex,
                                   "downstreamATG"=downstreamATG)
     return(cdsPositionAnnotation)
 }
+
+
+
+
+#' @importClassesFrom GenomicRanges GPos
+#' @importFrom GenomeInfoDb seqnames
+#' @importFrom BiocGenerics strand width
+#' @importFrom GenomicRanges setdiff precede
+.getTranscriptPosition <- function(txAnn,
+                                   coordinate){
+    targetSite <- GenomicRanges::GPos(
+        seqnames=unique(GenomeInfoDb::seqnames(txAnn)),
+        pos=coordinate,
+        strand=unique(BiocGenerics::strand(txAnn)))
+    splitAnn <- GenomicRanges::setdiff(txAnn, targetSite)
+    isUpstream <- !is.na(GenomicRanges::precede(splitAnn, targetSite))
+    upstreamAnn <- splitAnn[isUpstream]
+    transcriptPos <- sum(BiocGenerics::width(upstreamAnn), 1)
+    return(transcriptPos)
+}
+
+
+
 
 
 
