@@ -414,19 +414,18 @@ setMethod("addGeneAnnotation", "NULL", function(object){
                                       ignore.strand
 ){
     cdsAnn <- .getTxAnnotationList(geneAnn=geneAnn,
-                                  txObject=txObject,
-                                  featureType="cds")
+                                   txObject=txObject,
+                                   featureType="cds")
     aaSeq <- .getAminoAcidSequences(cdsAnn=cdsAnn,
                                     bsgenome=bsgenome)
-    cdsPositionAnnotation <- .getCdsPositionAnnotation(
-        geneAnn=geneAnn,
-        cdsAnn=cdsAnn,
-        seqlengths=GenomeInfoDb::seqlengths(txObject),
-        aaSeq=aaSeq,
-        ignore.strand=ignore.strand)
-    for (i in seq_along(cdsPositionAnnotation)){
-        mcolname <- names(cdsPositionAnnotation)[i]
-        S4Vectors::mcols(geneAnn)[[mcolname]] <- cdsPositionAnnotation[[i]]
+    cdsPosAnn <- .getCdsPositionAnnotation(geneAnn=geneAnn,
+                                           cdsAnn=cdsAnn,
+                                           seqlengths=GenomeInfoDb::seqlengths(txObject),
+                                           aaSeq=aaSeq,
+                                           ignore.strand=ignore.strand)
+    for (i in seq_along(cdsPosAnn)){
+        mcolname <- names(cdsPosAnn)[i]
+        S4Vectors::mcols(geneAnn)[[mcolname]] <- cdsPosAnn[[i]]
     }
     return(geneAnn)
 }
