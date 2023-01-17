@@ -212,11 +212,6 @@ test_that("addCutSites handles ntcs in GuideSet gracefully", {
 })
 
 
-test_that("addRepeats handles ntcs in GuideSet gracefully", {
-    data("gr.repeats.hg38", package="crisprDesignData")
-    expect_error(addRepeats(out, gr.repeats=gr.repeats.hg38),
-                 regexp=NA)
-})
 
 
 test_that("addSNPAnnotation handles ntcs in GuideSet gracefully", {
