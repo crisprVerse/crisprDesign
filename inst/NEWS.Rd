@@ -2,6 +2,12 @@
 \title{crisprDesign News}
 \encoding{UTF-8}
 
+\section{Version 1.1.12}{
+\itemize{
+    \item Refactored \code{addGeneAnnotation}.
+}
+}
+
 
 \section{Version 1.1.10}{
 \itemize{
