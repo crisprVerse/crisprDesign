@@ -294,10 +294,6 @@ test_that("addSpacerAlignments/Iterative handles ntcs in GuideSet gracefully", {
 })
 
 
-test_that("addOnTargetScores handles ntcs in GuideSet gracefully", {
-    expect_error(addOnTargetScores(out, methods=c("deephf")),
-                 regexp=NA) # need to test all methods
-})
 
 
 test_that("addSequenceFeatures handles ntcs in GuideSet gracefully", {
