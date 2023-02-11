@@ -38,15 +38,17 @@ Add a gene-specific transcript table to a
      \linkS4class{GuideSet} object.
 }
 \examples{
-data(guideSetExample, package="crisprDesign")
-data(grListExample, package="crisprDesign")
-guideSet <- addGeneAnnotation(guideSetExample,
-                              txObject=grListExample)
-guideSet <- addTxTable(guideSet,
-                       gene_id="ENSG00000120645",
-                       txObject=grListExample)
+if (interactive()){
+    data(guideSetExample, package="crisprDesign")
+    data(grListExample, package="crisprDesign")
+    guideSet <- addGeneAnnotation(guideSetExample,
+                                  txObject=grListExample)
+    guideSet <- addTxTable(guideSet,
+                           gene_id="ENSG00000120645",
+                           txObject=grListExample)
 
-guideSet$txTable
+    guideSet$txTable
+}
 
 }
 \seealso{

@@ -26,15 +26,17 @@
 #'     \code{gene_id}. 
 #' 
 #' @examples 
-#' data(guideSetExample, package="crisprDesign")
-#' data(grListExample, package="crisprDesign")
-#' guideSet <- addGeneAnnotation(guideSetExample,
-#'                               txObject=grListExample)
-#' guideSet <- addExonTable(guideSet,
-#'                          gene_id="ENSG00000120645",
-#'                          txObject=grListExample)
+#' if (interactive()){
+#'     data(guideSetExample, package="crisprDesign")
+#'     data(grListExample, package="crisprDesign")
+#'     guideSet <- addGeneAnnotation(guideSetExample,
+#'                                   txObject=grListExample)
+#'     guideSet <- addExonTable(guideSet,
+#'                              gene_id="ENSG00000120645",
+#'                              txObject=grListExample)
 #' 
-#' guideSet$exonTable
+#'     guideSet$exonTable
+#' }
 #' 
 #' @author Jean-Philippe Fortin
 #' 

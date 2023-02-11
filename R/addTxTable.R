@@ -20,18 +20,20 @@
 #'     correspond to the values specified by \code{valueColumn}.
 #'     Rows correspond to gRNAs in the GuideSet, columns correspond to 
 #'     all transcripts found in \code{txObject} for gene specified by
-#'     \code{gene_id}. 
+#'     \code{gene_id}.
 #' 
 #' @examples 
-#' data(guideSetExample, package="crisprDesign")
-#' data(grListExample, package="crisprDesign")
-#' guideSet <- addGeneAnnotation(guideSetExample,
-#'                               txObject=grListExample)
-#' guideSet <- addTxTable(guideSet,
-#'                        gene_id="ENSG00000120645",
-#'                        txObject=grListExample)
+#' if (interactive()){
+#'     data(guideSetExample, package="crisprDesign")
+#'     data(grListExample, package="crisprDesign")
+#'     guideSet <- addGeneAnnotation(guideSetExample,
+#'                                   txObject=grListExample)
+#'     guideSet <- addTxTable(guideSet,
+#'                            gene_id="ENSG00000120645",
+#'                            txObject=grListExample)
 #' 
-#' guideSet$txTable
+#'     guideSet$txTable
+#' }
 #' 
 #' @author Jean-Philippe Fortin
 #' 

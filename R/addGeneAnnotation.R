@@ -87,7 +87,7 @@
 #' @examples 
 #' data(guideSetExample, package="crisprDesign")
 #' data(grListExample, package="crisprDesign")
-#' guideSet <- addGeneAnnotation(guideSetExample,
+#' guideSet <- addGeneAnnotation(guideSetExample[1:6],
 #'                               txObject=grListExample)
 #' 
 #' # To access a gene annotation already added:

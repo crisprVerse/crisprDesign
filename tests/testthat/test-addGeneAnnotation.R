@@ -1,14 +1,15 @@
 data("guideSetExample", "grListExample")
+gs <- guideSetExample[1]
 
 
 test_that("guideSet argument is required to be a GuideSet object", {
     bad_input <- list("guideSetExample",
-                      as.data.frame(guideSetExample),
-                      as(guideSetExample, "GRanges"))
+                      as.data.frame(gs),
+                      as(gs, "GRanges"))
     lapply(bad_input, function(x){
         expect_error(addGeneAnnotation(x, txObject=grListExample))
     })
-    expect_error(addGeneAnnotation(guideSetExample, txObject=grListExample),
+    expect_error(addGeneAnnotation(gs, txObject=grListExample),
                  regexp=NA)
 })
 
@@ -22,23 +23,23 @@ test_that("function throws error if txObject is not TxDb or GRangesList", {
     bad_input <- list(NULL,
                       grListExample[['transcripts']])
     lapply(bad_input, function(x){
-        expect_error(addGeneAnnotation(guideSetExample, txObject=x))
+        expect_error(addGeneAnnotation(gs, txObject=x))
     })
-    expect_error(addGeneAnnotation(guideSetExample, txObject=grListExample),
+    expect_error(addGeneAnnotation(gs, txObject=grListExample),
                  regexp=NA)
     ## long run time
-    # expect_error(addGeneAnnotation(guideSetExample, txObject=getTxDb()),
+    # expect_error(addGeneAnnotation(gs, txObject=getTxDb()),
     #              regexp=NA)
 })
 
 
 test_that("anchor argument is required to be a specific value", {
-    expect_error(addGeneAnnotation(guideSetExample, txObject=grListExample,
+    expect_error(addGeneAnnotation(gs, txObject=grListExample,
                                    anchor="BAD_VALUE"))
-    expect_error(addGeneAnnotation(guideSetExample, txObject=grListExample,
+    expect_error(addGeneAnnotation(gs, txObject=grListExample,
                                    anchor="cut_site"),
                  regexp=NA)
-    expect_error(addGeneAnnotation(guideSetExample, txObject=grListExample,
+    expect_error(addGeneAnnotation(gs, txObject=grListExample,
                                    anchor="pam_site"),
                  regexp=NA)
 })
@@ -50,14 +51,14 @@ test_that("ignore_introns argument is required to be a logical value", {
                       NA,
                       "TRUE")
     lapply(bad_input, function(x){
-        expect_error(addGeneAnnotation(guideSetExample[1],
+        expect_error(addGeneAnnotation(gs,
                                        txObject=grListExample,
                                        ignore_introns=x))
     })
     good_input <- list(TRUE,
                        FALSE)
     lapply(good_input, function(x){
-        expect_error(addGeneAnnotation(guideSetExample[1],
+        expect_error(addGeneAnnotation(gs,
                                        txObject=grListExample,
                                        ignore_introns=x),
                      regexp=NA)
@@ -71,14 +72,14 @@ test_that("ignore.strand argument is required to be a logical value", {
                       NA,
                       "TRUE")
     lapply(bad_input, function(x){
-        expect_error(addGeneAnnotation(guideSetExample[1],
+        expect_error(addGeneAnnotation(gs,
                                        txObject=grListExample,
                                        ignore.strand=x))
     })
     good_input <- list(TRUE,
                        FALSE)
     lapply(good_input, function(x){
-        expect_error(addGeneAnnotation(guideSetExample,
+        expect_error(addGeneAnnotation(gs,
                                        txObject=grListExample,
                                        ignore.strand=x),
                      regexp=NA)
@@ -93,7 +94,7 @@ test_that("addPfam argument is required to be a logical value", {
                       NA,
                       "TRUE")
     lapply(bad_input, function(x){
-        expect_error(addGeneAnnotation(guideSetExample[1],
+        expect_error(addGeneAnnotation(gs,
                                        txObject=grListExample,
                                        addPfam=x,
                                        mart_dataset=mart_dataset))
@@ -102,7 +103,7 @@ test_that("addPfam argument is required to be a logical value", {
     # good_input <- list(TRUE,
     #                    FALSE)
     # lapply(good_input, function(x){
-    #     expect_error(addGeneAnnotation(guideSetExample[1],
+    #     expect_error(addGeneAnnotation(gs,
     #                                    txObject=grListExample,
     #                                    addPfam=x,
     #                                    mart_dataset=mart_dataset),
@@ -116,7 +117,7 @@ test_that("mart_dataset argument must be a dataset-name character string", {
     # bad_input <- list('BAD_DATASET',
     #                   c("hsapiens_gene_ensembl", "mmusculus_gene_ensembl"))
     # lapply(bad_input, function(x){
-    #     expect_error(addGeneAnnotation(guideSetExample[1],
+    #     expect_error(addGeneAnnotation(gs,
     #                                    txObject=grListExample,
     #                                    addPfam=TRUE,
     #                                    mart_dataset=x))
@@ -124,7 +125,7 @@ test_that("mart_dataset argument must be a dataset-name character string", {
     # good_input <- list("hsapiens_gene_ensembl",
     #                    list("hsapiens_gene_ensembl"))
     # lapply(good_input, function(x){
-    #     expect_error(addGeneAnnotation(guideSetExample[1],
+    #     expect_error(addGeneAnnotation(gs,
     #                                    txObject=grListExample,
     #                                    addPfam=TRUE,
     #                                    mart_dataset="hsapiens_gene_ensembl"),
@@ -137,7 +138,7 @@ test_that("mart_dataset argument must be a dataset-name character string", {
 
 
 test_that("geneAnnotation is appended to guideSet", {
-    guides <- addGeneAnnotation(guideSetExample[1], grListExample)
+    guides <- addGeneAnnotation(gs, grListExample)
     expect_true("geneAnnotation" %in% names(mcols(guides)))
     expect_type(mcols(guides)$geneAnnotation, "S4")
     expect_true(is(mcols(guides)$geneAnnotation, "CompressedSplitDFrameList"))
@@ -145,7 +146,7 @@ test_that("geneAnnotation is appended to guideSet", {
 
 
 test_that("function handles cases with no annotation to output gracefully", {
-    guideSet <- guideSetExample[1]
+    guideSet <- gs
     end(guideSet) <- start(guideSet) <- 1234
     guideSet$pam_site <- guideSet$cut_site <- 1234
     expect_error(results <- addGeneAnnotation(guideSet, grListExample),
@@ -155,16 +156,16 @@ test_that("function handles cases with no annotation to output gracefully", {
 
 
 test_that("appropriate anchor site is used", {
-    cut_output <- addGeneAnnotation(guideSetExample[1],
+    cut_output <- addGeneAnnotation(gs,
                                     txObject=grListExample,
                                     anchor="cut_site")
     cut_output <- geneAnnotation(cut_output)
-    pam_output <- addGeneAnnotation(guideSetExample[1],
+    pam_output <- addGeneAnnotation(gs,
                                     txObject=grListExample,
                                     anchor="pam_site")
     pam_output <- geneAnnotation(pam_output)
-    expect_equal(guideSetExample$cut_site[1], cut_output$anchor_site)
-    expect_equal(guideSetExample$pam_site[1], pam_output$anchor_site)
+    expect_equal(gs$cut_site, cut_output$anchor_site)
+    expect_equal(gs$pam_site, pam_output$anchor_site)
     expect_true(cut_output$anchor_site != pam_output$anchor_site)
 })
 
@@ -191,11 +192,12 @@ test_that("ignore_introns removes gene annotations occuring in introns", {
 
 
 test_that("ignore.strand argument is properly applied", {
-    ignoreOn <- addGeneAnnotation(guideSetExample,
+    guideSet <- guideSetExample[1:10]
+    ignoreOn <- addGeneAnnotation(guideSet,
                                   txObject=grListExample,
                                   ignore.strand=TRUE)
     ignoreOn <- geneAnnotation(ignoreOn)
-    ignoreOff <- addGeneAnnotation(guideSetExample,
+    ignoreOff <- addGeneAnnotation(guideSet,
                                    txObject=grListExample,
                                    ignore.strand=FALSE)
     ignoreOff <- geneAnnotation(ignoreOff)
@@ -209,8 +211,8 @@ test_that("ignore.strand argument is properly applied", {
 # test that addPfam works: should only test mart_dataset if/then... also, test that biomaRt is installed...
 test_that("addPfam and mart_dataset arguments are properly applied", {
     # ignore tests for biomaRt installation
-    expect_error(addGeneAnnotation(guideSetExample, grListExample,
-                                   addPfam=FALSE, mart_dataset="BAD_DATASET"),
+    expect_error(addGeneAnnotation(gs, grListExample, addPfam=FALSE,
+                                   mart_dataset="BAD_DATASET"),
                  regexp=NA)
     # test that pfam column added when addPfam=TRUE, not added otherwise
 })
@@ -223,8 +225,9 @@ test_that("function throws error when guideSet uses a custom genome", {
 
 
 test_that("function outputs correct values", {
-    out <- addGeneAnnotation(guideSetExample, grListExample) # consider subsetting
-    # out_pfam <- addGeneAnnotation(guideSetExample, txObject, addPfam=TRUE,
+    guideSet <- guideSetExample[100:200]
+    out <- addGeneAnnotation(guideSet, grListExample) # consider subsetting
+    # out_pfam <- addGeneAnnotation(guideSet, txObject, addPfam=TRUE,
     #                               mart_dataset="hsapiens_gene_ensembl")
     geneAnn <- geneAnnotation(out)
     geneAnnUniqueSpacer <- geneAnn[!duplicated(rownames(geneAnn)), , drop=FALSE]

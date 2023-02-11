@@ -48,15 +48,17 @@ Add a gene-specific exon table to a
      \linkS4class{GuideSet} object.
 }
 \examples{
-data(guideSetExample, package="crisprDesign")
-data(grListExample, package="crisprDesign")
-guideSet <- addGeneAnnotation(guideSetExample,
-                              txObject=grListExample)
-guideSet <- addExonTable(guideSet,
-                         gene_id="ENSG00000120645",
-                         txObject=grListExample)
+if (interactive()){
+    data(guideSetExample, package="crisprDesign")
+    data(grListExample, package="crisprDesign")
+    guideSet <- addGeneAnnotation(guideSetExample,
+                                  txObject=grListExample)
+    guideSet <- addExonTable(guideSet,
+                             gene_id="ENSG00000120645",
+                             txObject=grListExample)
 
-guideSet$exonTable
+    guideSet$exonTable
+}
 
 }
 \seealso{
