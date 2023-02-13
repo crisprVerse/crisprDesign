@@ -8,10 +8,13 @@
 #'     object from Ensembl using \code{\link{makeTxDbFromEnsembl}}.
 #' @param organism String specifying genus and species name
 #'     (e.g. "Homo sapiens" for human).
-#' @param tx_attrib Argument passed on to \code{\link{makeTxDbFromEnsembl}}
+#' @param release Ensembl release version; passed to
+#'     \code{\link{makeTxDbFromEnsembl}} when \code{file} is not specified.
+#'     See help page for \code{\link{makeTxDbFromEnsembl}}.
+#' @param tx_attrib Argument passed to \code{\link{makeTxDbFromEnsembl}}
 #'     when \code{file} is not specified. See help page
 #'     for \code{\link{makeTxDbFromEnsembl}}.
-#' @param ... Additional arguments passed on to either
+#' @param ... Additional arguments passed to either
 #'     \code{\link{makeTxDbFromGFF}} (if \code{file} is specified) or
 #'     \code{\link{makeTxDbFromEnsembl}} if \code{file} is NA.
 #' 
@@ -25,7 +28,7 @@
 #'     txdb <- getTxDb()
 #' 
 #'     # To obtain a TxDb from a GFF file:
-#'     file='ftp://mirbase.org/pub/mirbase/CURRENT/genomes/hsa.gff3'
+#'     file='https://www.mirbase.org/ftp/CURRENT/genomes/hsa.gff3'
 #'     txdb <- getTxDb(file=file)
 #' }
 #' @importFrom GenomicFeatures makeTxDbFromEnsembl
@@ -33,11 +36,13 @@
 #' @export
 getTxDb <- function(file=NA,
                     organism='Homo sapiens',
+                    release=NA,
                     tx_attrib='gencode_basic',
                     ...
 ){
     if (is.na(file)){
         txdb <- GenomicFeatures::makeTxDbFromEnsembl(organism=organism,
+                                                     release=release,
                                                      tx_attrib=tx_attrib,
                                                      ...)
     } else {
@@ -171,13 +176,25 @@ TxDb2GRangesList <- function(txdb,
 
 
 # Get comprehensive gene annotation from Biomart
+#' @importFrom S4Vectors metadata
 .getBiomartData <- function(txdb,
                             organism
 ){
-    mart <- biomaRt::useMart('ensembl')
+    ## use Ensembl version, if applicable
+    version <- S4Vectors::metadata(txdb)
+    version <- version$value[version$name == "Ensembl release"]
+    archives <- biomaRt::listEnsemblArchives()
+    url <- archives$url[archives$version == version]
+    if (length(url) != 0){
+        mart <- biomaRt::useMart("ensembl",
+                                 host=url)
+    } else {
+        mart <- biomaRt::useMart("ensembl")
+    }
+    
     .inferMartDataset <- function(organism){
         organism <- tolower(organism)
-        organism <- strsplit(organism, ' ')[[1]]
+        organism <- strsplit(organism, " ")[[1]]
         dataset <- paste0(substr(organism[1], 1, 1),
                           organism[2],
                           '_gene_ensembl')
