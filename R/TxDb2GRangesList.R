@@ -134,7 +134,7 @@ TxDb2GRangesList <- function(txdb,
 ){
     organism <- GenomeInfoDb::organism(txdb)
     
-    if (requireNamespace("biomaRt")){
+    if (requireNamespace("biomaRt") && !is.na(organism)){
         bm <- .getBiomartData(txdb, organism)
     } else {
         bm <- NULL
@@ -158,7 +158,7 @@ TxDb2GRangesList <- function(txdb,
                introns=introns,
                tss=tss)
     ls <- GenomicRanges::GRangesList(ls)
-    if (standardChromOnly){
+    if (standardChromOnly && !is.na(organism)){
         ls <- GenomeInfoDb::keepStandardChromosomes(ls,
                                                     species=organism,
                                                     pruning.mode="fine")
@@ -195,9 +195,11 @@ TxDb2GRangesList <- function(txdb,
     .inferMartDataset <- function(organism){
         organism <- tolower(organism)
         organism <- strsplit(organism, " ")[[1]]
-        dataset <- paste0(substr(organism[1], 1, 1),
-                          organism[2],
-                          '_gene_ensembl')
+        genus <- organism[-length(organism)]
+        genus <- vapply(genus, substr, start=1, stop=1, FUN.VALUE=character(1))
+        genus <- paste0(genus, collapse="")
+        species <- organism[length(organism)]
+        dataset <- paste0(genus, species, '_gene_ensembl')
         return(dataset)
     }
 
@@ -205,9 +207,9 @@ TxDb2GRangesList <- function(txdb,
     has_bm_dataset <- martDataset %in% biomaRt::listDatasets(mart)$dataset
     if (!has_bm_dataset){
         stop('Organism "',
-                organism,
-                '" not recognized in biomaRt. You can use",
-                "organism=NULL as a solution.')
+             organism,
+             '" not recognized in biomaRt. You can use',
+             '"organism=NULL" as a solution.')
     } else {
         mart <- biomaRt::useDataset(martDataset,
                                     mart=mart)
