@@ -7,7 +7,9 @@
 #'     If \code{NA} (default), function will return a \linkS4class{TxDb}
 #'     object from Ensembl using \code{\link{makeTxDbFromEnsembl}}.
 #' @param organism String specifying genus and species name
-#'     (e.g. "Homo sapiens" for human).
+#'     (e.g. "Homo sapiens" for human). Required if \code{file} is not
+#'     provided. If \code{file} is provided, this value can be set to \code{NA}
+#'     to have organism information as unspecified.
 #' @param release Ensembl release version; passed to
 #'     \code{\link{makeTxDbFromEnsembl}} when \code{file} is not specified.
 #'     See help page for \code{\link{makeTxDbFromEnsembl}}.
@@ -35,12 +37,18 @@
 #' @importFrom GenomicFeatures makeTxDbFromGFF
 #' @export
 getTxDb <- function(file=NA,
-                    organism='Homo sapiens',
+                    organism,
                     release=NA,
                     tx_attrib='gencode_basic',
                     ...
 ){
+    if (is.null(organism)){
+        stop("'organism' cannot be NULL")
+    }
     if (is.na(file)){
+        if (is.na(organism)){
+            stop("'organism' must be specified when 'file' is missing")
+        }
         txdb <- GenomicFeatures::makeTxDbFromEnsembl(organism=organism,
                                                      release=release,
                                                      tx_attrib=tx_attrib,
@@ -134,7 +142,7 @@ TxDb2GRangesList <- function(txdb,
 ){
     organism <- GenomeInfoDb::organism(txdb)
     
-    if (requireNamespace("biomaRt")){
+    if (requireNamespace("biomaRt") && !is.na(organism)){
         bm <- .getBiomartData(txdb, organism)
     } else {
         bm <- NULL
@@ -158,7 +166,7 @@ TxDb2GRangesList <- function(txdb,
                introns=introns,
                tss=tss)
     ls <- GenomicRanges::GRangesList(ls)
-    if (standardChromOnly){
+    if (standardChromOnly && !is.na(organism)){
         ls <- GenomeInfoDb::keepStandardChromosomes(ls,
                                                     species=organism,
                                                     pruning.mode="fine")
@@ -195,29 +203,28 @@ TxDb2GRangesList <- function(txdb,
     .inferMartDataset <- function(organism){
         organism <- tolower(organism)
         organism <- strsplit(organism, " ")[[1]]
-        dataset <- paste0(substr(organism[1], 1, 1),
-                          organism[2],
-                          '_gene_ensembl')
+        genus <- organism[-length(organism)]
+        genus <- vapply(genus, substr, start=1, stop=1, FUN.VALUE=character(1))
+        genus <- paste0(genus, collapse="")
+        species <- organism[length(organism)]
+        dataset <- paste0(genus, species, "_gene_ensembl")
         return(dataset)
     }
 
     martDataset <- .inferMartDataset(organism)
     has_bm_dataset <- martDataset %in% biomaRt::listDatasets(mart)$dataset
     if (!has_bm_dataset){
-        stop('Organism "',
-                organism,
-                '" not recognized in biomaRt. You can use",
-                "organism=NULL as a solution.')
+        stop("Organism '", organism, "' not recognized in biomaRt.")
     } else {
         mart <- biomaRt::useDataset(martDataset,
                                     mart=mart)
-        attributes <- c('ensembl_transcript_id',
-                        'ensembl_gene_id',
-                        'external_gene_name')
-        filters <- c('ensembl_transcript_id')
+        attributes <- c("ensembl_transcript_id",
+                        "ensembl_gene_id",
+                        "external_gene_name")
+        filters <- c("ensembl_transcript_id")
         bm <- biomaRt::getBM(attributes=attributes,
                              filters=filters,
-                             values='', # obtain all values
+                             values="", # obtain all values
                              mart=mart)
     }
     return(bm)
