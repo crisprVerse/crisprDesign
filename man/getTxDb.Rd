@@ -4,13 +4,7 @@
 \alias{getTxDb}
 \title{getTxDb}
 \usage{
-getTxDb(
-  file = NA,
-  organism = "Homo sapiens",
-  release = NA,
-  tx_attrib = "gencode_basic",
-  ...
-)
+getTxDb(file = NA, organism, release = NA, tx_attrib = "gencode_basic", ...)
 }
 \arguments{
 \item{file}{File argument for \code{\link{makeTxDbFromGFF}}
@@ -19,7 +13,9 @@ If \code{NA} (default), function will return a \linkS4class{TxDb}
 object from Ensembl using \code{\link{makeTxDbFromEnsembl}}.}
 
 \item{organism}{String specifying genus and species name
-(e.g. "Homo sapiens" for human).}
+(e.g. "Homo sapiens" for human). Required if \code{file} is not
+provided. If \code{file} is provided, this value can be set to \code{NA}
+to have organism information as unspecified.}
 
 \item{release}{Ensembl release version; passed to
 \code{\link{makeTxDbFromEnsembl}} when \code{file} is not specified.
