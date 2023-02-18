@@ -2,6 +2,12 @@
 \title{crisprDesign News}
 \encoding{UTF-8}
 
+\section{Version 1.1.18}{
+\itemize{
+    \item Updated the object \code{guideSetExampleWithAlignments} to contain the latest annotations.
+}
+}
+
 \section{Version 1.1.17}{
 \itemize{
     \item Updated the object \code{guideSetExampleFullAnnotation} to contain the latest annotations.
