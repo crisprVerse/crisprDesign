@@ -41,7 +41,8 @@
 #'     noncanonical PAM sequences; \code{NA} returns all alignments regardless
 #'     of their PAM sequence.
 #' @param standard_chr_only Should only standard chromosomes be considered?
-#'     TRUE by default.
+#'     If \code{TRUE}, the function will attempt to remove
+#'     scaffold sequences automatically. \code{FALSE by default}.
 #' @param tss_window Window size of promoters upstream of gene TSS to search
 #'     for overlap with spacer sequence. Must be a numeric vector of length 2:
 #'     upstream limit and downstream limit. Default is \code{c(-500, 500)},
@@ -171,7 +172,7 @@ setMethod("addSpacerAlignmentsIterative",
                    n_mismatches=0,
                    all_alignments=FALSE,
                    canonical=TRUE,
-                   standard_chr_only=TRUE,
+                   standard_chr_only=FALSE,
                    both_strands=TRUE,
                    anchor=c("cut_site", "pam_site"),
                    annotationType=c("gene_symbol",
@@ -289,7 +290,7 @@ setMethod("addSpacerAlignmentsIterative",
                    n_mismatches=0,
                    all_alignments=FALSE,
                    canonical=TRUE,
-                   standard_chr_only=TRUE,
+                   standard_chr_only=FALSE,
                    both_strands=TRUE,
                    anchor=c("cut_site", "pam_site"),
                    annotationType=c("gene_symbol",
@@ -392,7 +393,7 @@ setMethod("addSpacerAlignments",
                    n_max_alignments=1000,
                    all_alignments=TRUE,
                    canonical=TRUE,
-                   standard_chr_only=TRUE,
+                   standard_chr_only=FALSE,
                    both_strands=TRUE,
                    anchor=c("cut_site", "pam_site"),
                    annotationType=c("gene_symbol", "gene_id"),
@@ -478,7 +479,7 @@ setMethod("addSpacerAlignments",
                    n_max_alignments=1000,
                    all_alignments=FALSE,
                    canonical=TRUE,
-                   standard_chr_only=TRUE,
+                   standard_chr_only=FALSE,
                    both_strands=TRUE,
                    anchor=c("cut_site", "pam_site"),
                    annotationType=c("gene_symbol",
@@ -538,7 +539,7 @@ getSpacerAlignments <- function(spacers,
                                 all_alignments=TRUE,
                                 crisprNuclease=NULL,
                                 canonical=TRUE,
-                                standard_chr_only=TRUE,
+                                standard_chr_only=FALSE,
                                 both_strands=TRUE
 ){
     

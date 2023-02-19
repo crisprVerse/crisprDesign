@@ -2,6 +2,13 @@
 \title{crisprDesign News}
 \encoding{UTF-8}
 
+\section{Version 1.1.19}{
+\itemize{
+    \item Changed argument \code{standard_chr_only} to FALSE by default in the functions \code{getSpacerAlignments} and friends.
+}
+}
+
+
 \section{Version 1.1.18}{
 \itemize{
     \item Updated the object \code{guideSetExampleWithAlignments} to contain the latest annotations.
