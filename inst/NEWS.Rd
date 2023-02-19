@@ -2,6 +2,12 @@
 \title{crisprDesign News}
 \encoding{UTF-8}
 
+\section{Version 1.1.20}{
+\itemize{
+    \item \code{flattenGuideSet} is now \code{GuideSet2DataFrames}.
+}
+}
+
 \section{Version 1.1.19}{
 \itemize{
     \item Changed argument \code{standard_chr_only} to FALSE by default in the functions \code{getSpacerAlignments} and friends.

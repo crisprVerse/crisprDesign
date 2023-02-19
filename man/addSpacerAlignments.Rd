@@ -30,7 +30,7 @@ addSpacerAlignmentsIterative(object, ...)
   n_mismatches = 0,
   all_alignments = FALSE,
   canonical = TRUE,
-  standard_chr_only = TRUE,
+  standard_chr_only = FALSE,
   both_strands = TRUE,
   anchor = c("cut_site", "pam_site"),
   annotationType = c("gene_symbol", "gene_id"),
@@ -51,7 +51,7 @@ addSpacerAlignmentsIterative(object, ...)
   n_mismatches = 0,
   all_alignments = FALSE,
   canonical = TRUE,
-  standard_chr_only = TRUE,
+  standard_chr_only = FALSE,
   both_strands = TRUE,
   anchor = c("cut_site", "pam_site"),
   annotationType = c("gene_symbol", "gene_id"),
@@ -75,7 +75,7 @@ addSpacerAlignmentsIterative(object, ...)
   n_max_alignments = 1000,
   all_alignments = TRUE,
   canonical = TRUE,
-  standard_chr_only = TRUE,
+  standard_chr_only = FALSE,
   both_strands = TRUE,
   anchor = c("cut_site", "pam_site"),
   annotationType = c("gene_symbol", "gene_id"),
@@ -96,7 +96,7 @@ addSpacerAlignmentsIterative(object, ...)
   n_max_alignments = 1000,
   all_alignments = FALSE,
   canonical = TRUE,
-  standard_chr_only = TRUE,
+  standard_chr_only = FALSE,
   both_strands = TRUE,
   anchor = c("cut_site", "pam_site"),
   annotationType = c("gene_symbol", "gene_id"),
@@ -116,7 +116,7 @@ getSpacerAlignments(
   all_alignments = TRUE,
   crisprNuclease = NULL,
   canonical = TRUE,
-  standard_chr_only = TRUE,
+  standard_chr_only = FALSE,
   both_strands = TRUE
 )
 }
@@ -166,7 +166,8 @@ noncanonical PAM sequences; \code{NA} returns all alignments regardless
 of their PAM sequence.}
 
 \item{standard_chr_only}{Should only standard chromosomes be considered?
-TRUE by default.}
+If \code{TRUE}, the function will attempt to remove
+scaffold sequences automatically. \code{FALSE by default}.}
 
 \item{both_strands}{When \code{custom_seq} is specified,
 should both strands be considered? TRUE by default.}

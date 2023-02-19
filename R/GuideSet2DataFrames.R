@@ -31,14 +31,58 @@
 #' 
 #' @export 
 #' 
-#' @examples
-#' 
-#' data(guideSetExampleFullAnnotation)
-#' tables <- flattenGuideSet(guideSetExampleFullAnnotation)
-#' 
 flattenGuideSet <- function(guideSet,
                             useSpacerCoordinates=TRUE,
                             primaryOnly=FALSE
+){
+    .Deprecated("GuideSet2DataFrames",
+                msg="Deprecated soon. Use GuideSet2DataFrames instead.")
+}
+
+
+
+
+#' @title Create a list of annotation tables from a GuideSet object
+#' 
+#' @description Create a list of annotation tables from a GuideSet object
+#' 
+#' @param guideSet A GuideSet object
+#' @param useSpacerCoordinates Should the spacer coordinates be used
+#'     as start and end coordinates? TRUE by default. If FALSE,
+#'     the PAM site coordinate is used for both start and end. 
+#' @param primaryOnly Should only the primary table (on-targets) be returned?
+#'     FALSE by default.
+#' 
+#' @return A simple list of tables containing annotations derived from a 
+#'     GuideSet object. The first table ("primary") is always available,
+#'     while the other tables will be only available when the annotations
+#'     were added to the GuideSet object. 
+#' 
+#' \itemize{
+#' \item \code{primary} Primary table containing genomic coordinates and 
+#'      sequence information of the gRNA sequences. Also contains on-target
+#'      and off-target scores when available. 
+#' \item \code{alignments} Table of on- and off-target alignments.
+#' \item \code{geneAnnotation} Gene context annotation table.
+#' \item \code{tssAnnotation} TSS context annotation table.
+#' \item \code{enzymeAnnotation} Boolean table indicating whether or not 
+#'     recognition motifs of restriction enzymes are found. 
+#' \item \code{snps} SNP annotation table (human only).
+#' }
+#' 
+#' @author Jean-Philippe Fortin
+#' 
+#' 
+#' @export 
+#' 
+#' @examples
+#' 
+#' data(guideSetExampleFullAnnotation)
+#' tables <- GuideSet2DataFrames(guideSetExampleFullAnnotation)
+#' 
+GuideSet2DataFrames <- function(guideSet,
+                                useSpacerCoordinates=TRUE,
+                                primaryOnly=FALSE
 ){
     primaryTable <- .getPrimaryTable(guideSet,
                                      useSpacerCoordinates=useSpacerCoordinates,
@@ -61,6 +105,8 @@ flattenGuideSet <- function(guideSet,
     }
     return(out)
 }
+
+
 
 
 
