@@ -2,6 +2,13 @@
 \title{crisprDesign News}
 \encoding{UTF-8}
 
+\section{Version 1.1.21}{
+\itemize{
+    \item Fixed intergenic annotation of alignments when non-standard chromosomes are found.
+}
+}
+
+
 \section{Version 1.1.20}{
 \itemize{
     \item \code{flattenGuideSet} is now \code{GuideSet2DataFrames}.

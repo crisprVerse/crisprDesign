@@ -433,6 +433,7 @@ setMethod("addSpacerAlignments",
                                              anchor=anchor,
                                              annotationType=annotationType)
     }
+
     if (isRnase(crisprNuclease)){
         aln <- .addTranscriptAnnotationColumns(aln,
                                                txObject=txObject)
@@ -1120,11 +1121,13 @@ getSpacerAlignments <- function(spacers,
     nearestGene <- data.frame(aln_index=S4Vectors::queryHits(nearestGene),
                               intergenic=intergenic,
                               intergenic_distance=intergenic_distance)
+
     S4Vectors::mcols(aln)[["intergenic"]] <- rep(NA_character_, NROW(aln))
     S4Vectors::mcols(aln)[["intergenic_distance"]] <- rep(NA_integer_, NROW(aln))
     for (i in c("intergenic", "intergenic_distance")){
         S4Vectors::mcols(aln)[[i]][nearestGene$aln_index] <- nearestGene[[i]]
     }
+
     return(aln)
 }
 
@@ -1138,6 +1141,8 @@ filterOutAlnWithGeneRegionAnnotation <- function(aln,
     hasGeneAnnotation <- apply(geneCoverage, 1, function(x){
         all(is.na(x))
     })
+    hasGeneAnnotation <- seq_along(aln)[hasGeneAnnotation]
+    hasGeneAnnotation <- queryHits(nearestGene) %in% hasGeneAnnotation
     nearestGene <- nearestGene[hasGeneAnnotation]
     return(nearestGene)
 }
