@@ -1,6 +1,6 @@
 Package: crisprDesign
 Title: Comprehensive design of CRISPR gRNAs for nucleases and base editors
-Version: 1.1.21
+Version: 1.1.22
 Authors@R: c(
     person("Jean-Philippe", "Fortin", email = "fortin946@gmail.com", role = c("aut", "cre")),
     person("Luke", "Hoberecht", email = "lukehob3@gmail.com", role = c("aut"))
