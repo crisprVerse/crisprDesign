@@ -2,8 +2,7 @@ citEntry(
     entry = "article",
     author = "Luke Hoberecht and Pirunthan Perampalam and Aaron Lun and Jean-Philippe Fortin",
     title = "A comprehensive Bioconductor ecosystem for the design of CRISPR guide RNAs across nucleases and technologies",
-    journal = "bioRxiv",
+    journal = "Nature Communications",
     year = "2022",
-    textVersion = "Hoberecht L, Perampalam P, Lun A, Fortin JP. A comprehensive Bioconductor ecosystem for the design of CRISPR guide RNAs across nucleases and technologies. bioRxiv. 2022 Jan 1."
+    textVersion = "Hoberecht L, Perampalam P, Lun A, Fortin JP. A comprehensive Bioconductor ecosystem for the design of CRISPR guide RNAs across nucleases and technologies. Nature Communications. 2022 Nov 2."
 )
-
