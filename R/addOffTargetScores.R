@@ -56,6 +56,11 @@ setMethod("addOffTargetScores",
                                     max_mm=max_mm,
                                     includeDistance=includeDistance,
                                     offset=offset)
+    if (!.hasUniqueSpacers(object)){
+        warning("There are duplicated gRNAs in the GuideSet object, which",
+                " can lead to incorrect off-target scores. Consider removing ",
+                "duplicated gRNAs first before running addOffTargetScores. ")
+    }
     
     object <- .addOffTargetScoresToAlignments(guideSet=object,
                                               includeDistance=includeDistance)

@@ -2,6 +2,12 @@
 \title{crisprDesign News}
 \encoding{UTF-8}
 
+\section{Version 1.1.25}{
+\itemize{
+    \item Added a warning message when having duplicated gRNAs.
+}
+}
+
 \section{Version 1.1.21}{
 \itemize{
     \item Fixed intergenic annotation of alignments when non-standard chromosomes are found.

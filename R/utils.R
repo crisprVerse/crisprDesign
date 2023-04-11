@@ -524,6 +524,16 @@ compact <- function(x) {
     "alignments" %in% colnames(mcols(guideSet))
 }
 
+.hasUniqueSpacers <- function(guideSet){
+    !any(duplicated(guideSet))
+}
+
+
+
+
+
+
+
 
 
 

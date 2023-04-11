@@ -15,7 +15,7 @@ vcf <- system.file("extdata",
 
 gr <- queryTxObject(txObject,
                     queryColumn="gene_symbol",
-                    queryValue="IQSEC3",
+                    queryValue="KRAS",
                     featureType="cds")
 start(gr) <- start(gr)-100
 
