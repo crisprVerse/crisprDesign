@@ -9,9 +9,11 @@
 #'     \linkS4class{PairedGuideSet} object.
 #'     \code{crisprNuclease(object)} must be either using SpCas9 or CasRx.
 #' @param max_mm The maximimum number of mismatches between the spacer sequence
-#'     and the protospacer off-target sequence. This is used to filter out
-#'     off-targets with low probability of binging in calculating the
-#'     gRNA-level aggregated score.
+#'     and the protospacer off-target sequence to be considered in the 
+#'     off-target score calculations. Off-targets with a number of 
+#'     mismatches greater than \code{max_mm} will be excluded; this is useful
+#'     if one wants to avoid the aggregated off-target scores to be driven by a
+#'     large number of off-targets that have low probability of cutting.
 #' @param includeDistance Should a distance penalty for the MIT score be
 #'     included? TRUE by default. 
 #' @param offset Numeric value specifying an offset to add to the denominator

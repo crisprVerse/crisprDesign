@@ -23,9 +23,11 @@ addOffTargetScores(object, ...)
 \item{...}{Additional arguments, currently ignored.}
 
 \item{max_mm}{The maximimum number of mismatches between the spacer sequence
-and the protospacer off-target sequence. This is used to filter out
-off-targets with low probability of binging in calculating the
-gRNA-level aggregated score.}
+and the protospacer off-target sequence to be considered in the 
+off-target score calculations. Off-targets with a number of 
+mismatches greater than \code{max_mm} will be excluded; this is useful
+if one wants to avoid the aggregated off-target scores to be driven by a
+large number of off-targets that have low probability of cutting.}
 
 \item{includeDistance}{Should a distance penalty for the MIT score be
 included? TRUE by default.}
