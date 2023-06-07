@@ -133,6 +133,7 @@ TxDb2GRangesList <- function(txdb,
 
 
 
+
 #' @importFrom GenomeInfoDb organism keepStandardChromosomes genome<-
 #' @importFrom GenomicRanges GRangesList
 #' @importFrom S4Vectors metadata metadata<-
