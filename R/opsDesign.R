@@ -304,8 +304,8 @@ designOpsLibrary <- function(guideSet,
 #' @examples
 #' data(guideSetExample, package="crisprDesign")
 #' guideSet <- unique(guideSetExample)
-#' df$gene <- rep(paste0("gene",1:40),each=20)
-#' df$rank <- rep(1:20,40)
+#' guideSet$gene <- rep(paste0("gene",1:40),each=20)
+#' guideSet$rank <- rep(1:20,40)
 #' opsLib <- designOpsLibrary(guideSet)
 #' opsLib <- validateOpsLibrary(opsLib)
 #' 
@@ -361,7 +361,7 @@ validateOpsLibrary <- function(guideSet,
 #'     "5prime" by default.
 #' @param n_guides Integer specifying how many gRNAs per
 #'     gene should be selected. 4 by default.
-#' @param gene_field String specifying the column in \code{df}
+#' @param gene_field String specifying the column in \code{mcols(guideSet)}
 #'     specifying gene names.
 #' @param min_dist_edit Integer specifying the minimum distance edit
 #'     required for barcodes to be considered dissimilar. Barcodes that
@@ -375,9 +375,9 @@ validateOpsLibrary <- function(guideSet,
 #' 
 #' @author Jean-Philippe Fortin
 #'
-#' @return A data.frame containing the original gRNAs from 
-#'    the input \code{opsLibrary} data.frame as well as additional
-#'    gRNAs selected from the input data.frame \code{df}.
+#' @return A GuideSet object containing the original gRNAs from 
+#'    the input \code{opsLibrary} object as well as additional
+#'    gRNAs selected from the input \code{guideSet}.
 #' 
 #' @examples
 #' data(guideSetExample, package="crisprDesign")

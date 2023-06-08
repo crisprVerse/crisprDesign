@@ -35,7 +35,7 @@ will occur. Must be either "5prime" or "3prime".
 \item{n_guides}{Integer specifying how many gRNAs per
 gene should be selected. 4 by default.}
 
-\item{gene_field}{String specifying the column in \code{df}
+\item{gene_field}{String specifying the column in \code{mcols(guideSet)}
 specifying gene names.}
 
 \item{min_dist_edit}{Integer specifying the minimum distance edit
@@ -51,9 +51,9 @@ manner? FALSE by default. Highly recommended when the set of query
 barcodes is large to reduce memory footprint.}
 }
 \value{
-A data.frame containing the original gRNAs from 
-   the input \code{opsLibrary} data.frame as well as additional
-   gRNAs selected from the input data.frame \code{df}.
+A GuideSet object containing the original gRNAs from 
+   the input \code{opsLibrary} object as well as additional
+   gRNAs selected from the input \code{guideSet}.
 }
 \description{
 Update OPS library with additional gRNAs

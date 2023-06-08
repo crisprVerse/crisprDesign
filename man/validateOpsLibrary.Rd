@@ -41,8 +41,8 @@ Validate gRNA library for optical pooled screening
 \examples{
 data(guideSetExample, package="crisprDesign")
 guideSet <- unique(guideSetExample)
-df$gene <- rep(paste0("gene",1:40),each=20)
-df$rank <- rep(1:20,40)
+guideSet$gene <- rep(paste0("gene",1:40),each=20)
+guideSet$rank <- rep(1:20,40)
 opsLib <- designOpsLibrary(guideSet)
 opsLib <- validateOpsLibrary(opsLib)
 
