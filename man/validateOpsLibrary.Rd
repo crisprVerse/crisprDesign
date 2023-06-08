@@ -5,14 +5,25 @@
 \title{Validate gRNA library for optical pooled screening}
 \usage{
 validateOpsLibrary(
-  df,
+  guideSet,
+  n_cycles = 9,
+  rt_direction = c("5prime", "3prime"),
   min_dist_edit = 2,
   dist_method = c("hamming", "levenshtein")
 )
 }
 \arguments{
-\item{df}{data.frame containing information about candidate
-gRNAs from which to build the OPS library. See details.}
+\item{guideSet}{A \linkS4class{GuideSet} object.}
+
+\item{n_cycles}{Integer specifying the number of sequencing 
+cycles used in the in situ sequencing. This effectively
+determines the length of the barcodes to be used for
+sequencing.}
+
+\item{rt_direction}{String specifying from which direction
+the reverse transcription of the gRNA spacer sequence
+will occur. Must be either "5prime" or "3prime".
+"5prime" by default.}
 
 \item{min_dist_edit}{Integer specifying the minimum distance edit
 required for barcodes to be considered dissimilar.}
@@ -21,7 +32,7 @@ required for barcodes to be considered dissimilar.}
 either "hamming" (default) or "levenshtein".}
 }
 \value{
-The original \code{df} is all checks pass.
+The original \code{guideSet} is all checks pass.
     Otherwise, a stop error.
 }
 \description{
@@ -30,13 +41,9 @@ Validate gRNA library for optical pooled screening
 \examples{
 data(guideSetExample, package="crisprDesign")
 guideSet <- unique(guideSetExample)
-guideSet <- addOpsBarcodes(guideSet)
-df <- data.frame(ID=names(guideSet),
-                 spacer=spacers(guideSet, as.character=TRUE),
-                 opsBarcode=as.character(guideSet$opsBarcode))
 df$gene <- rep(paste0("gene",1:40),each=20)
 df$rank <- rep(1:20,40)
-opsLib <- designOpsLibrary(df)
+opsLib <- designOpsLibrary(guideSet)
 opsLib <- validateOpsLibrary(opsLib)
 
 }

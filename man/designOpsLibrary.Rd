@@ -5,7 +5,9 @@
 \title{Design gRNA library for optical pooled screening}
 \usage{
 designOpsLibrary(
-  df,
+  guideSet,
+  n_cycles = 8,
+  rt_direction = c("5prime", "3prime"),
   n_guides = 4,
   gene_field = "gene",
   min_dist_edit = 2,
@@ -14,13 +16,22 @@ designOpsLibrary(
 )
 }
 \arguments{
-\item{df}{data.frame containing information about candidate
-gRNAs from which to build the OPS library. See details.}
+\item{guideSet}{A \linkS4class{GuideSet} object.}
+
+\item{n_cycles}{Integer specifying the number of sequencing 
+cycles used in the in situ sequencing. This effectively
+determines the length of the barcodes to be used for
+sequencing.}
+
+\item{rt_direction}{String specifying from which direction
+the reverse transcription of the gRNA spacer sequence
+will occur. Must be either "5prime" or "3prime".
+"5prime" by default.}
 
 \item{n_guides}{Integer specifying how many gRNAs per
 gene should be selected. 4 by default.}
 
-\item{gene_field}{String specifying the column in \code{df}
+\item{gene_field}{String specifying the column in \code{mcols(guideSet)}
 specifying gene names.}
 
 \item{min_dist_edit}{Integer specifying the minimum distance edit
@@ -36,7 +47,7 @@ manner? FALSE by default. Highly recommended when the set of query
 barcodes is large to reduce memory footprint.}
 }
 \value{
-A subset of the \code{df} containing the gRNAs
+A subset of the \code{GuideSet} containing the gRNAs
     selected for the OPS library.
 }
 \description{
@@ -45,7 +56,6 @@ Design gRNA library for optical pooled screening
 \examples{
 data(guideSetExample, package="crisprDesign")
 guideSet <- unique(guideSetExample)
-guideSet <- addOpsBarcodes(guideSet)
 guideSet <- guideSet[1:200]
 
 df <- data.frame(ID=names(guideSet),
@@ -53,9 +63,10 @@ df <- data.frame(ID=names(guideSet),
                  opsBarcode=as.character(guideSet$opsBarcode))
 
 # Creating mock gene:
-df$gene <- rep(paste0("gene",1:10),each=20)
-df$rank <- rep(1:20,10)
-opsLib <- designOpsLibrary(df)
+guideSet$gene <- rep(paste0("gene",1:10),each=20)
+guideSet$rank <- rep(1:20,10)
+opsLib1 <- designOpsLibrary(guideSet)
+opsLib2 <- designOpsLibrary(guideSet, dist_method="levenshtein")
 
 }
 \author{
