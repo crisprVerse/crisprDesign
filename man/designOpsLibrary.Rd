@@ -58,10 +58,6 @@ data(guideSetExample, package="crisprDesign")
 guideSet <- unique(guideSetExample)
 guideSet <- guideSet[1:200]
 
-df <- data.frame(ID=names(guideSet),
-                 spacer=spacers(guideSet, as.character=TRUE),
-                 opsBarcode=as.character(guideSet$opsBarcode))
-
 # Creating mock gene:
 guideSet$gene <- rep(paste0("gene",1:10),each=20)
 guideSet$rank <- rep(1:20,10)
