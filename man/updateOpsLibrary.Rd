@@ -22,6 +22,16 @@ updateOpsLibrary(
 \item{guideSet}{GuideSet containing additional
 candidate gRNAs to add to the OPS library.}
 
+\item{n_cycles}{Integer specifying the number of sequencing 
+cycles used in the in situ sequencing. This effectively
+determines the length of the barcodes to be used for
+sequencing.}
+
+\item{rt_direction}{String specifying from which direction
+the reverse transcription of the gRNA spacer sequence
+will occur. Must be either "5prime" or "3prime".
+"5prime" by default.}
+
 \item{n_guides}{Integer specifying how many gRNAs per
 gene should be selected. 4 by default.}
 
