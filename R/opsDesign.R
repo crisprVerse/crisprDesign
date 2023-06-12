@@ -195,7 +195,7 @@ designOpsLibrary <- function(guideSet,
         }
         cands <- cands[order(cands$rank)]
         cands <- split(cands, f=mcols(cands)[[gene_field]])
-        cands <- cands[genes]
+        #cands <- cands[genes]
         cands <- lapply(cands, function(x){
             x[seq_len(n)]
         })
