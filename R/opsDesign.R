@@ -394,7 +394,7 @@ validateOpsLibrary <- function(guideSet,
 #' gs1$rank <- rep(1:20,10)
 #' gs2$rank <- rep(1:20,10)
 #' opsLib <- designOpsLibrary(gs1)
-#' opsLib <- updateOpsLibrary(gs1, gs2)
+#' opsLib <- updateOpsLibrary(opsLib, gs2)
 #' 
 #' @export
 updateOpsLibrary <- function(opsLibrary, 
@@ -410,6 +410,9 @@ updateOpsLibrary <- function(opsLibrary,
     rt_direction <- match.arg(rt_direction)
     dist_method <- match.arg(dist_method)
     guideSet <- .validateOpsGrnaInput(guideSet, gene_field)
+    guideSet <- addOpsBarcodes(guideSet,
+                               n_cycles=n_cycles,
+                               rt_direction=rt_direction)
     genes <- unique(mcols(guideSet)[[gene_field]])
 
     cols <- c("ID", "spacer", "rank", "opsBarcode", gene_field)

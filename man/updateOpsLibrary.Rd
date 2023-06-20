@@ -70,7 +70,7 @@ gs2$gene <- rep(paste0("gene",1:10+10),each=20)
 gs1$rank <- rep(1:20,10)
 gs2$rank <- rep(1:20,10)
 opsLib <- designOpsLibrary(gs1)
-opsLib <- updateOpsLibrary(gs1, gs2)
+opsLib <- updateOpsLibrary(opsLib, gs2)
 
 }
 \author{
