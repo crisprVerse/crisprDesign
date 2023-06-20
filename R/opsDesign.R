@@ -60,8 +60,12 @@ designOpsLibrary <- function(guideSet,
 
     genes <- unique(mcols(gs)[[gene_field]])
     counts <- rep(0, length(genes))
-    grnaList <- list(selected=gs[gs$rank<=n_guides],
-                     candidates=gs[gs$rank>n_guides],
+
+    cols <- c("ID", "spacer", "rank", "opsBarcode", gene_field)
+    gsDF <- GuideSet2DataFrames(gs)[["primary"]][,cols,drop=FALSE]
+
+    grnaList <- list(selected=gsDF[gsDF$rank<=n_guides,,drop=FALSE],
+                     candidates=gsDF[gsDF$rank>n_guides,,drop=FALSE],
                      discarded=NULL,
                      genes=genes)
     grnaList <- .initiateOpsLibrary(grnaList,
@@ -70,7 +74,6 @@ designOpsLibrary <- function(guideSet,
                                     dist_method=dist_method,
                                     min_dist_edit=min_dist_edit,
                                     splitByChunks=splitByChunks)
-
     grnaList <- .updateOpsLibrary(grnaList,
                                   n_cycles=n_cycles,
                                   rt_direction=rt_direction,
@@ -79,8 +82,9 @@ designOpsLibrary <- function(guideSet,
                                   dist_method=dist_method,
                                   min_dist_edit=min_dist_edit,
                                   splitByChunks=splitByChunks)
-    gs <- .getFinalOpsLibrary(grnaList)
-    gs <- gs[order(mcols(gs)[[gene_field]], mcols(gs)[["rank"]])]
+    finalDF <- .getFinalOpsLibrary(grnaList) 
+    gs <- gs[names(gs) %in% finalDF$ID]
+    gs <- gs[order(mcols(gs)[[gene_field]], mcols(gs)[["rank"]])] ### TO FIX
     return(gs)
 }
 
@@ -103,9 +107,9 @@ designOpsLibrary <- function(guideSet,
                                     splitByChunks=splitByChunks)
     good <- Matrix::rowSums(mat>0)==0
     if (dist_method=="levenshtein"){
-        barcodesLong <- extractOpsBarcodes(selected,
-                                           n_cycles=n_cycles+min_dist_edit-1,
-                                           rt_direction=rt_direction)
+        barcodesLong <- .extractOpsBarcodesFromDF(selected,
+                                                  n_cycles=n_cycles+min_dist_edit-1,
+                                                  rt_direction=rt_direction)
         matLong <- getBarcodeDistanceMatrix(queryBarcodes=selected$opsBarcode,
                                             targetBarcodes=barcodesLong,
                                             binnarize=TRUE,
@@ -118,9 +122,9 @@ designOpsLibrary <- function(guideSet,
     if (sum(good)==0){
         good[1] <- TRUE
     }
-    grnaList[["selected"]] <- selected[good]
-    grnaList[["candidates"]] <- c(grnaList[["candidates"]], 
-                                  selected[!good])
+    grnaList[["selected"]] <- selected[good,,drop=FALSE]
+    grnaList[["candidates"]] <- rbind(grnaList[["candidates"]], 
+                                  selected[!good,,drop=FALSE])
     return(grnaList)
 }
 
@@ -156,7 +160,7 @@ designOpsLibrary <- function(guideSet,
                                           dist_method=dist_method,
                                           min_dist_edit=min_dist_edit,
                                           splitByChunks=splitByChunks)
-        counts <- table(factor(mcols(grnaList[["selected"]])[[gene_field]],
+        counts <- table(factor(grnaList[["selected"]][[gene_field]],
                           levels=grnaList[["genes"]]))
         incomplete <- names(which(counts<n_guides))
         remaining  <- grnaList[["candidates"]]
@@ -166,7 +170,7 @@ designOpsLibrary <- function(guideSet,
             if (length(incomplete)==0){
                 shouldWeContinue <- FALSE
             } else {
-                if (sum(incomplete %in% mcols(remaining)[[gene_field]])==0){
+                if (sum(incomplete %in% remaining[[gene_field]])==0){
                     shouldWeContinue <- FALSE
                 }
             }
@@ -190,16 +194,15 @@ designOpsLibrary <- function(guideSet,
   
     .getCandidates <- function(genes, n){
         cands <- grnaList[["candidates"]]
-        if (!"rank" %in% colnames(mcols(cands))){
+        if (!"rank" %in% colnames(cands)){
             stop("rank should be a column of the candidate guides.")
         }
-        cands <- cands[order(cands$rank)]
-        cands <- split(cands, f=mcols(cands)[[gene_field]])
-        #cands <- cands[genes]
+        cands <- cands[order(cands$rank),,drop=FALSE]
+        cands <- split(cands, f=cands[[gene_field]])
         cands <- lapply(cands, function(x){
-            x[seq_len(n)]
+            x[seq_len(n),,drop=FALSE]
         })
-        cands <- Reduce(c, cands)
+        cands <- Reduce(rbind, cands)
         return(cands)
     }
 
@@ -214,9 +217,9 @@ designOpsLibrary <- function(guideSet,
                                          min_dist_edit=min_dist_edit,
                                          splitByChunks=splitByChunks)
         score <- Matrix::rowSums(dist>0)
-        cands <- cands[order(score)]
+        cands <- cands[order(score),,drop=FALSE]
 
-        for (i in seq_len(length(cands))){
+        for (i in seq_len(nrow(cands))){
 
             barcode <- cands$opsBarcode[i]
             dist <- getBarcodeDistanceMatrix(barcode,
@@ -225,9 +228,9 @@ designOpsLibrary <- function(guideSet,
                                              min_dist_edit=min_dist_edit)
             good <- Matrix::rowSums(dist>0)==0
             if (dist_method=="levenshtein"){
-                barcodes <- extractOpsBarcodes(lib,
-                                               n_cycles=n_cycles+min_dist_edit-1,
-                                               rt_direction=rt_direction)
+                barcodes <- .extractOpsBarcodesFromDF(lib,
+                                                      n_cycles=n_cycles+min_dist_edit-1,
+                                                      rt_direction=rt_direction)
                 dist <- getBarcodeDistanceMatrix(barcode,
                                                  barcodes,
                                                  dist_method=dist_method,
@@ -235,9 +238,9 @@ designOpsLibrary <- function(guideSet,
                 good <- good & Matrix::rowSums(dist>0)==0
             }
             if (good){
-                lib <- c(lib, cands[i])
+                lib <- rbind(lib, cands[i,,drop=FALSE])
             } else {
-                gab <- c(gab, cands[i])
+                gab <- rbind(gab, cands[i,,drop=FALSE])
             }
         }
         grnaList[["selected"]] <- lib
@@ -246,17 +249,17 @@ designOpsLibrary <- function(guideSet,
     }
 
     .setdiff.grna <- function(set1, set2){
-        if (!is.null(set2) & length(set2)>0){
-            set1 <- set1[!names(set1) %in% names(set2)]
+        if (!is.null(set2) & nrow(set2)>0){
+            set1 <- set1[!set1$ID %in% set2$ID,,drop=FALSE]
         }
         return(set1)
     }
 
     lib <- grnaList[["selected"]]
-    geneChoices <- factor(mcols(lib)[[gene_field]],
+    geneChoices <- factor(lib[[gene_field]],
                           levels=grnaList[["genes"]])
     geneSets <- split(lib, f=geneChoices)
-    ns <- vapply(geneSets, length, FUN.VALUE=0)
+    ns <- vapply(geneSets, nrow, FUN.VALUE=0)
     incompleteGenes <- names(geneSets)[ns<n_guides]
     cands <- .getCandidates(incompleteGenes, 1)
     if (length(cands)!=0){
@@ -267,7 +270,7 @@ designOpsLibrary <- function(guideSet,
                                          dist_method=dist_method,
                                          min_dist_edit=min_dist_edit,
                                          splitByChunks=splitByChunks)
-        cands <- cands[Matrix::rowSums(dist)==0]
+        cands <- cands[Matrix::rowSums(dist)==0,,drop=FALSE]
         grnaList <- .incrementalUpdate(grnaList, cands)
     }
     return(grnaList)
@@ -408,8 +411,13 @@ updateOpsLibrary <- function(opsLibrary,
     dist_method <- match.arg(dist_method)
     guideSet <- .validateOpsGrnaInput(guideSet, gene_field)
     genes <- unique(mcols(guideSet)[[gene_field]])
-    grnaList <- list(selected=opsLibrary,
-                     candidates=guideSet,
+
+    cols <- c("ID", "spacer", "rank", "opsBarcode", gene_field)
+    selected   <- GuideSet2DataFrames(opsLibrary)[["primary"]][,cols,drop=FALSE]
+    candidates <- GuideSet2DataFrames(guideSet)[["primary"]][,cols,drop=FALSE]
+
+    grnaList <- list(selected=selected,
+                     candidates=candidates,
                      discarded=NULL,
                      genes=genes)
     grnaList <- .updateOpsLibrary(grnaList,
@@ -420,7 +428,14 @@ updateOpsLibrary <- function(opsLibrary,
                                   dist_method=dist_method,
                                   min_dist_edit=min_dist_edit,
                                   splitByChunks=splitByChunks)
-    gs <- .getFinalOpsLibrary(grnaList)
+    ids <- .getFinalOpsLibrary(grnaList)$ID
+    cols1 <- colnames(mcols(opsLibrary))
+    cols2 <- colnames(mcols(guideSet))
+    cols <- intersect(cols1,cols1)
+    mcols(opsLibrary) <- mcols(opsLibrary)[,cols]
+    mcols(guideSet) <- mcols(guideSet)[,cols]
+    gs <- c(opsLibrary, guideSet)
+    gs <- gs[names(gs) %in% ids]
     gs <- gs[order(mcols(gs)[[gene_field]], mcols(gs)[["rank"]])]
     return(gs)
 }

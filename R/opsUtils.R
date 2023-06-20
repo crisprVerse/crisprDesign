@@ -101,6 +101,28 @@ extractOpsBarcodes <- function(guideSet,
 
 
 
+.extractOpsBarcodesFromDF <- function(df,
+                                      n_cycles=9,
+                                      rt_direction=c("5prime", "3prime")
+){
+    if (!"spacer" %in% colnames(df)){
+        stop("spacer must be a column name.")
+    }
+    spacers <- df[["spacer"]]
+    spacer_len <- nchar(spacers)[[1]]
+    rt_direction <- match.arg(rt_direction)
+    n_cycles <- .validateNCycles(n_cycles, spacer_len)
+    if (rt_direction=="5prime"){
+        barcodes <- substr(spacers, 1, n_cycles)
+    } else {
+        barcodes <- substr(spacers,
+                           spacer_len-n_cycles+1,
+                           spacer_len)
+    }
+    return(barcodes)
+}
+
+
 
 
 #' Get distance between query and target sets of barcodes
