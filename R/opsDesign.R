@@ -151,7 +151,6 @@ designOpsLibrary <- function(guideSet,
 ){
     shouldWeContinue <- TRUE
     while (shouldWeContinue){
-        n <- length(grnaList[["selected"]])
         grnaList <- .updateOpsLibraryOnce(grnaList,
                                           n_cycles=n_cycles,
                                           rt_direction=rt_direction,
@@ -194,6 +193,7 @@ designOpsLibrary <- function(guideSet,
   
     .getCandidates <- function(genes, n){
         cands <- grnaList[["candidates"]]
+        cands <- cands[cands[[gene_field]] %in% genes, , drop=FALSE]
         if (!"rank" %in% colnames(cands)){
             stop("rank should be a column of the candidate guides.")
         }
