@@ -23,12 +23,14 @@ getTssObjectFromTxObject <- function(txObject){
     mcols(tss) <- mcols(tss)[,cols]
     tss <- tss[!duplicated(mcols(tss)[,cols])]
     tss$promoter <- tss$tx_id
-    tss$ID <- paste0(tss$gene_id, "_", tss$promoter)
+    tss$ID <- paste0(tss$gene_id, "_", tss$promoter, recycle0=TRUE)
     # Making sure we only retain one coordinate:
-    if (as.character(strand(tss))[[1]]=="+"){
-        end(tss) <- start(tss)
-    } else {
-        start(tss) <- end(tss)
+    if (length(tss) > 0){
+        if (as.character(strand(tss))[[1]]=="+"){
+            end(tss) <- start(tss)
+        } else {
+            start(tss) <- end(tss)
+        }
     }
     return(tss)
 }
