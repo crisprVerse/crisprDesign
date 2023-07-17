@@ -17,6 +17,8 @@
 \alias{tssAnnotation}
 \alias{enzymeAnnotation}
 \alias{editedAlleles}
+\alias{txTable}
+\alias{exonTable}
 \alias{tssAnnotation<-}
 \alias{geneAnnotation<-}
 \alias{enzymeAnnotation<-}
@@ -52,6 +54,8 @@
 \alias{editedAlleles,GuideSet-method}
 \alias{tssAnnotation,GuideSet-method}
 \alias{enzymeAnnotation,GuideSet-method}
+\alias{txTable,GuideSet-method}
+\alias{exonTable,GuideSet-method}
 \title{An S4 class to store CRISPR gRNA sequences with modular annotations.}
 \usage{
 crisprNuclease(object, ...)
@@ -83,6 +87,10 @@ tssAnnotation(object, ...)
 enzymeAnnotation(object, ...)
 
 editedAlleles(object, ...)
+
+txTable(object, ...)
+
+exonTable(object, ...)
 
 tssAnnotation(object) <- value
 
@@ -178,7 +186,7 @@ GuideSet(
   use.names = TRUE
 )
 
-\S4method{editedAlleles}{GuideSet}(object)
+\S4method{editedAlleles}{GuideSet}(object, unlist = TRUE, use.names = TRUE)
 
 \S4method{tssAnnotation}{GuideSet}(
   object,
@@ -189,6 +197,10 @@ GuideSet(
 )
 
 \S4method{enzymeAnnotation}{GuideSet}(object, unlist = TRUE, use.names = TRUE)
+
+\S4method{txTable}{GuideSet}(object, unlist = TRUE, use.names = TRUE)
+
+\S4method{exonTable}{GuideSet}(object, unlist = TRUE, use.names = TRUE)
 }
 \arguments{
 \item{object}{\linkS4class{GuideSet} object.}

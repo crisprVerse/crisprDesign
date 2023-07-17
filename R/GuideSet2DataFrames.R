@@ -93,7 +93,11 @@ GuideSet2DataFrames <- function(guideSet,
         cols <- c("alignments",
                   "geneAnnotation",
                   "tssAnnotation",
-                  "enzymeAnnotation", "snps")
+                  "enzymeAnnotation",
+                  "snps",
+                  "txTable",
+                  "exonTable",
+                  "editedAlleles")
         cols <- intersect(cols, colnames(mcols(guideSet)))
         secondaryTables <- lapply(cols, function(col){
             .getSecondaryTable(guideSet,
@@ -192,24 +196,27 @@ GuideSet2DataFrames <- function(guideSet,
                                useSpacerCoordinates=TRUE
 ){
     nuclease <- crisprNuclease(guideSet)
-    if (colname=="alignments"){
-        out <- crisprDesign::alignments(guideSet,
-                                        unlist=TRUE)
-    } else if (colname=="geneAnnotation"){
-        out <- crisprDesign::geneAnnotation(guideSet,
-                                            unlist=TRUE)
-    } else if (colname=="tssAnnotation"){
-        out <- crisprDesign::tssAnnotation(guideSet,
-                                           unlist=TRUE)
-    } else  if (colname=="snps"){
-        out <- crisprDesign::snps(guideSet,
-                                  unlist=TRUE)
-    } else if (colname=="enzymeAnnotation"){
-        out <- crisprDesign::enzymeAnnotation(guideSet,
-                                              unlist=TRUE)
-    } else {
-        stop("colname not found in colnames(mcols(guideset)).")
-    }
+    out <- switch(colname,
+                  "alignments"=crisprDesign::alignments(guideSet,
+                                                        unlist=TRUE),
+                  "geneAnnotation"=crisprDesign::geneAnnotation(guideSet,
+                                                                unlist=TRUE),
+                  "tssAnnotation"=crisprDesign::tssAnnotation(guideSet,
+                                                              unlist=TRUE),
+                  "snps"=crisprDesign::snps(guideSet,
+                                            unlist=TRUE),
+                  "enzymeAnnotation"=crisprDesign::enzymeAnnotation(guideSet,
+                                                                    unlist=TRUE),
+                  "txTable"=crisprDesign::txTable(guideSet,
+                                                  unlist=TRUE),
+                  "exonTable"=crisprDesign::exonTable(guideSet,
+                                                      unlist=TRUE),
+                  "editedAlleles"=crisprDesign::editedAlleles(guideSet,
+                                                              unlist=TRUE),
+                  NULL)
+    stopifnot("colname not found in colnames(mcols(guideset))." = {
+        !is.null(out)
+    })
     if (is(out, "GRanges")){
         out$ID <- names(out)
         out <- .getPrimaryTable(out,
