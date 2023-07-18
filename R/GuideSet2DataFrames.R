@@ -70,7 +70,7 @@ flattenGuideSet <- function(guideSet,
 #' \item \code{snps} SNP annotation table (human only).
 #' }
 #' 
-#' @author Jean-Philippe Fortin
+#' @author Jean-Philippe Fortin, Luke Hoberecht
 #' 
 #' 
 #' @export 
@@ -158,10 +158,19 @@ GuideSet2DataFrames <- function(guideSet,
         out$start <- as.integer(BiocGenerics::start(guideSet))
         out$end   <- as.integer(BiocGenerics::end(guideSet))
     } else {
-        protospacerRanges <- getProtospacerRanges(gr=guideSet,
-                                                  nuclease=nuclease)
-        out$start <- as.integer(BiocGenerics::start(protospacerRanges))
-        out$end   <- as.integer(BiocGenerics::end(protospacerRanges))
+        genome <- GenomeInfoDb::genome(guideSet)
+        if (any(genome != "ntc")){
+            validSeqnames <- names(genome[genome != "ntc"])
+            protospacers <- as.vector(seqnames(guideSet)) %in% validSeqnames
+            if (any(protospacers)){
+                gr <- guideSet[protospacers]
+                protospacerRanges <- getProtospacerRanges(gr=gr,
+                                                          nuclease=nuclease)
+                guideSet[protospacers] <- protospacerRanges
+            }
+        }
+        out$start <- as.integer(BiocGenerics::start(guideSet))
+        out$end   <- as.integer(BiocGenerics::end(guideSet))
     }
     out$strand <- as.character(BiocGenerics::strand(guideSet))
     return(out)

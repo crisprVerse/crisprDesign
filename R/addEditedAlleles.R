@@ -84,9 +84,7 @@ addEditedAlleles <- function(guideSet,
         genome <- GenomeInfoDb::genome(guideSet[guide])
         genome <- genome[seqname]
         if (genome == "ntc"){
-            S4Vectors::DataFrame(seq=DNAStringSet(character(0)),
-                                 score=numeric(0),
-                                 row.names=names(guideSet[guide]))
+            .getEditedAlleles_ntc()
         } else {
             .getEditedAllelesPerGuide(gs=guideSet[guide],
                                       baseEditor=baseEditor,
@@ -159,6 +157,23 @@ addEditedAlleles <- function(guideSet,
                 score=maxes))
 }
 
+
+
+
+
+.getEditedAlleles_ntc <- function(){
+    df <- S4Vectors::DataFrame(seq=DNAStringSet(character(0)),
+                                  score=numeric(0),
+                                  row.names=character(0))
+    metadata(df)$wildtypeAllele <- NA_character_
+    metadata(df)$start <- NA_real_
+    metadata(df)$end <- NA_real_
+    metadata(df)$chr <- NA_character_
+    metadata(df)$strand <- NA_character_
+    metadata(df)$editingWindow <- NA_real_
+    metadata(df)$wildtypeAmino <- NA_character_
+    return(df)
+}
 
 
 
