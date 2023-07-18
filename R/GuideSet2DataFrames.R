@@ -101,7 +101,7 @@ GuideSet2DataFrames <- function(guideSet,
         cols <- intersect(cols, colnames(mcols(guideSet)))
         secondaryTables <- lapply(cols, function(col){
             .getSecondaryTable(guideSet,
-                               col,
+                               colname=col,
                                useSpacerCoordinates=useSpacerCoordinates)
         })
         names(secondaryTables) <- cols
@@ -132,7 +132,6 @@ GuideSet2DataFrames <- function(guideSet,
         tab[["ID"]] <- rownames(tab)
     }
     rownames(tab) <- NULL
-   
     
     tab <- .putColumnFirst("chr", tab)
     if (is(guideSet, "GuideSet")){
@@ -146,7 +145,8 @@ GuideSet2DataFrames <- function(guideSet,
     return(tab)
 }
 
-#' @importFrom GenomeInfoDb seqnames
+
+#' @importFrom GenomeInfoDb seqnames genome
 #' @importFrom BiocGenerics start end strand
 #' @importFrom crisprBase getProtospacerRanges
 .getIrangesTable <- function(guideSet,
@@ -154,24 +154,23 @@ GuideSet2DataFrames <- function(guideSet,
                              nuclease=NULL
 ){
     out <- data.frame(chr=as.character(GenomeInfoDb::seqnames(guideSet)))
-    if (!useSpacerCoordinates){
-        out$start <- as.integer(BiocGenerics::start(guideSet))
-        out$end   <- as.integer(BiocGenerics::end(guideSet))
-    } else {
+    if (useSpacerCoordinates){
         genome <- GenomeInfoDb::genome(guideSet)
         if (any(genome != "ntc")){
             validSeqnames <- names(genome[genome != "ntc"])
-            protospacers <- as.vector(seqnames(guideSet)) %in% validSeqnames
+            protospacers <- as.vector(GenomeInfoDb::seqnames(guideSet)) %in%
+                validSeqnames
             if (any(protospacers)){
                 gr <- guideSet[protospacers]
-                protospacerRanges <- getProtospacerRanges(gr=gr,
-                                                          nuclease=nuclease)
+                protospacerRanges <- crisprBase::getProtospacerRanges(
+                    gr=gr,
+                    nuclease=nuclease)
                 guideSet[protospacers] <- protospacerRanges
             }
         }
-        out$start <- as.integer(BiocGenerics::start(guideSet))
-        out$end   <- as.integer(BiocGenerics::end(guideSet))
     }
+    out$start <- as.integer(BiocGenerics::start(guideSet))
+    out$end   <- as.integer(BiocGenerics::end(guideSet))
     out$strand <- as.character(BiocGenerics::strand(guideSet))
     return(out)
 }
@@ -182,14 +181,14 @@ GuideSet2DataFrames <- function(guideSet,
 .getMcolsTable_flat <- function(guideSet){
     meta <- S4Vectors::mcols(guideSet)
     coltypes <- .getDFColtypes(meta)
-    wh <- which(coltypes=="DNAStringSet")
+    wh <- which(coltypes == "DNAStringSet")
     for (k in seq_along(wh)){
-        meta[,wh[k]] <- as.character(meta[,wh[k]])
+        meta[, wh[k]] <- as.character(meta[, wh[k]])
     }
     coltypes <- .getDFColtypes(meta)
     wh <- which(coltypes %in% .coltypes_flat)
-    if (length(wh)>0){
-        meta <- meta[,wh,drop=FALSE]    
+    if (length(wh) > 0){
+        meta <- meta[, wh, drop=FALSE]    
     } else {
         meta <- NULL
     }
@@ -206,27 +205,19 @@ GuideSet2DataFrames <- function(guideSet,
 ){
     nuclease <- crisprNuclease(guideSet)
     out <- switch(colname,
-                  "alignments"=crisprDesign::alignments(guideSet,
-                                                        unlist=TRUE),
-                  "geneAnnotation"=crisprDesign::geneAnnotation(guideSet,
-                                                                unlist=TRUE),
-                  "tssAnnotation"=crisprDesign::tssAnnotation(guideSet,
-                                                              unlist=TRUE),
-                  "snps"=crisprDesign::snps(guideSet,
-                                            unlist=TRUE),
-                  "enzymeAnnotation"=crisprDesign::enzymeAnnotation(guideSet,
-                                                                    unlist=TRUE),
-                  "txTable"=crisprDesign::txTable(guideSet,
-                                                  unlist=TRUE),
-                  "exonTable"=crisprDesign::exonTable(guideSet,
-                                                      unlist=TRUE),
-                  "editedAlleles"=crisprDesign::editedAlleles(guideSet,
-                                                              unlist=TRUE),
+                  "alignments"=alignments(guideSet, unlist=TRUE),
+                  "geneAnnotation"=geneAnnotation(guideSet, unlist=TRUE),
+                  "tssAnnotation"=tssAnnotation(guideSet, unlist=TRUE),
+                  "snps"=snps(guideSet, unlist=TRUE),
+                  "enzymeAnnotation"=enzymeAnnotation(guideSet, unlist=TRUE),
+                  "txTable"=txTable(guideSet, unlist=TRUE),
+                  "exonTable"=exonTable(guideSet, unlist=TRUE),
+                  "editedAlleles"=editedAlleles(guideSet, unlist=TRUE),
                   NULL)
     stopifnot("colname not found in colnames(mcols(guideset))." = {
         !is.null(out)
     })
-    if (is(out, "GRanges")){
+    if (methods::is(out, "GRanges")){
         out$ID <- names(out)
         out <- .getPrimaryTable(out,
                                 useSpacerCoordinates=useSpacerCoordinates,
@@ -254,7 +245,7 @@ GuideSet2DataFrames <- function(guideSet,
 
 .putColumnFirst <- function(col, df){
     cols <- c(col, setdiff(colnames(df), col))
-    df <- df[,cols, drop=FALSE]
+    df <- df[, cols, drop=FALSE]
     return(df)
 }
 
@@ -262,9 +253,9 @@ GuideSet2DataFrames <- function(guideSet,
 
 .safeFormatColumns <- function(df){
     cols <- intersect(.coltypes_integer, colnames(df))
-    if (length(cols)>0){
+    if (length(cols) > 0){
         for (k in seq_along(cols)){
-            df[,cols[k]] <- as.integer(df[,cols[k]])
+            df[, cols[k]] <- as.integer(df[, cols[k]])
         }
     }
     return(df)
@@ -274,8 +265,8 @@ GuideSet2DataFrames <- function(guideSet,
 
 .getDFColtypes <- function(df){
     types <- vapply(seq_len(ncol(df)), function(i){
-        class(df[,i])
-    }, FUN.VALUE="a")
+        class(df[, i])
+    }, FUN.VALUE=character(1))
     return(types)
 }
 
@@ -292,4 +283,3 @@ cols_aln <- c(cols_aln, cols_aln_c, cols_aln_p)
                        "tss_pos", "anchor_site", "dist_to_tss")
 .coltypes_integer <- c(.coltypes_integer, cols_aln)
 .coltypes_flat <- c("numeric", "logical", "integer", "character")
-
