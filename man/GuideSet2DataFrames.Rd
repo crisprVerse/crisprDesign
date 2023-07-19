@@ -44,5 +44,5 @@ tables <- GuideSet2DataFrames(guideSetExampleFullAnnotation)
 
 }
 \author{
-Jean-Philippe Fortin
+Jean-Philippe Fortin, Luke Hoberecht
 }

@@ -84,8 +84,7 @@ addEditedAlleles <- function(guideSet,
         genome <- GenomeInfoDb::genome(guideSet[guide])
         genome <- genome[seqname]
         if (genome == "ntc"){
-            S4Vectors::DataFrame(seq=DNAStringSet(character(0)),
-                                 score=numeric(0))
+            .getEditedAlleles_ntc()
         } else {
             .getEditedAllelesPerGuide(gs=guideSet[guide],
                                       baseEditor=baseEditor,
@@ -102,6 +101,7 @@ addEditedAlleles <- function(guideSet,
                           .addFunctionalConsequences,
                           txTable)
     }
+    names(alleles) <- names(guideSet)
     mcols(guideSet)[["editedAlleles"]] <- alleles
 
     if (addSummary){
@@ -157,6 +157,23 @@ addEditedAlleles <- function(guideSet,
                 score=maxes))
 }
 
+
+
+
+
+.getEditedAlleles_ntc <- function(){
+    df <- S4Vectors::DataFrame(seq=DNAStringSet(character(0)),
+                                  score=numeric(0),
+                                  row.names=character(0))
+    metadata(df)$wildtypeAllele <- NA_character_
+    metadata(df)$start <- NA_real_
+    metadata(df)$end <- NA_real_
+    metadata(df)$chr <- NA_character_
+    metadata(df)$strand <- NA_character_
+    metadata(df)$editingWindow <- NA_real_
+    metadata(df)$wildtypeAmino <- NA_character_
+    return(df)
+}
 
 
 
@@ -319,6 +336,8 @@ addEditedAlleles <- function(guideSet,
     metadata(editedAlleles)$strand <- strand
     metadata(editedAlleles)$editingWindow <- editingWindow
     editedAlleles$seq <- DNAStringSet(editedAlleles$seq)
+    rownames(editedAlleles) <- rep(names(gs), nrow(editedAlleles))
+    
     return(editedAlleles)
 }
 
@@ -440,7 +459,7 @@ addEditedAlleles <- function(guideSet,
         stop("editedAlleles are not on the same chromosome.")
     }
     editedAlleles$variant <- "not_targeting"
-    txTable <- txTable[txTable$region=="CDS",,drop=FALSE]
+    txTable <- txTable[txTable$region == "CDS", , drop=FALSE]
     geneStrand  <- metadata(txTable)$gene_strand
     guideStrand <- metadata(editedAlleles)$strand
     start <- metadata(editedAlleles)$start
@@ -448,16 +467,17 @@ addEditedAlleles <- function(guideSet,
     editingPositions <- start:end
     overlapPositions <- editingPositions[editingPositions %in% txTable$pos]
 
-    if (length(overlapPositions)==0){
+    if (length(overlapPositions) == 0){
+        editedAlleles$aa <- NA_character_
         return(editedAlleles)
     }
 
     # Getting nucleotide to replace
     sequences <- editedAlleles$seq
-    if (geneStrand!=guideStrand){
+    if (geneStrand != guideStrand){
         sequences <- complement(sequences)
     }
-    if (guideStrand=="-"){
+    if (guideStrand == "-"){
         sequences <- reverse(sequences)
     }
     nucs <- as.matrix(sequences)
@@ -467,7 +487,7 @@ addEditedAlleles <- function(guideSet,
 
     # Get wildtype protein:
     wh <- match(overlapPositions, txTable$pos)
-    txTable <- txTable[order(txTable$pos_cds),,drop=FALSE]
+    txTable <- txTable[order(txTable$pos_cds), , drop=FALSE]
     nuc <- txTable$nuc
     protein <- translate(DNAString(paste0(nuc, collapse="")))
     protein <- as.vector(protein)
@@ -490,7 +510,7 @@ addEditedAlleles <- function(guideSet,
             }
         }
         return(effect)
-    }, FUN.VALUE="a")
+    }, FUN.VALUE=character(1))
 
     aminos <- vapply(seq_len(nrow(nucs)), function(k){
         editedNuc <- nuc
@@ -503,7 +523,7 @@ addEditedAlleles <- function(guideSet,
         aas <- paste0(aas, collapse="")
 
         return(aas)
-    }, FUN.VALUE="a")
+    }, FUN.VALUE=character(1))
     editedAlleles$variant <- effects
     editedAlleles$aa <- aminos
 

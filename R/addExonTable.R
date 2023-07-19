@@ -90,7 +90,11 @@ addExonTable_consensusIsoform <- function(guideSet,
         out[df[k,1],df[k,2]] <- 1
     }    
     out <- DataFrame(out)
-    mcols(guideSet)$exonTable <- out
+    splitFactor <- factor(BiocGenerics::rownames(out),
+                          levels=names(guideSet))
+    out <- S4Vectors::split(out, f=splitFactor)
+    S4Vectors::mcols(guideSet)[["exonTable"]] <- out
+    # mcols(guideSet)$exonTable <- out
     return(guideSet)
 }
 
@@ -127,7 +131,11 @@ addExonTable_allIsoforms <- function(guideSet,
         out[df[k,1],df[k,2]] <- df[[valueColumn]][k]
     }    
     out <- DataFrame(out)
-    mcols(guideSet)$exonTable <- out
+    splitFactor <- factor(BiocGenerics::rownames(out),
+                          levels=names(guideSet))
+    out <- S4Vectors::split(out, f=splitFactor)
+    S4Vectors::mcols(guideSet)[["exonTable"]] <- out
+    # mcols(guideSet)$exonTable <- out
     return(guideSet)
 }
 

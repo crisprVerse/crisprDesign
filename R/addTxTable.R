@@ -39,8 +39,9 @@
 #' 
 #' @seealso \code{\link{addGeneAnnotation}} to add gene annotation. 
 #' 
-#' @export
 #' @rdname addTxTable
+#' @importFrom S4Vectors split mcols<-
+#' @export
 addTxTable <- function(guideSet,
                        gene_id,
                        txObject,
@@ -73,7 +74,10 @@ addTxTable <- function(guideSet,
         out[df[k,1],df[k,2]] <- df[[valueColumn]][k]
     }    
     out <- DataFrame(out)
-    mcols(guideSet)$txTable <- out
+    splitFactor <- factor(BiocGenerics::rownames(out),
+                          levels=names(guideSet))
+    out <- S4Vectors::split(out, f=splitFactor)
+    S4Vectors::mcols(guideSet)[["txTable"]] <- out
     return(guideSet)
 }
 

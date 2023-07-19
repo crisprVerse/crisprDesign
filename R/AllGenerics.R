@@ -92,6 +92,18 @@ setGeneric("editedAlleles",
            function(object, ...) standardGeneric("editedAlleles"))
 
 
+#' @rdname GuideSet-class
+#' @export
+setGeneric("txTable",
+           function(object, ...) standardGeneric("txTable"))
+
+
+#' @rdname GuideSet-class
+#' @export
+setGeneric("exonTable",
+           function(object, ...) standardGeneric("exonTable"))
+
+
 #' @rdname PairedGuideSet-class
 #' @export
 setGeneric("pamOrientation",
