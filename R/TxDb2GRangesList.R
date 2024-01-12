@@ -345,6 +345,7 @@ TxDb2GRangesList <- function(txdb,
 ){
     fiveUTRs <- fiveUTRsByTranscript(txdb, use.names=TRUE)
     fiveUTRs <- unlist(methods::as(fiveUTRs, 'GRangesList'))
+    names(fiveUTRs)[is.na(names(fiveUTRs))] <- ""
     fiveUTRs$exon_id <- fiveUTRs$exon_name
     fiveUTRs$exon_name <- NULL
     fiveUTRs$tx_id <- names(fiveUTRs)
@@ -372,6 +373,7 @@ TxDb2GRangesList <- function(txdb,
 ){
     threeUTRs <- threeUTRsByTranscript(txdb, use.names=TRUE)
     threeUTRs <- unlist(methods::as(threeUTRs, 'GRangesList'))
+    names(threeUTRs)[is.na(names(threeUTRs))] <- ""
     threeUTRs$exon_id <- threeUTRs$exon_name
     threeUTRs$exon_name <- NULL
     threeUTRs$tx_id <- names(threeUTRs)
