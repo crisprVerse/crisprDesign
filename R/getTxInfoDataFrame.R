@@ -96,7 +96,7 @@ getTxInfoDataFrame <- function(tx_id,
                                                           strand=strand,
                                                           bsgenome=bsgenome,
                                                           extend=extend)
-        df <- merge(df, df_exon_extended)
+        df <- merge(df, df_exon_extended, all=TRUE)
     } else {
         df[["pos_plot"]] <- df[["pos_mrna"]]
     }
