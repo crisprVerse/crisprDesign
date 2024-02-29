@@ -30,7 +30,7 @@ addCrispraiScores(object, ...)
   fastaFile = NULL
 )
 
-\S4method{addCrispraiScores}{`NULL`}(object)
+\S4method{addCrispraiScores}{NULL}(object)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} object or a 

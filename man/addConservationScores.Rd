@@ -25,7 +25,7 @@ addConservationScores(object, ...)
   scoreName = "score_conservation"
 )
 
-\S4method{addConservationScores}{`NULL`}(object)
+\S4method{addConservationScores}{NULL}(object)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} object or a 

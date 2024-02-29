@@ -26,7 +26,7 @@ addSequenceFeatures(object, ...)
   ...
 )
 
-\S4method{addSequenceFeatures}{`NULL`}(object, ...)
+\S4method{addSequenceFeatures}{NULL}(object, ...)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} or a 

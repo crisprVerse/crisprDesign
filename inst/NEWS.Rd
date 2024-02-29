@@ -2,6 +2,14 @@
 \title{crisprDesign News}
 \encoding{UTF-8}
 
+
+\section{Version 1.5.2}{
+\itemize{
+    \item Added function addReinitiationFlag. 
+}
+}
+
+
 \section{Version 1.1.25}{
 \itemize{
     \item Added a warning message when having duplicated gRNAs.

@@ -13,7 +13,7 @@ addPamScores(object, ...)
 
 \S4method{addPamScores}{PairedGuideSet}(object)
 
-\S4method{addPamScores}{`NULL`}(object)
+\S4method{addPamScores}{NULL}(object)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} or a 

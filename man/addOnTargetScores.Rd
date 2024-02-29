@@ -31,7 +31,7 @@ addOnTargetScores(object, ...)
     "deepspcas9", "enpamgb", "crisprater", "crisprscan", "casrxrf")
 )
 
-\S4method{addOnTargetScores}{`NULL`}(object)
+\S4method{addOnTargetScores}{NULL}(object)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} object or a 

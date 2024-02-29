@@ -11,13 +11,13 @@
 \usage{
 addSNPAnnotation(object, ...)
 
-\S4method{addGeneAnnotation}{`NULL`}(object)
+\S4method{addGeneAnnotation}{NULL}(object)
 
 \S4method{addSNPAnnotation}{GuideSet}(object, vcf, maf = 0.01)
 
 \S4method{addSNPAnnotation}{PairedGuideSet}(object, vcf, maf = 0.01)
 
-\S4method{addSNPAnnotation}{`NULL`}(object)
+\S4method{addSNPAnnotation}{NULL}(object)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} object or a 

@@ -13,7 +13,7 @@ removeRepeats(object, ...)
 
 \S4method{removeRepeats}{PairedGuideSet}(object, gr.repeats = NULL, ignore.strand = TRUE)
 
-\S4method{removeRepeats}{`NULL`}(object)
+\S4method{removeRepeats}{NULL}(object)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} object or a 

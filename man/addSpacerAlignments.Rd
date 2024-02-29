@@ -59,7 +59,7 @@ addSpacerAlignmentsIterative(object, ...)
   alignmentThresholds = c(n0 = 5, n1 = 100, n2 = 100, n3 = 1000, n4 = 1000)
 )
 
-\S4method{addSpacerAlignmentsIterative}{`NULL`}(object)
+\S4method{addSpacerAlignmentsIterative}{NULL}(object)
 
 \S4method{addSpacerAlignments}{GuideSet}(
   object,
@@ -103,7 +103,7 @@ addSpacerAlignmentsIterative(object, ...)
   tss_window = NULL
 )
 
-\S4method{addSpacerAlignments}{`NULL`}(object)
+\S4method{addSpacerAlignments}{NULL}(object)
 
 getSpacerAlignments(
   spacers,

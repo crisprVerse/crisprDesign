@@ -13,7 +13,7 @@ addNtcs(object, ...)
 
 \S4method{addNtcs}{PairedGuideSet}(object, ntcs)
 
-\S4method{addNtcs}{`NULL`}(object, ...)
+\S4method{addNtcs}{NULL}(object, ...)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} or a 

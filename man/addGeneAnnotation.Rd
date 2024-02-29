@@ -97,7 +97,7 @@ For DNA-targeting nucleases, the different columns stored in
 \item \code{aminoAcidIndex} If \code{cut_cds} is \code{TRUE}, integer value
     indicating the amino acid index with respect to the start of the protein.
 \item \code{downstreamATG} Number of potential reinitiation sites 
-    (ATG codons) downstream of the gRNA cut site, within 250 amino acids.
+    (ATG codons) downstream of the gRNA cut site, within 85 amino acids.
 \item \code{nIsoforms} Numeric value indicating the number of isoforms
     targeted by the gRNA.
 \item \code{totalIsoforms} Numeric value indicating the total number of

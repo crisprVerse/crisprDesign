@@ -25,7 +25,7 @@ addTssAnnotation(object, ...)
   ignore.strand = TRUE
 )
 
-\S4method{addTssAnnotation}{`NULL`}(object)
+\S4method{addTssAnnotation}{NULL}(object)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} object or a 

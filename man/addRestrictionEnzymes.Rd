@@ -27,7 +27,7 @@ addRestrictionEnzymes(object, ...)
   flanking3 = "GTTT"
 )
 
-\S4method{addRestrictionEnzymes}{`NULL`}(object)
+\S4method{addRestrictionEnzymes}{NULL}(object)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} or a 

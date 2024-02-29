@@ -23,7 +23,7 @@ addCompositeScores(object, ...)
   scoreName = "score_composite"
 )
 
-\S4method{addCompositeScores}{`NULL`}(object)
+\S4method{addCompositeScores}{NULL}(object)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} object or a 

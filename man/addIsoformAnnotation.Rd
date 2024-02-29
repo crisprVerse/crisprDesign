@@ -11,13 +11,13 @@
 \usage{
 addIsoformAnnotation(object, ...)
 
-\S4method{addDistanceToTss}{`NULL`}(object)
+\S4method{addDistanceToTss}{NULL}(object)
 
 \S4method{addIsoformAnnotation}{GuideSet}(object, tx_id)
 
 \S4method{addIsoformAnnotation}{PairedGuideSet}(object, tx_id)
 
-\S4method{addIsoformAnnotation}{`NULL`}(object)
+\S4method{addIsoformAnnotation}{NULL}(object)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} object or a 

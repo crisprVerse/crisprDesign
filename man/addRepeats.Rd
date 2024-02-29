@@ -13,7 +13,7 @@ addRepeats(object, ...)
 
 \S4method{addRepeats}{PairedGuideSet}(object, gr.repeats = NULL, ignore.strand = TRUE)
 
-\S4method{addRepeats}{`NULL`}(object)
+\S4method{addRepeats}{NULL}(object)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} object or a 

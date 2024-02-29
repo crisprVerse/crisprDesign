@@ -13,7 +13,7 @@ addEditingSites(object, ...)
 
 \S4method{addEditingSites}{PairedGuideSet}(object, substitution)
 
-\S4method{addEditingSites}{`NULL`}(object)
+\S4method{addEditingSites}{NULL}(object)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} object or a 

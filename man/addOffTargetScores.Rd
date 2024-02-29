@@ -13,7 +13,7 @@ addOffTargetScores(object, ...)
 
 \S4method{addOffTargetScores}{PairedGuideSet}(object, max_mm = 2, includeDistance = TRUE, offset = 0)
 
-\S4method{addOffTargetScores}{`NULL`}(object)
+\S4method{addOffTargetScores}{NULL}(object)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} object or a 

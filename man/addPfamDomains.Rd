@@ -13,7 +13,7 @@ addPfamDomains(object, ...)
 
 \S4method{addPfamDomains}{PairedGuideSet}(object, pfamTable)
 
-\S4method{addPfamDomains}{`NULL`}(object)
+\S4method{addPfamDomains}{NULL}(object)
 }
 \arguments{
 \item{object}{A \linkS4class{GuideSet} object or a 
