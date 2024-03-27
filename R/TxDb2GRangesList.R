@@ -33,8 +33,8 @@
 #'     file='https://www.mirbase.org/ftp/CURRENT/genomes/hsa.gff3'
 #'     txdb <- getTxDb(file=file)
 #' }
-#' @importFrom GenomicFeatures makeTxDbFromEnsembl
-#' @importFrom GenomicFeatures makeTxDbFromGFF
+#' @importFrom txdbmaker makeTxDbFromEnsembl
+#' @importFrom txdbmaker makeTxDbFromGFF
 #' @export
 getTxDb <- function(file=NA,
                     organism,
@@ -49,14 +49,14 @@ getTxDb <- function(file=NA,
         if (is.na(organism)){
             stop("'organism' must be specified when 'file' is missing")
         }
-        txdb <- GenomicFeatures::makeTxDbFromEnsembl(organism=organism,
-                                                     release=release,
-                                                     tx_attrib=tx_attrib,
-                                                     ...)
+        txdb <- txdbmaker::makeTxDbFromEnsembl(organism=organism,
+                                               release=release,
+                                               tx_attrib=tx_attrib,
+                                               ...)
     } else {
-        txdb <- GenomicFeatures::makeTxDbFromGFF(file,
-                                                 organism=organism,
-                                                 ...)
+        txdb <- txdbmaker::makeTxDbFromGFF(file,
+                                           organism=organism,
+                                           ...)
     }
     return(txdb)
 }
