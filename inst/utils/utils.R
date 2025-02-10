@@ -289,7 +289,354 @@ iplot <- function(x,
 }
 
 
+getZPrimeFactor <- function(x,y){
+    top <- sd(x)+sd(y)
+    bottom <- abs(mean(x)-mean(y))
+    factor <- 1-3*top/bottom
+    factor
+}
 
+
+#' @export
+#' @importFrom plotly plot_ly
+#' @importFrom plotly layout
+#' @importFrom magrittr %>%
+iplot <- function(x,y,labels,
+ xlab="", ylab="",
+ title="", col=NULL,
+ xlim=c(-10,10),
+ ylim=c(0,40)
+ ){
+  temp <- data.frame(xx=x, yy=y, label=labels)
+  zeroline <- TRUE
+  type = "scatter"
+  mode="markers"
+  pal <- c("grey75","firebrick2")
+
+  p <- plot_ly(data = temp, x = ~xx, y = ~yy, 
+             text=temp$label,
+             type=type,
+             mode=mode,
+             color=col, colors=pal,
+             source="volcano",
+             selected=list(marker=list(color='blue'))
+             #marker=list(color~col)
+  )
+  
+  p <- p %>%
+    plotly::layout(title = title,
+           xaxis = list(zeroline = zeroline, title=xlab, range=xlim),
+           yaxis = list(zeroline = zeroline, title=ylab, range=ylim)
+           )
+  p
+}
+
+getOverlap <- function(ranks1, ranks2){
+    kk <- 1:length(ranks1)
+    r <- factor(pmax(ranks1, ranks2), levels=kk)
+    tab <- table(r)
+    cs <- cumsum(tab)
+    cs/kk
+}
+
+
+
+
+
+#' Quick function to extract a subset of reads from NGS fastq files
+#' 
+#' Quick function to extract a subset of reads from NGS fastq files.
+#'
+#' @param ngs String specifying NGS project number (eg. "ngs3096").
+#'     Reads from the sample specified by \code{sample_index} will be 
+#'     read into R. If NULL, \code{file} must be provided instead. 
+#' @param file String specifying path to a FASTQ file from which reads will
+#'     be read from. Must be specified if \code{ngs} is NULL. 
+#' @param samid String specifying the SAMID of the sample to be considered.
+#'     Must be part of the NGS project specified by \code{ngs}.
+#' @param n_reads Integer specifying number of reads that should be returned.
+#'     1000 by default.
+#' @param sample_index Integer specifying which sample should be considered
+#'     from the list of files available for a given project specified by the 
+#'     \code{ngs}. 
+#' @param read_mate String specifying if reads from R1 or R2 files should
+#'     be returned. Must be either "R1" or "R2". R1" by default. 
+#'
+#' @return Character vector of sequencing reads.
+#'
+#' @author Jean-Philippe Fortin
+#' @examples
+#' \dontrun{
+#'     reads <- extractReads(ngs="ngs3565")
+#' }
+#' @export
+#' @importFrom gneDB ngsprojFastq
+#' @importFrom readr read_lines
+extractReads <- function(ngs=NULL,
+                         file=NULL,
+                         samid=NULL, 
+                         n_reads=1000, 
+                         sample_index=1,
+                         read_mate=c("R1", "R2")
+){
+
+    read_mate <- match.arg(read_mate)
+   
+
+    .readsFromFilePartial <- function(file,
+                                      n_reads=1000){
+        tempFile  <- paste0(tempfile(), ".gz")
+        tempFile2 <- gsub(".gz","", tempFile)
+        tempFile3 <- gsub(".gz",".txt", tempFile)
+        file.copy(file, tempFile, overwrite=TRUE)
+        #system(paste0("gunzip -f ", tempFile))
+        cmd <- paste0("zcat ",
+                      tempFile,
+                      " | head -",
+                      .makeLongInteger(n_reads*4),
+                      " > ",tempFile3)
+        system(cmd)
+        reads  <- readr::read_lines(tempFile3,
+                                    n_max = .makeLongInteger(n_reads*4))
+        wh <- seq(2,length(reads),4)
+        wh <- wh[wh<length(reads)]
+        reads <- reads[wh]
+        return(reads)
+    }
+    
+    .readsFromFileComplete <- function(file){
+        tempFile <- paste0(tempfile(), ".gz")
+        tempFile2 <- gsub(".gz","", tempFile)
+        tempFile3 <- gsub(".gz",".txt", tempFile)
+        file.copy(file, tempFile, overwrite=TRUE)
+        #system(paste0("gunzip -f ", tempFile))
+        cmd <- paste0("gunzip -f ", tempFile2)
+        system(cmd)
+        reads  <- readr::read_lines(tempFile2)
+        wh <- seq(2,length(reads),4)
+        wh <- wh[wh<=length(reads)]
+        reads <- reads[wh]
+        return(reads)
+    }
+    if (is.null(file) & !is.null(ngs)){
+        fastq.df = ngsprojFastq(ngs,collapse=FALSE)
+        if (read_mate=="R1"){
+            fastqs <- fastq.df$READ1_FILE
+        } else {
+            fastqs <- fastq.df$READ2_FILE
+        }
+        if (!is.null(samid)){
+            fastqs <- fastqs[grepl(samid, fastqs)]
+            file <- fastqs[1]
+        }  else {
+            file <- fastqs[sample_index]  
+        }
+    } else if (is.null(file) & is.null(ngs)){
+        stop("file or ngs must be provided. ")
+    }
+    if (!file.exists(file)){
+        stop("File does not exist.")
+    }
+    if (!is.null(n_reads)){
+        reads <- .readsFromFilePartial(file,
+                                       n_reads=n_reads)
+    } else {
+        reads <- .readsFromFileComplete(file)
+    }
+    return(reads)
+}
+
+
+#' Quick function to extract barcodes from a list of reads
+#' 
+#' Quick function to extract barcodes from a list of reads for testing 
+#'     purposes. 
+#'
+#' @param reads Character vector of sequencing reads.
+#' @param flank5 String containing the constant sequence on the 5'
+#'     flank of the barcode region.
+#' @param flank3 String containing the constant sequence on the 3'
+#'     flank of the barcode region.
+#' @param leftOnly Should only flank5 be considered? 
+#'     FALSE by default.
+#' @param barcode_len Length of the barcodes to be retrieved.
+#' @param ignore_barcode_len Should any barcode length be returned?
+#'     FALSE by default. 
+#'
+#' @return Character vector of barcodes.
+#'
+#' @author Jean-Philippe Fortin
+#' @examples
+#' \dontrun{
+#'     reads <- extractReads(ngs="ngs3565")
+#'     barcodes <- extractBarcodes(reads, flank5="TACCG", flank3="")
+#' }
+#' @export
+#' @importFrom stringr str_extract
+extractBarcodes <- function(reads, 
+                            flank5="AGTTCG", 
+                            flank3="TTCGGACTGT",
+                            leftOnly=FALSE, 
+                            barcode_len=19,
+                            ignore_barcode_len=FALSE
+){
+    # Only keeping reads that have flanking sequences:
+    good1 <- grepl(flank5, reads)
+    good2 <- grepl(flank3, reads)
+    if (leftOnly){
+        good <- which(good1)
+    } else {
+        good <- which(good1 & good2)
+    }
+    reads <- reads[good]
+    nleft <- nchar(flank5)
+    if (!ignore_barcode_len){
+        barcodes <- str_extract(reads,
+                                paste0(flank5, "[A-Z]+"))
+        barcodes <- gsub(flank5,"",barcodes)
+        barcodes <- substr(barcodes, 1, barcode_len)
+    } else {
+        barcodes <- str_extract(reads,
+                                paste0(flank5, "[A-Z]+", flank3))
+        barcodes <- gsub(flank5,"",barcodes)
+        barcodes <- gsub(flank3,"",barcodes)
+    }
+    return(barcodes)
+}
+
+
+
+
+
+#' @export 
+#' @importFrom biomaRt useMart getBM
+getEnsemblOrthologs <- function(ids, 
+    species.from="mouse", 
+    species.to="rat"
+){
+    species.latin <- list()
+    species.latin[["mouse"]] <- "mmusculus"
+    species.latin[["human"]] <- "hsapiens"
+    species.latin[["rat"]]   <- "rnorvegicus"
+    symbols <- list()
+    symbols[["mouse"]] <- "mgi_symbol"
+    symbols[["human"]] <- "hgnc_symbol"
+    symbols[["rat"]]   <- "rgd_symbol"
+
+    marts <- lapply(species.latin, function(x){
+        useMart("ensembl", dataset=paste0(x, "_gene_ensembl"))
+    })
+    names(marts) <- names(species.latin)
+    filters <- "ensembl_gene_id"
+    # Making attributes:
+    x1 <- paste0(species.latin[[species.to]], "_homolog_orthology_type")
+    x2 <- paste0(species.latin[[species.to]], "_homolog_ensembl_gene")
+    x3 <- "ensembl_gene_id"
+    attributes <- c(x1,x2,x3)
+
+    #Getting orthologs:
+    df <- getBM(attributes=attributes,
+        filters=filters,
+        values=ids,
+        mart=marts[[species.from]]
+    )
+    df <- df[df[[x1]]!="",,drop=FALSE]
+    col.from <- paste0(species.latin[[species.from]], "_ensembl_gene_id")
+    col.to <- paste0(species.latin[[species.to]], "_ensembl_gene_id")
+    colnames(df) <- c("type", col.to, col.from)
+    df <- df[,c(3,2,1)]
+    # Let's add gene symbol:
+    df.from <- getBM(attributes=c(symbols[[species.from]], "ensembl_gene_id"),
+        filters="ensembl_gene_id",
+        values=df[[col.from]],
+        mart=marts[[species.from]]
+    )
+    df.to <- getBM(attributes=c(symbols[[species.to]], "ensembl_gene_id"),
+        filters="ensembl_gene_id",
+        values=df[[col.to]],
+        mart=marts[[species.to]]
+    )
+    wh.from <- match(df[[col.from]], df.from$ensembl_gene_id)
+    wh.to   <- match(df[[col.to]], df.to$ensembl_gene_id)
+    df[[paste0(species.latin[[species.from]], "_gene")]] <- df.from[wh.from,1]
+    df[[paste0(species.latin[[species.to]], "_gene")]]   <- df.to[wh.to,1]
+    return(df)
+}
+
+
+#' @export 
+#' @importFrom biomaRt useMart getBM
+getSymbolFromEnsembl <- function(ids, 
+    species=c("human", "mouse")
+){
+    species <- match.arg(species)
+    species.latin <- list()
+    species.latin[["mouse"]] <- "mmusculus"
+    species.latin[["human"]] <- "hsapiens"
+    species.latin[["rat"]]   <- "rnorvegicus"
+    symbols <- list()
+    symbols[["mouse"]] <- "mgi_symbol"
+    symbols[["human"]] <- "hgnc_symbol"
+    symbols[["rat"]]   <- "rgd_symbol"
+
+    marts <- lapply(species.latin, function(x){
+        useMart("ensembl", dataset=paste0(x, "_gene_ensembl"))
+    })
+    names(marts) <- names(species.latin)
+    
+    df <- getBM(attributes=c(symbols[[species]], "ensembl_gene_id"),
+        filters="ensembl_gene_id",
+        values=ids,
+        mart=marts[[species]]
+    )
+    return(df)
+}
+
+
+#' @export 
+#' @importFrom biomaRt useMart getBM
+getEnsemblFromSymbol <- function(ids, 
+    species=c("human", "mouse")
+){
+    species <- match.arg(species)
+    species.latin <- list()
+    species.latin[["mouse"]] <- "mmusculus"
+    species.latin[["human"]] <- "hsapiens"
+    species.latin[["rat"]]   <- "rnorvegicus"
+    symbols <- list()
+    symbols[["mouse"]] <- "mgi_symbol"
+    symbols[["human"]] <- "hgnc_symbol"
+    symbols[["rat"]]   <- "rgd_symbol"
+
+    marts <- lapply(species.latin, function(x){
+        useMart("ensembl", dataset=paste0(x, "_gene_ensembl"))
+    })
+    names(marts) <- names(species.latin)
+    
+    df <- getBM(attributes=c(symbols[[species]], "ensembl_gene_id"),
+        filters=symbols[[species]],
+        values=ids,
+        mart=marts[[species]]
+    )
+    df
+}
+
+
+#' @export
+getCellSurvival <- function(r, d){
+    .getCellSurvival <- function(r,d){
+        if (d!=0){
+            result <- ((1+d)-sqrt((1+d)^2-4*d*r))/(2*d)
+        } else {
+            result <- r
+        }
+        result
+    }
+    survivals <- sapply(1:length(r), function(i){
+        .getCellSurvival(r[i], d[i])
+    })
+    survivals
+}
 
 
 
