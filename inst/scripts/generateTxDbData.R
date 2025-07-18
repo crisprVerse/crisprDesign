@@ -10,6 +10,6 @@ grList <- lapply(grList, function(gr){
 })
 grListExample <- GRangesList(grList)
 metadata(grListExample) <- meta
-GenomeInfoDb::genome(grListExample) <- "hg38"
+Seqinfo::genome(grListExample) <- "hg38"
 save(grListExample,
      file="../../data/grListExample.rda")

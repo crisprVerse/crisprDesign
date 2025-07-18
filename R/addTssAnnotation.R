@@ -138,7 +138,7 @@ setMethod("addTssAnnotation", "NULL", function(object){
 
 # Add annotation whether or not a gRNA overlaps a known TSS region
 #' @importFrom GenomicRanges GPos promoters findOverlaps
-#' @importFrom GenomeInfoDb seqnames seqlevels seqlevels<-
+#' @importFrom Seqinfo seqnames seqlevels seqlevels<-
 #' @importFrom S4Vectors mcols isTRUEorFALSE queryHits subjectHits
 #' @importFrom BiocGenerics strand
 .annotateTssOverlaps <- function(guideSet,
@@ -150,7 +150,7 @@ setMethod("addTssAnnotation", "NULL", function(object){
 ){
     anchor <- .validateAnchor(anchor, guideSet)
     anchorSites <- GenomicRanges::GPos(
-        seqnames=GenomeInfoDb::seqnames(guideSet),
+        seqnames=Seqinfo::seqnames(guideSet),
         pos=S4Vectors::mcols(guideSet)[[anchor]],
         strand=BiocGenerics::strand(guideSet))
     names(anchorSites)  <- names(guideSet)
@@ -161,9 +161,9 @@ setMethod("addTssAnnotation", "NULL", function(object){
                                                  upstream=(-1*tss_window[1]),
                                                  downstream=tss_window[2])
     
-    GenomeInfoDb::seqlevels(anchorSites) <- unique(
-        c(GenomeInfoDb::seqlevels(anchorSites),
-          GenomeInfoDb::seqlevels(targetAnnotation)))
+    Seqinfo::seqlevels(anchorSites) <- unique(
+        c(Seqinfo::seqlevels(anchorSites),
+          Seqinfo::seqlevels(targetAnnotation)))
     stopifnot("'ignore.strand' must be TRUE or FALSE" = {
         S4Vectors::isTRUEorFALSE(ignore.strand)
     })

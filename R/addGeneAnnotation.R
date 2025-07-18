@@ -199,7 +199,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 
 # To add gene annotation for RNA-targeting nucleases (e.g. CasRx)
 #' @importFrom S4Vectors mcols
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Seqinfo seqnames
 #' @importClassesFrom S4Vectors DataFrame
 .getGeneAnnotation_rna_nuclease <- function(guideSet,
                                             txObject
@@ -209,7 +209,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
         stop("For RNA-targeting nucleases, addSpacerAlignments has to be",
              " called before addGeneAnnotation.")
     }
-    roster <- data.frame(tx=as.character(GenomeInfoDb::seqnames(guideSet)))
+    roster <- data.frame(tx=as.character(Seqinfo::seqnames(guideSet)))
     key <- .getTx2GeneTable(txObject)
     if (any(!roster$tx %in% key$tx_id)){
         stop("Some transcripts stored in seqnames(guideSet) are not found in ",
@@ -224,7 +224,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
         geneid <- df$gene_id[1]
         txs <- unique(key$tx_id)[key$gene_id==geneid]
         guideSetSubset <- guideSet[df$ID]
-        alnSubset <- aln[as.character(GenomeInfoDb::seqnames(aln)) %in% txs] 
+        alnSubset <- aln[as.character(Seqinfo::seqnames(aln)) %in% txs] 
         alnSubset <- cbind(ID=names(alnSubset),
                            tx=as.character(seqnames(alnSubset)))
         alnSubset <- as.data.frame(alnSubset)
@@ -323,7 +323,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 # Add annotation re. whether or not 
 # the gRNAs cuts overlap a known gene
 #' @importClassesFrom GenomicRanges GPos
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Seqinfo seqnames
 #' @importFrom BiocGenerics strand
 #' @importFrom GenomicRanges findOverlaps
 #' @importFrom S4Vectors mcols mcols<- isTRUEorFALSE queryHits subjectHits
@@ -335,7 +335,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 ){
     anchor <- .validateAnchor(anchor, guideSet)
     anchorSites <- GenomicRanges::GPos(
-        seqnames=GenomeInfoDb::seqnames(guideSet),
+        seqnames=Seqinfo::seqnames(guideSet),
         pos=S4Vectors::mcols(guideSet)[[anchor]],
         strand=BiocGenerics::strand(guideSet))
     names(anchorSites)  <- names(guideSet)
@@ -407,7 +407,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 
 # Add relative position within CDS where a gRNA cuts
 #' @importFrom S4Vectors mcols<-
-#' @importFrom GenomeInfoDb seqlengths
+#' @importFrom Seqinfo seqlengths
 .addCdsPositionAnnotation <- function(geneAnn,
                                       txObject,
                                       bsgenome,
@@ -420,7 +420,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
                                     bsgenome=bsgenome)
     cdsPosAnn <- .getCdsPositionAnnotation(geneAnn=geneAnn,
                                            cdsAnn=cdsAnn,
-                                           seqlengths=GenomeInfoDb::seqlengths(txObject),
+                                           seqlengths=Seqinfo::seqlengths(txObject),
                                            aaSeq=aaSeq,
                                            ignore.strand=ignore.strand)
     for (i in seq_along(cdsPosAnn)){
@@ -432,7 +432,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 
 
 # Add relative position within full mRNA where a gRNA cuts
-#' @importFrom GenomeInfoDb seqlengths seqnames
+#' @importFrom Seqinfo seqlengths seqnames
 #' @importFrom S4Vectors mcols mcols<-
 #' @importFrom BiocGenerics strand width
 #' @importClassesFrom GenomicRanges GRanges
@@ -446,7 +446,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
     txAnn <- .getTxAnnotationList(geneAnn=geneAnn,
                                   txObject=txObject,
                                   featureType="exons")
-    seqlengths <- GenomeInfoDb::seqlengths(txObject)
+    seqlengths <- Seqinfo::seqlengths(txObject)
     percentTx <- rep(NA, length(geneAnn))
     inExons <- which(!is.na(S4Vectors::mcols(geneAnn)$exon_id))
     exonicGeneAnn <- geneAnn[inExons]
@@ -455,14 +455,14 @@ setMethod("addGeneAnnotation", "NULL", function(object){
     txAnn <- txAnn[txIds]
 
     ## create GRanges encompassing all bases upstream of anchor sites
-    chrs <- as.character(GenomeInfoDb::seqnames(exonicGeneAnn)) # identical w/ txAnn
+    chrs <- as.character(Seqinfo::seqnames(exonicGeneAnn)) # identical w/ txAnn
     strands <- vapply(txAnn, function(x){
         as.character(unique(BiocGenerics::strand(x)))
     }, FUN.VALUE=character(1))
     limits <- seqlengths[chrs]
     limits[strands == "+"] <- 1
     allUpstream <- GenomicRanges::GRanges(
-        seqnames=GenomeInfoDb::seqnames(exonicGeneAnn),
+        seqnames=Seqinfo::seqnames(exonicGeneAnn),
         ranges=IRanges::IRanges(
             start=pmin(limits, GenomicRanges::pos(exonicGeneAnn)),
             end=pmax(limits, GenomicRanges::pos(exonicGeneAnn))
@@ -527,7 +527,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 
 # Get amino sequences information
 #' @importFrom S4Vectors mcols
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Seqinfo seqnames
 #' @importFrom BiocGenerics strand width
 #' @importClassesFrom GenomicRanges GRanges
 #' @importFrom GenomicRanges pos pintersect
@@ -548,14 +548,14 @@ setMethod("addGeneAnnotation", "NULL", function(object){
     aaSeq <- aaSeq[txIds]
     
     ## create GRanges encompassing all bases upstream of anchor sites
-    chrs <- as.character(GenomeInfoDb::seqnames(geneAnn)) # identical w/ cdsAnn
+    chrs <- as.character(Seqinfo::seqnames(geneAnn)) # identical w/ cdsAnn
     strands <- vapply(cdsAnn, function(x){
         as.character(unique(BiocGenerics::strand(x)))
     }, FUN.VALUE=character(1))
     limits <- seqlengths[chrs]
     limits[strands == "+"] <- 1
     allUpstream <- GenomicRanges::GRanges(
-        seqnames=GenomeInfoDb::seqnames(geneAnn),
+        seqnames=Seqinfo::seqnames(geneAnn),
         ranges=IRanges::IRanges(
             start=pmin(limits, GenomicRanges::pos(geneAnn)),
             end=pmax(limits, GenomicRanges::pos(geneAnn))
@@ -678,7 +678,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
 
 # Add Pfam domain annotation (whether or not a gRNA cuts in a known Pfam domain)
 #' @importFrom S4Vectors isTRUEorFALSE mcols mcols<-
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Seqinfo seqnames
 #' @importFrom IRanges pos
 .addPfamDomains <- function(geneAnn,
                             txObject,
@@ -704,7 +704,7 @@ setMethod("addGeneAnnotation", "NULL", function(object){
     mart <- biomaRt::useDataset(mart_dataset, mart=mart)
     
     # Get bm of Pfam domains from anchor coordinates:
-    #chr <- GenomeInfoDb::seqnames(geneAnn)
+    #chr <- Seqinfo::seqnames(geneAnn)
     #chr <- gsub('[^0-9]', '', as.character(chr))
     attributes <- c('ensembl_transcript_id', 'pfam', 'pfam_start', 'pfam_end')
     #filters    <- c('chromosome_name', 'start', 'end')

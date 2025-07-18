@@ -114,7 +114,7 @@ setMethod("addSNPAnnotation", "NULL", function(object){
 #' @importFrom VariantAnnotation info 
 #' @importFrom MatrixGenerics rowRanges
 #' @importFrom BiocGenerics strand
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Seqinfo seqnames
 #' @importFrom Biostrings DNAStringSet
 .getSNPAnnotation <- function(guideSet,
                               maf,
@@ -130,7 +130,7 @@ setMethod("addSNPAnnotation", "NULL", function(object){
     
     # MtDNA not in tabix index
     validChrs <- paste0("chr", c(seq_len(22),"X","Y"))
-    validChrs <- as.character(GenomeInfoDb::seqnames(guideSet)) %in% validChrs
+    validChrs <- as.character(Seqinfo::seqnames(guideSet)) %in% validChrs
     guideSet <- guideSet[validChrs]
 
     info <- VariantAnnotation::info(vcf)
@@ -212,7 +212,8 @@ setMethod("addSNPAnnotation", "NULL", function(object){
 # Make sure VCF is either a path to a VCF file, or a VCF object
 # If a path to a VCF file, it will load part of the VCF that overlaps
 # the GuideSet. This avoids loading too much data into memory.
-#' @importFrom GenomeInfoDb seqlevels seqlevelsStyle<- seqinfo genome
+#' @importFrom Seqinfo seqlevels seqinfo genome
+#' @importFrom GenomeInfoDb seqlevelsStyle<-
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
 #' @importFrom VariantAnnotation ScanVcfParam readVcf
@@ -230,7 +231,7 @@ setMethod("addSNPAnnotation", "NULL", function(object){
             # MtDNA not in tabix index
             guideSet <- .dropNtcs(guideSet)
             validChrs <- paste0("chr", c(seq_len(22), "X", "Y"))
-            guidesetChrs <- as.character(GenomeInfoDb::seqnames(guideSet))
+            guidesetChrs <- as.character(Seqinfo::seqnames(guideSet))
             validChrs <- guidesetChrs %in% validChrs
             guideSet <- guideSet[validChrs]
             protoGR <- convertToProtospacerGRanges(guideSet)
@@ -239,8 +240,8 @@ setMethod("addSNPAnnotation", "NULL", function(object){
             }
             
             GenomeInfoDb::seqlevelsStyle(protoGR) <- "Ensembl"
-            genome <- GenomeInfoDb::seqinfo(protoGR)
-            genome <- GenomeInfoDb::genome(genome)
+            genome <- Seqinfo::seqinfo(protoGR)
+            genome <- Seqinfo::genome(genome)
             infoFields <- VariantAnnotation::scanVcfHeader(vcf)
             infoFields <- VariantAnnotation::info(infoFields)
             infoFields <- intersect(c("RS", "RSPOS", "CAF", "TOPMED"),

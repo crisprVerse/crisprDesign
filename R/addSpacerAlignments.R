@@ -732,20 +732,20 @@ getSpacerAlignments <- function(spacers,
 
 
 # Add genome info to the alignments output object
-#' @importFrom GenomeInfoDb seqnames seqlevels seqlevels<-
-#' @importFrom GenomeInfoDb seqinfo seqinfo<- keepStandardChromosomes
+#' @importFrom Seqinfo seqnames seqlevels seqlevels<- seqinfo seqinfo<-
+#' @importFrom GenomeInfoDb keepStandardChromosomes
 .setAlignmentSeqInfo <- function(alignments,
                                  bsgenome,
                                  standard_chr_only
 ){
     .checkBoolean("standard_chr_only", standard_chr_only)
     
-    alignments <- alignments[GenomeInfoDb::seqnames(alignments) != "chrEBV"]
-    mtChr <- GenomeInfoDb::seqlevels(alignments) == "chrMT"
-    GenomeInfoDb::seqlevels(alignments)[mtChr] <- "chrM"
+    alignments <- alignments[Seqinfo::seqnames(alignments) != "chrEBV"]
+    mtChr <- Seqinfo::seqlevels(alignments) == "chrMT"
+    Seqinfo::seqlevels(alignments)[mtChr] <- "chrM"
     
-    GenomeInfoDb::seqlevels(alignments) <- GenomeInfoDb::seqlevels(bsgenome)
-    GenomeInfoDb::seqinfo(alignments) <- GenomeInfoDb::seqinfo(bsgenome)
+    Seqinfo::seqlevels(alignments) <- Seqinfo::seqlevels(bsgenome)
+    Seqinfo::seqinfo(alignments) <- Seqinfo::seqinfo(bsgenome)
     if (standard_chr_only){
         alignments <- GenomeInfoDb::keepStandardChromosomes(alignments,
                                                             pruning.mode="coarse")
@@ -780,8 +780,7 @@ getSpacerAlignments <- function(spacers,
 #' @importFrom Biostrings DNAStringSet
 #' @importFrom S4Vectors mcols mcols<- nchar
 #' @importFrom crisprBase motifs
-#' @importClassesFrom GenomeInfoDb Seqinfo
-#' @importFrom GenomeInfoDb seqinfo<-
+#' @importFrom Seqinfo Seqinfo seqinfo<-
 .getSpacerAlignments_biostrings <- function(spacers,
                                             custom_seq,
                                             n_mismatches, 
@@ -841,8 +840,8 @@ getSpacerAlignments <- function(spacers,
         strand=as.character(strand(results)),
         nuclease=crisprNuclease)
     
-    GenomeInfoDb::seqlevels(results) <- names(custom_seq)
-    GenomeInfoDb::seqinfo(results) <- GenomeInfoDb::Seqinfo(
+    Seqinfo::seqlevels(results) <- names(custom_seq)
+    Seqinfo::seqinfo(results) <- Seqinfo::Seqinfo(
         seqnames=names(custom_seq),
         seqlengths=S4Vectors::nchar(custom_seq),
         isCircular=rep(FALSE, length(custom_seq)),
@@ -1030,7 +1029,7 @@ getSpacerAlignments <- function(spacers,
 
 
 # Function to add gene annotation to the alignments object
-#' @importFrom GenomeInfoDb checkCompatibleSeqinfo
+#' @importFrom Seqinfo checkCompatibleSeqinfo
 #' @importFrom S4Vectors mcols<-
 .addGeneAnnotationColumns <- function(aln,
                                       txObject,
@@ -1041,7 +1040,7 @@ getSpacerAlignments <- function(spacers,
         return(aln)
     }
     txObject <- .validateGRangesList(txObject)
-    GenomeInfoDb::checkCompatibleSeqinfo(aln, txObject)
+    Seqinfo::checkCompatibleSeqinfo(aln, txObject)
     regions <- c("cds", "fiveUTRs", "threeUTRs", "exons", "introns")
     for (i in regions) {
         regionAnnotation <- .addGeneOverlapByRegion(aln=aln,
@@ -1149,7 +1148,7 @@ filterOutAlnWithGeneRegionAnnotation <- function(aln,
 
 
 
-#' @importFrom GenomeInfoDb checkCompatibleSeqinfo
+#' @importFrom Seqinfo checkCompatibleSeqinfo
 #' @importFrom GenomicRanges promoters
 #' @importFrom S4Vectors mcols<-
 .addPromoterAnnotationColumns <- function(aln,
@@ -1162,7 +1161,7 @@ filterOutAlnWithGeneRegionAnnotation <- function(aln,
         return(aln)
     }
     tssObject <- .validateTssObject(tssObject)
-    GenomeInfoDb::checkCompatibleSeqinfo(aln, tssObject)
+    Seqinfo::checkCompatibleSeqinfo(aln, tssObject)
     tss_window <- .validateTssWindow(tss_window)
     tssObject <- GenomicRanges::promoters(tssObject,
                                           upstream=(-1*tss_window[1]),

@@ -13,9 +13,9 @@ utils::globalVariables(c("SpCas9",
 STOP_CODONS <- c("TAG","TAA","TGA")
 
 
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Seqinfo seqnames
 #' @export
-GenomeInfoDb::seqnames
+Seqinfo::seqnames
 
 
 #' @importFrom S4Vectors mcols
@@ -180,9 +180,9 @@ S4Vectors::mcols
 }
 
 
-#' @importFrom GenomeInfoDb genome
+#' @importFrom Seqinfo genome
 .getGenome <- function(guideSet){
-    genome <- unique(GenomeInfoDb::genome(guideSet))
+    genome <- unique(Seqinfo::genome(guideSet))
     stopifnot("Multiple genomes found for GuideSet object" = {
         length(genome) == 1
     })
@@ -399,25 +399,27 @@ S4Vectors::mcols
 
 ## not currently used
 # adds/drops "chr" prefix in seqlevels, as required format differs by package
-#' @importFrom GenomeInfoDb seqlevels renameSeqlevels
+#' @importFrom Seqinfo seqlevels
+#' @importFrom GenomeInfoDb renameSeqlevels
 .toggleSeqlevels <- function(gr, dropChr=TRUE){
     stopifnot(.isGRanges(gr))
     stopifnot(is.logical(dropChr))
     if (dropChr){
-        new_seqlevels <- gsub('chr', '', GenomeInfoDb::seqlevels(gr))
+        new_seqlevels <- gsub('chr', '', Seqinfo::seqlevels(gr))
     } else {
-        new_seqlevels <- paste0('chr', GenomeInfoDb::seqlevels(gr))
+        new_seqlevels <- paste0('chr', Seqinfo::seqlevels(gr))
     }
     gr <- GenomeInfoDb::renameSeqlevels(gr, new_seqlevels)
     return(gr)
 }
 
 
-#' @importFrom GenomeInfoDb seqinfo seqnames genome dropSeqlevels
+#' @importFrom Seqinfo seqinfo seqnames genome
+#' @importFrom GenomeInfoDb dropSeqlevels
 .dropNtcs <- function(object
 ){
-    ntcs <- GenomeInfoDb::seqinfo(object)
-    ntcs <- GenomeInfoDb::seqnames(ntcs)[GenomeInfoDb::genome(ntcs) == "ntc"]
+    ntcs <- Seqinfo::seqinfo(object)
+    ntcs <- Seqinfo::seqnames(ntcs)[Seqinfo::genome(ntcs) == "ntc"]
     if (length(ntcs) > 0){
         object <- GenomeInfoDb::dropSeqlevels(object,
                                               ntcs,
@@ -467,7 +469,7 @@ compact <- function(x) {
 
 
 
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Seqinfo seqnames
 #' @importFrom S4Vectors mcols mcols<-
 #' @importFrom BiocGenerics strand
 #' @importFrom methods is
@@ -484,7 +486,7 @@ compact <- function(x) {
 
 # Our own function given that 
 # the one from GenomeInfoDb does not work consistently
-#' @importFrom GenomeInfoDb seqlevels seqlevels<-
+#' @importFrom Seqinfo seqlevels seqlevels<-
 .changeSeqlevelsStyle <- function(x,
                                   seqlevelsStyle=c("UCSC", "NCBI")
 ){

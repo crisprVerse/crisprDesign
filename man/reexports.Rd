@@ -12,8 +12,8 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{GenomeInfoDb}{\code{\link[GenomeInfoDb:seqinfo]{seqnames}}}
-
   \item{S4Vectors}{\code{\link[S4Vectors:Vector-class]{mcols}}}
+
+  \item{Seqinfo}{\code{\link[Seqinfo:seqinfo]{seqnames}}}
 }}
 

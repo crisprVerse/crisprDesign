@@ -1,6 +1,6 @@
 Package: crisprDesign
 Title: Comprehensive design of CRISPR gRNAs for nucleases and base editors
-Version: 1.11.0
+Version: 1.11.1
 Authors@R: c(
     person("Jean-Philippe", "Fortin", email = "fortin946@gmail.com", role = c("aut", "cre")),
     person("Luke", "Hoberecht", email = "lukehob3@gmail.com", role = c("aut"))
@@ -19,23 +19,24 @@ Depends: R (>= 4.2.0),
 Imports:
     AnnotationDbi,
     BiocGenerics,
-    Biostrings,
-    BSgenome,
+    Biostrings (>= 2.77.2),
+    BSgenome (>= 1.77.1),
     crisprBowtie (>= 0.99.8),
     crisprScore (>= 1.1.6),
-    GenomeInfoDb,
-    GenomicFeatures,
-    GenomicRanges (>= 1.38.0),
+    GenomeInfoDb (>= 1.45.7),
+    GenomicFeatures (>= 1.61.4),
+    GenomicRanges (>= 1.61.1),
     IRanges,
     Matrix,
     MatrixGenerics,
     methods,
-    rtracklayer,
+    rtracklayer (>= 1.69.1),
     S4Vectors,
+    Seqinfo,
     stats,
-    txdbmaker,
+    txdbmaker (>= 1.5.6),
     utils,
-    VariantAnnotation
+    VariantAnnotation (>= 1.55.1)
 Suggests:
     biomaRt,
     BSgenome.Hsapiens.UCSC.hg38,
@@ -54,7 +55,7 @@ biocViews:
     GeneTarget
 License: MIT + file LICENSE
 Encoding: UTF-8
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 VignetteBuilder: knitr
 BugReports: https://github.com/crisprVerse/crisprDesign/issues
 URL: https://github.com/crisprVerse/crisprDesign

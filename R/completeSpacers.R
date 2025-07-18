@@ -51,7 +51,7 @@ NULL
 
 
 #' @rdname completeSpacers
-#' @importFrom GenomeInfoDb seqlengths
+#' @importFrom Seqinfo seqlengths
 #' @importFrom BSgenome getSeq
 #' @export
 getPAMSequence <- function(chr,
@@ -132,7 +132,7 @@ getPAMSequence_customSeq <- function(custom_seq,
 
 #' @rdname completeSpacers
 #' @export
-#' @importFrom GenomeInfoDb seqlengths
+#' @importFrom Seqinfo seqlengths
 #' @importFrom BSgenome getSeq
 getSpacerSequence <- function(chr,
                               pam_site,
@@ -264,21 +264,21 @@ convertToProtospacerGRanges <- function(guideSet){
 #' 
 #' @importClassesFrom GenomicRanges GRanges
 #' @importClassesFrom IRanges IRanges
-#' @importFrom GenomeInfoDb seqlevels seqlevels<- genome dropSeqlevels
-#' @importFrom GenomeInfoDb seqinfo seqinfo<- seqnames
+#' @importFrom Seqinfo seqinfo seqinfo<- seqnames seqlevels seqlevels<- genome
+#' @importFrom GenomeInfoDb dropSeqlevels
 #' @export
 convertToMinMaxGRanges <- function(guideSet,
                                    anchor=c("cut_site", "pam_site")
 ){
     anchor <- match.arg(anchor)
-    genomeSeqlevels <- GenomeInfoDb::genome(guideSet)
+    genomeSeqlevels <- Seqinfo::genome(guideSet)
     ntc_seqs <- names(genomeSeqlevels)[genomeSeqlevels == "ntc"]
     if (length(ntc_seqs) > 0){
         guideSet <- GenomeInfoDb::dropSeqlevels(guideSet,
                                                 ntc_seqs,
                                                 pruning.mode="coarse")
     }
-    grs <- split(guideSet, f=as.character(GenomeInfoDb::seqnames(guideSet)))
+    grs <- split(guideSet, f=as.character(Seqinfo::seqnames(guideSet)))
     grs <- lapply(grs, function(gr){
         if (anchor=="cut_site"){
             start <- min(cutSites(gr), na.rm=TRUE)
@@ -288,11 +288,11 @@ convertToMinMaxGRanges <- function(guideSet,
             end   <- max(pamSites(gr), na.rm=TRUE)
         }
     
-        chr <- as.character(GenomeInfoDb::seqnames(gr))[1]
+        chr <- as.character(Seqinfo::seqnames(gr))[1]
         out <- GenomicRanges::GRanges(chr,
                                       IRanges::IRanges(start=start,end=end))
-        GenomeInfoDb::seqlevels(out) <- GenomeInfoDb::seqlevels(gr)
-        GenomeInfoDb::seqinfo(out) <- GenomeInfoDb::seqinfo(gr)
+        Seqinfo::seqlevels(out) <- Seqinfo::seqlevels(gr)
+        Seqinfo::seqinfo(out) <- Seqinfo::seqinfo(gr)
         out
     })
     gr <- Reduce(c,grs)

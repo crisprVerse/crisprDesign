@@ -1,12 +1,12 @@
 library(crisprDesign)
 library(crisprDesignDataS4)
-library(GenomeInfoDb)
+library(Seqinfo)
 bsgenome <- BSgenome.Mmusculus.UCSC.mm10::BSgenome.Mmusculus.UCSC.mm10 
 
 gr <- queryTxObject(txdb_mouse,
                     queryColumn="gene_symbol",
                     queryValue="Kras")
-GenomeInfoDb::genome(gr) <- "mm10"
+Seqinfo::genome(gr) <- "mm10"
 guides <- findSpacers(gr,
                       bsgenome=bsgenome)
 seqlengths(gr)[1:10]

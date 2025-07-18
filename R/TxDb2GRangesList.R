@@ -85,7 +85,7 @@ getTxDb <- function(file=NA,
 #' 
 #' @seealso \code{\link{getTxDb}} to obtain a \linkS4class{TxDb} object.
 #' 
-#' @importFrom GenomeInfoDb seqlevels seqlevels<-
+#' @importFrom Seqinfo seqlevels seqlevels<-
 #' @importFrom BiocGenerics start<- end<-
 #' @importFrom GenomicFeatures tidyTranscripts tidyExons 
 #' @importFrom GenomicFeatures transcriptLengths fiveUTRsByTranscript
@@ -133,14 +133,16 @@ TxDb2GRangesList <- function(txdb,
 
 
 
-#' @importFrom GenomeInfoDb organism keepStandardChromosomes genome<-
+#' @importFrom BiocGenerics organism
+#' @importFrom Seqinfo genome<-
+#' @importFrom GenomeInfoDb keepStandardChromosomes
 #' @importFrom GenomicRanges GRangesList
 #' @importFrom S4Vectors metadata metadata<-
 .TxDb2GRangesList <- function(txdb,
                               standardChromOnly,
                               genome
 ){
-    organism <- GenomeInfoDb::organism(txdb)
+    organism <- BiocGenerics::organism(txdb)
     
     if (requireNamespace("biomaRt") && !is.na(organism)){
         bm <- .getBiomartData(txdb, organism)
@@ -174,7 +176,7 @@ TxDb2GRangesList <- function(txdb,
     S4Vectors::metadata(ls) <- S4Vectors::metadata(txdb)
     
     if (!is.null(genome)){
-        GenomeInfoDb::genome(ls) <- genome
+        Seqinfo::genome(ls) <- genome
     }
 
     return(ls)
@@ -323,10 +325,10 @@ TxDb2GRangesList <- function(txdb,
 
 # Extract chromosome information from TxDb object
 #' @importFrom GenomicFeatures as.list
-#' @importFrom GenomeInfoDb seqlevels
+#' @importFrom Seqinfo seqlevels
 .getChromInfoFromTxDb <- function(txdb){
     chrominfo <- GenomicFeatures::as.list(txdb)$chrominfo
-    standardChrom <- chrominfo$chrom %in% GenomeInfoDb::seqlevels(txdb)
+    standardChrom <- chrominfo$chrom %in% Seqinfo::seqlevels(txdb)
     chrominfo <- chrominfo[standardChrom, , drop=FALSE]
     ## drop?
     if (!any(grepl('^chr', chrominfo$chrom))){

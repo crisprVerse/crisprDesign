@@ -146,19 +146,19 @@ GuideSet2DataFrames <- function(guideSet,
 }
 
 
-#' @importFrom GenomeInfoDb seqnames genome
+#' @importFrom Seqinfo seqnames genome
 #' @importFrom BiocGenerics start end strand
 #' @importFrom crisprBase getProtospacerRanges
 .getIrangesTable <- function(guideSet,
                              useSpacerCoordinates=TRUE,
                              nuclease=NULL
 ){
-    out <- data.frame(chr=as.character(GenomeInfoDb::seqnames(guideSet)))
+    out <- data.frame(chr=as.character(Seqinfo::seqnames(guideSet)))
     if (useSpacerCoordinates){
-        genome <- GenomeInfoDb::genome(guideSet)
+        genome <- Seqinfo::genome(guideSet)
         if (any(genome != "ntc")){
             validSeqnames <- names(genome[genome != "ntc"])
-            protospacers <- as.vector(GenomeInfoDb::seqnames(guideSet)) %in%
+            protospacers <- as.vector(Seqinfo::seqnames(guideSet)) %in%
                 validSeqnames
             if (any(protospacers)){
                 gr <- guideSet[protospacers]

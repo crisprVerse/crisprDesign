@@ -41,7 +41,7 @@
 #' 
 #' 
 #' @rdname addNtcs
-#' @importFrom GenomeInfoDb seqinfo<-
+#' @importFrom Seqinfo seqinfo<-
 setMethod("addNtcs", "GuideSet", function(object,
                                           ntcs
 ){
@@ -53,7 +53,7 @@ setMethod("addNtcs", "GuideSet", function(object,
     
     newSeqinfo <- .updateSeqinfo(object, ntcs)
     ntcGuideSet <- .createNtcGuideSet(object, ntcs, newSeqinfo)
-    GenomeInfoDb::seqinfo(object) <- newSeqinfo
+    Seqinfo::seqinfo(object) <- newSeqinfo
     gs <- .mergeNtcGuideSet(object, ntcGuideSet)
     return(gs)
 })
@@ -119,7 +119,7 @@ setMethod("addNtcs", "NULL", function(object,
     )
     
     objectIds <- names(object)
-    objectSeqlevels <- GenomeInfoDb::seqlevels(object)
+    objectSeqlevels <- Seqinfo::seqlevels(object)
     reservedNames <- c(objectIds, objectSeqlevels)
     stopifnot(
         "ntcs must have names distinct from object IDs and seqlevels." =
@@ -132,26 +132,25 @@ setMethod("addNtcs", "NULL", function(object,
 
 
 
-#' @importFrom GenomeInfoDb seqlevels seqinfo merge
-#' @importClassesFrom GenomeInfoDb Seqinfo
+#' @importFrom Seqinfo Seqinfo seqlevels seqinfo merge
 .updateSeqinfo <- function(object,
                            ntcs
 ){
     ntcCount <- length(ntcs)
-    currentSeqlevels <- GenomeInfoDb::seqlevels(object)
+    currentSeqlevels <- Seqinfo::seqlevels(object)
     
     ntcLengths <- rep(spacerLength(object), ntcCount)
     isCircular <- rep(TRUE, ntcCount)
     genome <- rep("ntc", ntcCount)
     
-    ntcSeqinfo <- GenomeInfoDb::Seqinfo(seqnames=names(ntcs),
-                                        seqlengths=ntcLengths,
-                                        isCircular=isCircular,
-                                        genome=genome)
-    gsSeqinfo <- GenomeInfoDb::seqinfo(object)
+    ntcSeqinfo <- Seqinfo::Seqinfo(seqnames=names(ntcs),
+                                   seqlengths=ntcLengths,
+                                   isCircular=isCircular,
+                                   genome=genome)
+    gsSeqinfo <- Seqinfo::seqinfo(object)
     newSeqinfo <- suppressWarnings(
         ## warning due to no sequenve levels in common
-        GenomeInfoDb::merge(gsSeqinfo, ntcSeqinfo)
+        Seqinfo::merge(gsSeqinfo, ntcSeqinfo)
     )
     
     return(newSeqinfo)
@@ -160,7 +159,7 @@ setMethod("addNtcs", "NULL", function(object,
 
 
 
-#' @importFrom GenomeInfoDb seqlevels seqinfo
+#' @importFrom Seqinfo seqlevels seqinfo
 .createNtcGuideSet <- function(object,
                                ntcs,
                                newSeqinfo

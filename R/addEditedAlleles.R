@@ -80,8 +80,8 @@ addEditedAlleles <- function(guideSet,
                 "each gRNA target site.")
     }
     alleles <- lapply(seq_along(guideSet), function(guide){
-        seqname <- as.character(GenomeInfoDb::seqnames(guideSet[guide]))
-        genome <- GenomeInfoDb::genome(guideSet[guide])
+        seqname <- as.character(Seqinfo::seqnames(guideSet[guide]))
+        genome <- Seqinfo::genome(guideSet[guide])
         genome <- genome[seqname]
         if (genome == "ntc"){
             .getEditedAlleles_ntc()
