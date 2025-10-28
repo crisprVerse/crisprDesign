@@ -82,6 +82,8 @@ addEditedAlleles <- function(guideSet,
              "addFunctionalConsequence is TRUE.")
     }
 
+    .checkEditingWeights(baseEditor)
+
     if (verbose){
         message("[addEditedAlleles] Obtaining edited alleles at ",
                 "each gRNA target site.")
@@ -118,6 +120,22 @@ addEditedAlleles <- function(guideSet,
             missenseMargin=missenseMargin)
     }
     return(guideSet)
+}
+
+ 
+
+
+
+
+.checkEditingWeights <- function(baseEditor){
+    ws <- crisprBase::editingWeights(baseEditor)
+    if (any(ws<0)){
+        stop("Some editing weights are negative. Weights should be scaled to be 0 and 1.")
+    }
+    if (any(ws>1)){
+        stop("Some editing weights are above 1. Weights should be scaled to be 0 and 1.")
+    }
+    return(NULL)
 }
 
 
@@ -160,67 +178,80 @@ addEditedAlleles <- function(guideSet,
 
 
 
+
+
 # Choose the variant with the highest probability
 # for each row (gRNA)
-.voteVariant <- function(scores,minEditingWeight=0.3, missenseMargin=0.2){
+.voteVariant <- function(scores,
+    minEditingWeight=0.3, 
+    missenseMargin=0.2
+){
     scores[scores<minEditingWeight] <- 0
     classes <- colnames(scores)
     classes <- gsub("score_", "", classes)
 
-
     # Initiating:
     maxVariant <- rep("unassigned", nrow(scores))
     maxScore  <- rep(NA, nrow(scores))
-
-
     pos <- apply(scores, 1, which.max)
     maxes <- apply(scores, 1, max)
 
-    # The first thing is to call nonsense multi:
-    nonsensemultiCol <- which(classes %in% c("nonsense_multi"))
-    whNonsensemulti <- which(pos %in% nonsensemultiCol)
-    maxVariant[whNonsensemulti] <- "nonsense_multi"
-    maxScore[whNonsensemulti] <- maxes[whNonsensemulti]
-
-    # Then to call nonsense:
-    nonsenseCol <- which(classes %in% c("nonsense"))
-    whNonsense <- which(pos %in% nonsenseCol)
-    maxVariant[whNonsense] <- "nonsense"
-    maxScore[whNonsense] <- maxes[whNonsense]
-
-    # Then now we call missense multi:
-    missensemultiCol <- which(classes %in% c("missense_multi"))
-    whMissensemulti <- which(pos %in% missensemultiCol)
-    # Need a margin
-    diffs1 <- scores[whMissensemulti, "score_missense_multi"] - scores[whMissensemulti, "score_nonsense_multi"]
-    diffs2 <- scores[whMissensemulti, "score_missense_multi"] - scores[whMissensemulti, "score_nonsense"]
+    # Step 1: let's look at missense_multi max variants
+    # If they are too close to a nonsense mutation
+    # (as defined by missenseMargin, then we discard it
+    variantCol <- which(classes %in% c("missense_multi"))
+    cands <- which(pos %in% variantCol)
+    # Calculating the margin with nonsense mutation:
+    diffs1 <- scores[cands, "score_missense_multi"] - scores[cands, "score_nonsense_multi"]
+    diffs2 <- scores[cands, "score_missense_multi"] - scores[cands, "score_nonsense"]
     good <- diffs1 >= missenseMargin & diffs2 >= missenseMargin
-    whMissensemulti <- whMissensemulti[good]
-    maxVariant[whMissensemulti] <- "missense_multi"
-    maxScore[whMissensemulti] <- maxes[whMissensemulti]
+    goodCands <- cands[good]
+    maxVariant[goodCands] <- "missense_multi"
+    maxScore[goodCands] <- maxes[goodCands]
+    # And setting the ones that don't have a good margin to 0:
+    badCands  <- cands[!good]
+    if (length(badCands)>0){
+        scores[badCands, variantCol] <- 0
+    }
 
-    # Then now we call missense:
-    missenseCol <- which(classes %in% c("missense"))
-    whMissense <- which(pos %in% missenseCol)
-    # Need a margin
-    diffs1 <- scores[whMissense, "score_missense"] - scores[whMissense, "score_nonsense_multi"]
-    diffs2 <- scores[whMissense, "score_missense"] - scores[whMissense, "score_nonsense"]
+
+    # Step 2: let's look at missense max variants
+    # If they are too close to a nonsense mutation
+    # (as defined by missenseMargin, then we discard it
+    variantCol <- which(classes %in% c("missense"))
+    cands <- which(pos %in% variantCol)
+    diffs1 <- scores[cands, "score_missense"] - scores[cands, "score_nonsense_multi"]
+    diffs2 <- scores[cands, "score_missense"] - scores[cands, "score_nonsense"]
     good <- diffs1 >= missenseMargin & diffs2 >= missenseMargin
-    whMissense <- whMissense[good]
-    maxVariant[whMissense] <- "missense"
-    maxScore[whMissense] <- maxes[whMissense]
+    goodCands <- cands[good]
+    maxVariant[goodCands] <- "missense"
+    maxScore[goodCands] <- maxes[goodCands]
+    # And setting the ones that don't have a good margin to 0:
+    badCands  <- cands[!good]
+    if (length(badCands)>0){
+        scores[badCands, variantCol] <- 0
+    }
 
 
-    # Then now we call missense:
-    silentCol <- which(classes %in% c("silent"))
-    whSilent <- which(pos %in% silentCol) 
-    maxVariant[whSilent] <- "silent"
-    maxScore[whSilent] <- maxes[whSilent]
+    # Step 3: calling nonsense_multi
+    variantCol <- which(classes %in% c("nonsense_multi"))
+    cands <- which(pos %in% variantCol)
+    maxVariant[cands] <- "nonsense_multi"
+    maxScore[cands] <- maxes[cands]
 
-    #classes <- classes[pos]
-    #sums <- rowSums(as.matrix(scores), na.rm=TRUE)    
-    #classes[which(sums==0)] <- "not_targeting" 
-    #maxes[which(sums==0)] <- NA
+    # Step 4: calling nonsense
+    variantCol <- which(classes %in% c("nonsense"))
+    cands <- which(pos %in% variantCol)
+    maxVariant[cands] <- "nonsense"
+    maxScore[cands] <- maxes[cands]
+
+
+    # Step 5: calling silent
+    variantCol <- which(classes %in% c("silent"))
+    cands <- which(pos %in% variantCol) 
+    maxVariant[cands] <- "silent"
+    maxScore[cands] <- maxes[cands]
+
     return(list(class=maxVariant,
                 score=maxScore))
 }
