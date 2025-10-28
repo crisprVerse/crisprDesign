@@ -149,6 +149,7 @@ addEditedAlleles <- function(guideSet,
                  "nonsense",
                  "nonsense_multi",
                  "silent",
+                 "splice_junction",
                  "not_targeting")
     scores <- lapply(alleles, function(x){
         out <- c(missense=0,
@@ -156,6 +157,7 @@ addEditedAlleles <- function(guideSet,
                  nonsense_multi=0,
                  nonsense=0,
                  silent=0,
+                 splice_junction=0,
                  not_targeting=0)
         x <- split(x$score, f=x$variant)
         x <- vapply(x, max, FUN.VALUE=1)
@@ -163,7 +165,7 @@ addEditedAlleles <- function(guideSet,
         return(out)
     })
     scores <- do.call(rbind, scores)
-    scores <- scores[, seq_len(5), drop=FALSE]
+    scores <- scores[, seq_len(6), drop=FALSE]
     colnames(scores) <- paste0("score_", colnames(scores))
 
 
@@ -196,15 +198,20 @@ addEditedAlleles <- function(guideSet,
     pos <- apply(scores, 1, which.max)
     maxes <- apply(scores, 1, max)
 
+
     # Step 1: let's look at missense_multi max variants
     # If they are too close to a nonsense mutation
     # (as defined by missenseMargin, then we discard it
     variantCol <- which(classes %in% c("missense_multi"))
     cands <- which(pos %in% variantCol)
     # Calculating the margin with nonsense mutation:
-    diffs1 <- scores[cands, "score_missense_multi"] - scores[cands, "score_nonsense_multi"]
-    diffs2 <- scores[cands, "score_missense_multi"] - scores[cands, "score_nonsense"]
-    good <- diffs1 >= missenseMargin & diffs2 >= missenseMargin
+    scores1 <- scores[cands, "score_nonsense_multi"]
+    scores2 <- scores[cands, "score_nonsense"]
+    scores3 <- scores[cands, "score_splice_junction"]
+    #diffs1 <- scores[cands, "score_missense_multi"] - scores[cands, "score_nonsense_multi"]
+    #diffs2 <- scores[cands, "score_missense_multi"] - scores[cands, "score_nonsense"]
+    #good <- diffs1 >= missenseMargin & diffs2 >= missenseMargin
+    good <- scores1<minEditingWeight & scores2<minEditingWeight & scores3<minEditingWeight
     goodCands <- cands[good]
     maxVariant[goodCands] <- "missense_multi"
     maxScore[goodCands] <- maxes[goodCands]
@@ -220,9 +227,13 @@ addEditedAlleles <- function(guideSet,
     # (as defined by missenseMargin, then we discard it
     variantCol <- which(classes %in% c("missense"))
     cands <- which(pos %in% variantCol)
-    diffs1 <- scores[cands, "score_missense"] - scores[cands, "score_nonsense_multi"]
-    diffs2 <- scores[cands, "score_missense"] - scores[cands, "score_nonsense"]
-    good <- diffs1 >= missenseMargin & diffs2 >= missenseMargin
+    #diffs1 <- scores[cands, "score_missense"] - scores[cands, "score_nonsense_multi"]
+    #diffs2 <- scores[cands, "score_missense"] - scores[cands, "score_nonsense"]
+    #good <- diffs1 >= missenseMargin & diffs2 >= missenseMargin
+    scores1 <- scores[cands, "score_nonsense_multi"]
+    scores2 <- scores[cands, "score_nonsense"]
+    scores3 <- scores[cands, "score_splice_junction"]
+    good <- scores1<minEditingWeight & scores2<minEditingWeight & scores3<minEditingWeight
     goodCands <- cands[good]
     maxVariant[goodCands] <- "missense"
     maxScore[goodCands] <- maxes[goodCands]
@@ -231,6 +242,13 @@ addEditedAlleles <- function(guideSet,
     if (length(badCands)>0){
         scores[badCands, variantCol] <- 0
     }
+
+
+    # Step 0: let's look first at splicing
+    variantCol <- which(classes %in% c("splice_junction"))
+    cands <- which(pos %in% variantCol)
+    maxVariant[cands] <- "splice_junction"
+    maxScore[cands] <- maxes[cands]
 
 
     # Step 3: calling nonsense_multi
@@ -493,22 +511,42 @@ addEditedAlleles <- function(guideSet,
     if (txTable$chr[[1]]!=metadata(editedAlleles)$chr){
         stop("editedAlleles are not on the same chromosome.")
     }
+    # Initiating:
     editedAlleles$variant <- "not_targeting"
+    splicingCoordinates <- txTable[txTable$region=="Intron","pos"]
     txTable <- txTable[txTable$region == "CDS", , drop=FALSE]
+
+
     geneStrand  <- metadata(txTable)$gene_strand
     guideStrand <- metadata(editedAlleles)$strand
     start <- metadata(editedAlleles)$start
     end <- metadata(editedAlleles)$end
     editingPositions <- start:end
-    overlapPositions <- editingPositions[editingPositions %in% txTable$pos]
+    overlapPositions    <- editingPositions[editingPositions %in% txTable$pos]
+    nonoverlapPositions <- editingPositions[!editingPositions %in% txTable$pos]
+
 
     if (length(overlapPositions) == 0){
+        if (any(nonoverlapPositions %in% splicingCoordinates)){
+            editedAlleles$variant <- "splice_junction"
+        }
         editedAlleles$aa <- NA_character_
         editedAlleles$n_mismatches <- NA_integer_
         editedAlleles$n_nonsense <- NA_integer_
         editedAlleles$n_missense <- NA_integer_
         return(editedAlleles)
     }
+
+    # Calling splicing junctions:
+    if (length(nonoverlapPositions)>0){
+        start <- nonoverlapPositions[1]-metadata(editedAlleles)$start+1
+        end <- nonoverlapPositions[length(nonoverlapPositions)]-metadata(editedAlleles)$start+1
+        wtSeq <- substr(metadata(editedAlleles)$wildtypeAllele, start, end)
+        editedSeqs <- substr(as.character(editedAlleles$seq), start, end)
+        nedits <- adist(editedSeqs, wtSeq)[,1]
+        editedAlleles$variant[nedits>0] <- "splice_junction"
+    }
+    
 
     # Getting nucleotide to replace
     sequences <- editedAlleles$seq
@@ -518,9 +556,9 @@ addEditedAlleles <- function(guideSet,
     if (guideStrand == "-"){
         sequences <- reverse(sequences)
     }
-    nucs <- as.matrix(sequences)
-    colnames(nucs) <- editingPositions
-    nucs <- nucs[, as.character(overlapPositions), drop=FALSE]
+    allNucs <- as.matrix(sequences)
+    colnames(allNucs) <- editingPositions
+    nucs <- allNucs[, as.character(overlapPositions), drop=FALSE]
     
 
     # Get wildtype protein:
@@ -583,13 +621,19 @@ addEditedAlleles <- function(guideSet,
 
         return(aas)
     }, FUN.VALUE=character(1))
-    editedAlleles$variant <- effects
+
+    wh <- which(editedAlleles$variant!="splice_junction")
+    if (length(wh)>0){
+        editedAlleles$variant[wh] <- effects[wh]
+    }
     editedAlleles$aa <- aminos
     editedAlleles$n_mismatches <- unlist(ns$n_mismatches)
     editedAlleles$n_nonsense <- unlist(ns$n_nonsense)
     editedAlleles$n_missense <- unlist(ns$n_missense)
-    editedAlleles$variant[editedAlleles$n_missense>1] <- "missense_multi"
-    editedAlleles$variant[editedAlleles$n_nonsense>1] <- "nonsense_multi"
+    if (length(wh)>0){
+        editedAlleles$variant[wh][editedAlleles$n_missense[wh]>1] <- "missense_multi"
+        editedAlleles$variant[wh][editedAlleles$n_nonsense[wh]>1] <- "nonsense_multi"        
+    }
 
     # Adding wildtype amino:
     wildtypeAmino <- rep(protein, each=3)[wh]
