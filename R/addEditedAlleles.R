@@ -11,6 +11,11 @@
 #' @param nMaxAlleles Maximum number of edited alleles to report
 #'     for each gRNA. Alleles from high to low scores.
 #'     100 by default. 
+#' @param minEditingWeight Numeric value indicating the minimum editing weight
+#'     required for an edited alleles to be listed. Default of "0.3". 
+#' @param missenseMargin Numeric value indicating the minimum score difference
+#'     required between a missense allele and a nonsense allele to label an allele as missense.
+#'     Value of 0.2 by default.  
 #' @param addFunctionalConsequence Should variant classification
 #'     of the edited alleles be added? TRUE by default.
 #'     If \code{TRUE}, \code{txTable} must be provided.
@@ -65,6 +70,8 @@ addEditedAlleles <- function(guideSet,
                              baseEditor,
                              editingWindow=NULL,
                              nMaxAlleles=100,
+                             minEditingWeight=0.3,
+                             missenseMargin=0.2,
                              addFunctionalConsequence=TRUE,
                              addSummary=TRUE,
                              txTable=NULL,
@@ -89,7 +96,8 @@ addEditedAlleles <- function(guideSet,
             .getEditedAllelesPerGuide(gs=guideSet[guide],
                                       baseEditor=baseEditor,
                                       editingWindow=editingWindow,
-                                      nMaxAlleles=nMaxAlleles)
+                                      nMaxAlleles=nMaxAlleles,
+                                      minEditingWeight=minEditingWeight)
         }
     })
     if (addFunctionalConsequence){
@@ -105,7 +113,9 @@ addEditedAlleles <- function(guideSet,
     mcols(guideSet)[["editedAlleles"]] <- alleles
 
     if (addSummary){
-        guideSet <- .addSummaryFromEditingAlleles(guideSet)
+        guideSet <- .addSummaryFromEditingAlleles(guideSet,
+            minEditingWeight=minEditingWeight,
+            missenseMargin=missenseMargin)
     }
     return(guideSet)
 }
@@ -114,26 +124,34 @@ addEditedAlleles <- function(guideSet,
 # Create a gRNA-level classification of the dominant
 # predicted allele consequence.
 # Either missense, nonsense, silent, or not_targeting.
-.addSummaryFromEditingAlleles <- function(guideSet){
+.addSummaryFromEditingAlleles <- function(guideSet, minEditingWeight=0.3, missenseMargin=0.2){
     alleles <- mcols(guideSet)[["editedAlleles"]]
     choices <- c("missense",
+                 "missense_multi",
                  "nonsense",
+                 "nonsense_multi",
                  "silent",
                  "not_targeting")
     scores <- lapply(alleles, function(x){
         out <- c(missense=0,
+                 missense_multi=0,
+                 nonsense_multi=0,
                  nonsense=0,
                  silent=0,
                  not_targeting=0)
         x <- split(x$score, f=x$variant)
-        x <- vapply(x, sum, FUN.VALUE=1)
+        x <- vapply(x, max, FUN.VALUE=1)
         out[names(x)] <- x
         return(out)
     })
     scores <- do.call(rbind, scores)
-    scores <- scores[, seq_len(3), drop=FALSE]
+    scores <- scores[, seq_len(5), drop=FALSE]
     colnames(scores) <- paste0("score_", colnames(scores))
-    variants <- .voteVariant(scores)
+
+
+    variants <- .voteVariant(scores,
+        minEditingWeight=minEditingWeight,
+        missenseMargin=missenseMargin)
     mcols(guideSet)[colnames(scores)] <- scores
     mcols(guideSet)[["maxVariant"]] <- variants[["class"]]
     mcols(guideSet)[["maxVariantScore"]] <- variants[["score"]]
@@ -144,17 +162,67 @@ addEditedAlleles <- function(guideSet,
 
 # Choose the variant with the highest probability
 # for each row (gRNA)
-.voteVariant <- function(scores){
+.voteVariant <- function(scores,minEditingWeight=0.3, missenseMargin=0.2){
+    scores[scores<minEditingWeight] <- 0
     classes <- colnames(scores)
     classes <- gsub("score_", "", classes)
+
+
+    # Initiating:
+    maxVariant <- rep("unassigned", nrow(scores))
+    maxScore  <- rep(NA, nrow(scores))
+
+
     pos <- apply(scores, 1, which.max)
     maxes <- apply(scores, 1, max)
-    classes <- classes[pos]
-    sums <- rowSums(as.matrix(scores), na.rm=TRUE)    
-    classes[which(sums==0)] <- "not_targeting" 
-    maxes[which(sums==0)] <- NA
-    return(list(class=classes,
-                score=maxes))
+
+    # The first thing is to call nonsense multi:
+    nonsensemultiCol <- which(classes %in% c("nonsense_multi"))
+    whNonsensemulti <- which(pos %in% nonsensemultiCol)
+    maxVariant[whNonsensemulti] <- "nonsense_multi"
+    maxScore[whNonsensemulti] <- maxes[whNonsensemulti]
+
+    # Then to call nonsense:
+    nonsenseCol <- which(classes %in% c("nonsense"))
+    whNonsense <- which(pos %in% nonsenseCol)
+    maxVariant[whNonsense] <- "nonsense"
+    maxScore[whNonsense] <- maxes[whNonsense]
+
+    # Then now we call missense multi:
+    missensemultiCol <- which(classes %in% c("missense_multi"))
+    whMissensemulti <- which(pos %in% missensemultiCol)
+    # Need a margin
+    diffs1 <- scores[whMissensemulti, "score_missense_multi"] - scores[whMissensemulti, "score_nonsense_multi"]
+    diffs2 <- scores[whMissensemulti, "score_missense_multi"] - scores[whMissensemulti, "score_nonsense"]
+    good <- diffs1 >= missenseMargin & diffs2 >= missenseMargin
+    whMissensemulti <- whMissensemulti[good]
+    maxVariant[whMissensemulti] <- "missense_multi"
+    maxScore[whMissensemulti] <- maxes[whMissensemulti]
+
+    # Then now we call missense:
+    missenseCol <- which(classes %in% c("missense"))
+    whMissense <- which(pos %in% missenseCol)
+    # Need a margin
+    diffs1 <- scores[whMissense, "score_missense"] - scores[whMissense, "score_nonsense_multi"]
+    diffs2 <- scores[whMissense, "score_missense"] - scores[whMissense, "score_nonsense"]
+    good <- diffs1 >= missenseMargin & diffs2 >= missenseMargin
+    whMissense <- whMissense[good]
+    maxVariant[whMissense] <- "missense"
+    maxScore[whMissense] <- maxes[whMissense]
+
+
+    # Then now we call missense:
+    silentCol <- which(classes %in% c("silent"))
+    whSilent <- which(pos %in% silentCol) 
+    maxVariant[whSilent] <- "silent"
+    maxScore[whSilent] <- maxes[whSilent]
+
+    #classes <- classes[pos]
+    #sums <- rowSums(as.matrix(scores), na.rm=TRUE)    
+    #classes[which(sums==0)] <- "not_targeting" 
+    #maxes[which(sums==0)] <- NA
+    return(list(class=maxVariant,
+                score=maxScore))
 }
 
 
@@ -183,7 +251,8 @@ addEditedAlleles <- function(guideSet,
 .getEditedAllelesPerGuide <- function(gs,
                                       baseEditor,
                                       editingWindow=c(-20,-8),
-                                      nMaxAlleles=100
+                                      nMaxAlleles=100,
+                                      minEditingWeight=0.3
 ){
     .SPLIT_CUTOFF <- 10
     if (!is(baseEditor, "BaseEditor")){
@@ -366,110 +435,11 @@ addEditedAlleles <- function(guideSet,
     editedAlleles$seq <- DNAStringSet(editedAlleles$seq)
     rownames(editedAlleles) <- rep(names(gs), nrow(editedAlleles))
     
+    # Filtering out low scores:
+    editedAlleles <- editedAlleles[editedAlleles$score>=minEditingWeight,,drop=FALSE]
+
     return(editedAlleles)
 }
-
-
-
-
-
-
-# # Get the set of predicted edited alleles for each gRNA
-# #' @importFrom crisprBase editingStrand
-# .getEditedAllelesPerGuide_slow <- function(gs,
-#                                       baseEditor,
-#                                       editingWindow=c(-20,-8),
-#                                       nMaxAlleles=100
-# ){
-#     if (!is(baseEditor, "BaseEditor")){
-#         stop("baseEditor must be a BaseEditor object.")
-#     }
-#     if (length(gs)!=1){
-#         stop("gs must be a GuideSet of length 1.")
-#     }
-#     if (editingStrand(baseEditor)!="original"){
-#         stop("Only base editors that edit the original ",
-#              "strand are supported at the moment. ")
-#     }
-#     ws <- .getEditingWeights(baseEditor,
-#                              editingWindow)
-#     nucChanges <- .getPossibleNucChanges(ws)
-
-
-#     # Getting gRNA information:
-#     pamSite <- pamSites(gs)
-#     strand <- as.character(strand(gs))
-#     chr <- as.character(seqnames(gs))
-
-#     seq <- .getExtendedSequences(gs, 
-#                                  start=editingWindow[1],
-#                                  end=editingWindow[2])
-#     nucs <- strsplit(seq, split="")[[1]]
-#     pos <- seq(editingWindow[1],
-#                editingWindow[2])
-#     names(nucs) <- pos
-
-
-#     # Getting scores for the edited nucleotides:
-#     nucsReduced <- nucs[nucs %in% names(nucChanges)]
-#     nucsReduced <- nucsReduced[names(nucsReduced) %in% colnames(ws)]
-#     ws <- ws[,colnames(ws) %in% names(nucsReduced),drop=FALSE]
-#     choices <- lapply(nucsReduced, function(x){
-#         nucChanges[[x]]
-#     })
-#     sequences <- expand.grid(choices)
-#     seqEdited <- apply(sequences, 1, paste0, collapse="")
-#     scores <- .scoreEditedAlleles(sequences,
-#                                   nucsReduced,
-#                                   ws)
-  
-#     # Only keeping scores passing a threshold:
-#     reducedEditedAlleles <- data.frame(seq=seqEdited,
-#                                        score=scores)
-#     o <- order(-reducedEditedAlleles$score)
-#     reducedEditedAlleles <- reducedEditedAlleles[o,,drop=FALSE]
-#     sequences <- sequences[o,,drop=FALSE]
-
-
-#     nMaxAlleles <- min(nMaxAlleles, nrow(sequences))
-#     good <- seq_len(nMaxAlleles)
-#     reducedEditedAlleles <- reducedEditedAlleles[good,,drop=FALSE]
-#     sequences <- sequences[good,,drop=FALSE]
-#     sequences <- as.matrix(sequences)
-
-#     # Reconstructing full sequences:
-#     fullSequences <- c()
-#     for (i in seq_len(nrow(sequences))){
-#         temp <- nucs
-#         temp[colnames(sequences)] <- as.character(sequences[i,])
-#         temp <- lapply(temp, as.character)
-#         fullSequences[i] <- paste0(as.character(unlist(temp)),collapse="")
-#     }
-#     editedAlleles <- data.frame(seq=fullSequences,
-#                                 score=reducedEditedAlleles$score)
-#     editedAlleles <- editedAlleles[order(-editedAlleles$score),,drop=FALSE]
-#     rownames(editedAlleles) <- NULL
-#     editedAlleles <- editedAlleles[editedAlleles$seq!=seq,,drop=FALSE]
-#     editedAlleles <- DataFrame(editedAlleles)
-
-#     # Adding metadata:
-#     metadata(editedAlleles)$wildtypeAllele <- seq
-#     if (strand=="+"){
-#         start <- pamSite + editingWindow[1]
-#         end   <- pamSite + editingWindow[2]
-#     } else {
-#         start <- pamSite - editingWindow[2]
-#         end   <- pamSite - editingWindow[1]
-#     }
-#     names(start) <- names(end) <- NULL
-#     metadata(editedAlleles)$start <- start
-#     metadata(editedAlleles)$end <- end
-#     metadata(editedAlleles)$chr <- chr
-#     metadata(editedAlleles)$strand <- strand
-#     metadata(editedAlleles)$editingWindow <- editingWindow
-#     editedAlleles$seq <- DNAStringSet(editedAlleles$seq)
-#     return(editedAlleles)
-# }
 
 
 
@@ -482,7 +452,10 @@ addEditedAlleles <- function(guideSet,
 ){
     if (nrow(editedAlleles) == 0){
         editedAlleles$variant <- character(0)
-        editedAlleles$aa <- character(0)
+        editedAlleles$aa <- character(0)        
+        editedAlleles$n_mismatches <- integer(0)
+        editedAlleles$n_nonsense <- integer(0)
+        editedAlleles$n_missense <- integer(0)
         return(editedAlleles)
     }
     
@@ -500,6 +473,9 @@ addEditedAlleles <- function(guideSet,
 
     if (length(overlapPositions) == 0){
         editedAlleles$aa <- NA_character_
+        editedAlleles$n_mismatches <- NA_integer_
+        editedAlleles$n_nonsense <- NA_integer_
+        editedAlleles$n_missense <- NA_integer_
         return(editedAlleles)
     }
 
@@ -530,7 +506,8 @@ addEditedAlleles <- function(guideSet,
         protein_edited <- as.vector(translate(editedNuc))
 
         mismatches <- which(protein_edited!=protein)
-        if (length(mismatches)==0){
+        nmismatches <- ceiling(length(mismatches)/3)
+        if (nmismatches==0){
             effect <- "silent"
         } else {
             variants <- protein_edited[mismatches]
@@ -543,6 +520,26 @@ addEditedAlleles <- function(guideSet,
         return(effect)
     }, FUN.VALUE=character(1))
 
+    ns <- lapply(seq_len(nrow(nucs)), function(k){
+        editedNuc <- nuc
+        editedNuc[wh] <- nucs[k,]
+        editedNuc <- DNAString(paste0(editedNuc, collapse=""))
+        protein_edited <- as.vector(translate(editedNuc))
+        mms <- which(protein_edited!=protein)
+        n_mismatches <- length(mms)
+        if (length(mms)>0){
+            n_nonsense <- sum(protein_edited[mms]=="*")
+            n_missense <- n_mismatches - n_nonsense
+        } else {
+            n_nonsense <- n_missense <- 0
+        }
+        out <- list(n_mismatches=n_mismatches,
+            n_nonsense=n_nonsense,
+            n_missense=n_missense)
+        return(out)
+    })
+    ns <- data.frame(do.call(rbind, ns))
+    
     aminos <- vapply(seq_len(nrow(nucs)), function(k){
         editedNuc <- nuc
         editedNuc[wh] <- nucs[k,]
@@ -557,6 +554,11 @@ addEditedAlleles <- function(guideSet,
     }, FUN.VALUE=character(1))
     editedAlleles$variant <- effects
     editedAlleles$aa <- aminos
+    editedAlleles$n_mismatches <- unlist(ns$n_mismatches)
+    editedAlleles$n_nonsense <- unlist(ns$n_nonsense)
+    editedAlleles$n_missense <- unlist(ns$n_missense)
+    editedAlleles$variant[editedAlleles$n_missense>1] <- "missense_multi"
+    editedAlleles$variant[editedAlleles$n_nonsense>1] <- "nonsense_multi"
 
     # Adding wildtype amino:
     wildtypeAmino <- rep(protein, each=3)[wh]
@@ -582,7 +584,7 @@ addEditedAlleles <- function(guideSet,
                                editingWindow
 ){
     ws <- editingWeights(baseEditor)
-    ws <- .rescaleWeights(ws)
+    #ws <- .rescaleWeights(ws)
     ws <- ws[, as.numeric(colnames(ws)) >= editingWindow[1], drop=FALSE]
     ws <- ws[, as.numeric(colnames(ws)) <= editingWindow[2], drop=FALSE]
     ws <- crisprBase:::.getReducedEditingMatrix(ws)
@@ -592,18 +594,19 @@ addEditedAlleles <- function(guideSet,
 
 
 # Rescale weights between 0 and 1
-.rescaleWeights <- function(ws){
-    ws <- ws/max(ws, na.rm=TRUE)
-    nucStart <- crisprBase:::.getOriginBaseFromRownames(rownames(ws))
-    nucEnd   <- crisprBase:::.getTargetBaseFromRownames(rownames(ws))
+# .rescaleWeights <- function(ws){
+#     ws <- ws/max(ws, na.rm=TRUE)
+#     nucStart <- crisprBase:::.getOriginBaseFromRownames(rownames(ws))
+#     nucEnd   <- crisprBase:::.getTargetBaseFromRownames(rownames(ws))
 
-    ind <- arrayInd(which.max(ws), c(nrow(ws),ncol(ws)))
-    maxNuc <- nucStart[ind[1]]
-    pos <- colnames(ws)[ind[2]]
-    factor <- sum(ws[nucStart==maxNuc,pos])
-    ws <- ws/factor
-    return(ws)
-}
+#     ind <- arrayInd(which.max(ws), c(nrow(ws),ncol(ws)))
+#     maxNuc <- nucStart[ind[1]]
+#     pos <- colnames(ws)[ind[2]]
+#     factor <- sum(ws[nucStart==maxNuc,pos])
+#     ws <- ws/factor
+#     return(ws)
+# }
+
 
 
 # Calculate relative event probabilities

@@ -9,6 +9,8 @@ addEditedAlleles(
   baseEditor,
   editingWindow = NULL,
   nMaxAlleles = 100,
+  minEditingWeight = 0.3,
+  missenseMargin = 0.2,
   addFunctionalConsequence = TRUE,
   addSummary = TRUE,
   txTable = NULL,
@@ -29,6 +31,13 @@ will be considered.}
 \item{nMaxAlleles}{Maximum number of edited alleles to report
 for each gRNA. Alleles from high to low scores.
 100 by default.}
+
+\item{minEditingWeight}{Numeric value indicating the minimum editing weight
+required for an edited alleles to be listed. Default of "0.3".}
+
+\item{missenseMargin}{Numeric value indicating the minimum score difference
+required between a missense allele and a nonsense allele to label an allele as missense.
+Value of 0.2 by default.}
 
 \item{addFunctionalConsequence}{Should variant classification
 of the edited alleles be added? TRUE by default.
