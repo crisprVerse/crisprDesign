@@ -752,28 +752,29 @@ setMethod("geneAnnotation", "GuideSet",
 setMethod("editedAlleles", "GuideSet", 
           function(object,
                    unlist=TRUE,
-                   use.names=TRUE){
-              if (!"editedAlleles" %in% colnames(S4Vectors::mcols(object))){
-                  out <- NULL
-                  message("Edited alleles annotation has not been added yet.",
-                          "See the function 'addEditedAlleles' to add ",
-                          "edited alleles annotation.")
-              } else {
-                  out <- S4Vectors::mcols(object)[["editedAlleles"]]
-                  out <- do.call(rbind, out)
-                  # out <- BiocGenerics::unlist(out, use.names=FALSE)
-                  if (!use.names){
-                      out <- .namesAsColumn_df(out)
-                      split_factor <- out[["spacer_id"]]
-                  } else {
-                      split_factor <- BiocGenerics::rownames(out)
-                  }
-                  if (!unlist){
-                      out <- S4Vectors::split(out, f=split_factor)
-                  }
-              }
-              return(out)
-          })
+                   use.names=TRUE
+){
+    if (!"editedAlleles" %in% colnames(S4Vectors::mcols(object))){
+        out <- NULL
+        message("Edited alleles annotation has not been added yet.",
+                "See the function 'addEditedAlleles' to add ",
+                "edited alleles annotation.")
+    } else {
+        out <- S4Vectors::mcols(object)[["editedAlleles"]]
+        out <- do.call(rbind, out)
+        # out <- BiocGenerics::unlist(out, use.names=FALSE)
+        if (!use.names){
+            out <- .namesAsColumn_df(out)
+            split_factor <- out[["spacer_id"]]
+        } else {
+            split_factor <- names(object)
+        }
+        if (!unlist){
+            out <- S4Vectors::split(out, f=split_factor)[split_factor]
+        }
+    }
+    return(out)
+})
 
 
 
