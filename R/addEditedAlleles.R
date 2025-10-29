@@ -270,6 +270,11 @@ addEditedAlleles <- function(guideSet,
     maxVariant[cands] <- "silent"
     maxScore[cands] <- maxes[cands]
 
+    # Step 6: finally, if all scores are 0, then we assigned "no_editing"
+    cands <- which(maxes==0)
+    maxVariant[cands] <- "no_editing"
+
+
     return(list(class=maxVariant,
                 score=maxScore))
 }
