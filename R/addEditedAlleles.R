@@ -12,10 +12,7 @@
 #'     for each gRNA. Alleles from high to low scores.
 #'     100 by default. 
 #' @param minEditingWeight Numeric value indicating the minimum editing weight
-#'     required for an edited alleles to be listed. Default of "0.3". 
-#' @param missenseMargin Numeric value indicating the minimum score difference
-#'     required between a missense allele and a nonsense allele to label an allele as missense.
-#'     Value of 0.2 by default.  
+#'     required for an edited alleles to be listed. Default of "0.3".  
 #' @param addFunctionalConsequence Should variant classification
 #'     of the edited alleles be added? TRUE by default.
 #'     If \code{TRUE}, \code{txTable} must be provided.
@@ -71,7 +68,6 @@ addEditedAlleles <- function(guideSet,
                              editingWindow=NULL,
                              nMaxAlleles=100,
                              minEditingWeight=0.3,
-                             missenseMargin=0.2,
                              addFunctionalConsequence=TRUE,
                              addSummary=TRUE,
                              txTable=NULL,
@@ -116,8 +112,7 @@ addEditedAlleles <- function(guideSet,
 
     if (addSummary){
         guideSet <- .addSummaryFromEditingAlleles(guideSet,
-            minEditingWeight=minEditingWeight,
-            missenseMargin=missenseMargin)
+            minEditingWeight=minEditingWeight)
     }
     return(guideSet)
 }
@@ -142,7 +137,7 @@ addEditedAlleles <- function(guideSet,
 # Create a gRNA-level classification of the dominant
 # predicted allele consequence.
 # Either missense, nonsense, silent, or not_targeting.
-.addSummaryFromEditingAlleles <- function(guideSet, minEditingWeight=0.3, missenseMargin=0.2){
+.addSummaryFromEditingAlleles <- function(guideSet, minEditingWeight=0.3){
     alleles <- mcols(guideSet)[["editedAlleles"]]
     choices <- c("missense",
                  "missense_multi",
@@ -170,8 +165,7 @@ addEditedAlleles <- function(guideSet,
 
 
     variants <- .voteVariant(scores,
-        minEditingWeight=minEditingWeight,
-        missenseMargin=missenseMargin)
+        minEditingWeight=minEditingWeight)
     mcols(guideSet)[colnames(scores)] <- scores
     mcols(guideSet)[["maxVariant"]] <- variants[["class"]]
     mcols(guideSet)[["maxVariantScore"]] <- variants[["score"]]
@@ -185,8 +179,7 @@ addEditedAlleles <- function(guideSet,
 # Choose the variant with the highest probability
 # for each row (gRNA)
 .voteVariant <- function(scores,
-    minEditingWeight=0.3, 
-    missenseMargin=0.2
+    minEditingWeight=0.3
 ){
     scores[scores<minEditingWeight] <- 0
     classes <- colnames(scores)
@@ -200,22 +193,15 @@ addEditedAlleles <- function(guideSet,
 
 
     # Step 1: let's look at missense_multi max variants
-    # If they are too close to a nonsense mutation
-    # (as defined by missenseMargin, then we discard it
     variantCol <- which(classes %in% c("missense_multi"))
     cands <- which(pos %in% variantCol)
-    # Calculating the margin with nonsense mutation:
     scores1 <- scores[cands, "score_nonsense_multi"]
     scores2 <- scores[cands, "score_nonsense"]
     scores3 <- scores[cands, "score_splice_junction"]
-    #diffs1 <- scores[cands, "score_missense_multi"] - scores[cands, "score_nonsense_multi"]
-    #diffs2 <- scores[cands, "score_missense_multi"] - scores[cands, "score_nonsense"]
-    #good <- diffs1 >= missenseMargin & diffs2 >= missenseMargin
     good <- scores1<minEditingWeight & scores2<minEditingWeight & scores3<minEditingWeight
     goodCands <- cands[good]
     maxVariant[goodCands] <- "missense_multi"
     maxScore[goodCands] <- maxes[goodCands]
-    # And setting the ones that don't have a good margin to 0:
     badCands  <- cands[!good]
     if (length(badCands)>0){
         scores[badCands, variantCol] <- 0
@@ -223,13 +209,8 @@ addEditedAlleles <- function(guideSet,
 
 
     # Step 2: let's look at missense max variants
-    # If they are too close to a nonsense mutation
-    # (as defined by missenseMargin, then we discard it
     variantCol <- which(classes %in% c("missense"))
     cands <- which(pos %in% variantCol)
-    #diffs1 <- scores[cands, "score_missense"] - scores[cands, "score_nonsense_multi"]
-    #diffs2 <- scores[cands, "score_missense"] - scores[cands, "score_nonsense"]
-    #good <- diffs1 >= missenseMargin & diffs2 >= missenseMargin
     scores1 <- scores[cands, "score_nonsense_multi"]
     scores2 <- scores[cands, "score_nonsense"]
     scores3 <- scores[cands, "score_splice_junction"]
@@ -237,7 +218,6 @@ addEditedAlleles <- function(guideSet,
     goodCands <- cands[good]
     maxVariant[goodCands] <- "missense"
     maxScore[goodCands] <- maxes[goodCands]
-    # And setting the ones that don't have a good margin to 0:
     badCands  <- cands[!good]
     if (length(badCands)>0){
         scores[badCands, variantCol] <- 0
