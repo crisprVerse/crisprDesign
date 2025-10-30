@@ -586,12 +586,12 @@ addEditedAlleles <- function(guideSet,
     # Get wildtype protein:
     wh <- match(overlapPositions, txTable$pos)
     txTable <- txTable[order(txTable$pos_cds), , drop=FALSE]
-    nuc <- txTable$nuc
-    protein <- translate(DNAString(paste0(nuc, collapse="")))
+    protein <- translate(DNAString(paste0(txTable$nuc, collapse="")))
     protein <- as.vector(protein)
+    wiltypeNucs <- txTable$nuc[wh]
 
     effects <- vapply(seq_len(nrow(nucs)), function(k){
-        editedNuc <- nuc
+        editedNuc <- txTable$nuc
         editedNuc[wh] <- nucs[k,]
         editedNuc <- DNAString(paste0(editedNuc, collapse=""))
         protein_edited <- as.vector(translate(editedNuc))
@@ -612,7 +612,7 @@ addEditedAlleles <- function(guideSet,
     }, FUN.VALUE=character(1))
 
     positions <- vapply(seq_len(nrow(nucs)), function(k){
-        editedNuc <- nuc
+        editedNuc <- txTable$nuc
         editedNuc[wh] <- nucs[k,]
         editedNuc <- DNAString(paste0(editedNuc, collapse=""))
         protein_edited <- as.vector(translate(editedNuc))
@@ -630,7 +630,7 @@ addEditedAlleles <- function(guideSet,
 
 
     ns <- lapply(seq_len(nrow(nucs)), function(k){
-        editedNuc <- nuc
+        editedNuc <- txTable$nuc
         editedNuc[wh] <- nucs[k,]
         editedNuc <- DNAString(paste0(editedNuc, collapse=""))
         protein_edited <- as.vector(translate(editedNuc))
@@ -650,7 +650,7 @@ addEditedAlleles <- function(guideSet,
     ns <- data.frame(do.call(rbind, ns))
     
     aminos <- vapply(seq_len(nrow(nucs)), function(k){
-        editedNuc <- nuc
+        editedNuc <- txTable$nuc
         editedNuc[wh] <- nucs[k,]
         editedNuc <- DNAString(paste0(editedNuc, collapse=""))
         protein_edited <- as.vector(translate(editedNuc))
@@ -662,22 +662,36 @@ addEditedAlleles <- function(guideSet,
         return(aas)
     }, FUN.VALUE=character(1))
 
-    wh <- which(editedAlleles$variant!="splice_junction")
-    if (length(wh)>0){
-        editedAlleles$variant[wh] <- effects[wh]
-        editedAlleles$positions[wh] <- positions[wh]
+    nonspliceStuff <- which(editedAlleles$variant!="splice_junction")
+    if (length(nonspliceStuff)>0){
+        editedAlleles$variant[nonspliceStuff]   <- effects[nonspliceStuff]
+        editedAlleles$positions[nonspliceStuff] <- positions[nonspliceStuff]
     }
     editedAlleles$aa <- aminos
     editedAlleles$n_mismatches <- unlist(ns$n_mismatches)
     editedAlleles$n_nonsense <- unlist(ns$n_nonsense)
     editedAlleles$n_missense <- unlist(ns$n_missense)
-    if (length(wh)>0){
-        editedAlleles$variant[wh][editedAlleles$n_missense[wh]>1] <- "missense_multi"
-        editedAlleles$variant[wh][editedAlleles$n_nonsense[wh]>1] <- "nonsense_multi"        
+    if (length(nonspliceStuff)>0){
+        editedAlleles$variant[nonspliceStuff][editedAlleles$n_missense[nonspliceStuff]>1] <- "missense_multi"
+        editedAlleles$variant[nonspliceStuff][editedAlleles$n_nonsense[nonspliceStuff]>1] <- "nonsense_multi"        
     }
 
     # dealing with non-targeting
     editedAlleles$positions[editedAlleles$variant=="not_targeting"] <- NA
+
+
+    # dealing with silent mutations
+    silentStuff <- which(editedAlleles$variant=="silent")
+    if (length(silentStuff)>0){
+        silentNucs <- nucs[silentStuff,,drop=FALSE]
+        indexes <- vapply(1:length(silentStuff), function(i){
+            a <- silentNucs[i,]
+            mms <- which(a!=wiltypeNucs)[1]    
+        }, FUN.VALUE=1)
+        coords <- overlapPositions[indexes]
+        positions <- txTable$aa_number[match(coords, txTable$pos)]
+        editedAlleles$positions[silentStuff] <- positions
+    }
 
     # Adding wildtype amino:
     wildtypeAmino <- rep(protein, each=3)[wh]
@@ -685,6 +699,7 @@ addEditedAlleles <- function(guideSet,
     metadata(editedAlleles)$wildtypeAmino <- wildtypeAmino
     return(editedAlleles)
 }
+
 
 
 
