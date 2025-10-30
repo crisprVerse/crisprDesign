@@ -10,6 +10,7 @@ addEditedAlleles(
   editingWindow = NULL,
   nMaxAlleles = 100,
   minEditingWeight = 0.3,
+  minMutationScore = 0.3,
   addFunctionalConsequence = TRUE,
   addSummary = TRUE,
   txTable = NULL,
@@ -32,7 +33,10 @@ for each gRNA. Alleles from high to low scores.
 100 by default.}
 
 \item{minEditingWeight}{Numeric value indicating the minimum editing weight
-required for an edited alleles to be listed. Default of "0.3".}
+required for an edited allele to be listed. Default of "0.3".}
+
+\item{minMutationScore}{Numeric value indicating the minimum editing score that
+an allele must have to call a mutation. Default of "0.3".}
 
 \item{addFunctionalConsequence}{Should variant classification
 of the edited alleles be added? TRUE by default.

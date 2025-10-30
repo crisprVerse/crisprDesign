@@ -12,7 +12,9 @@
 #'     for each gRNA. Alleles from high to low scores.
 #'     100 by default. 
 #' @param minEditingWeight Numeric value indicating the minimum editing weight
-#'     required for an edited alleles to be listed. Default of "0.3".  
+#'     required for an edited allele to be listed. Default of "0.3".  
+#' @param minMutationScore Numeric value indicating the minimum editing score that
+#'     an allele must have to call a mutation. Default of "0.3".  
 #' @param addFunctionalConsequence Should variant classification
 #'     of the edited alleles be added? TRUE by default.
 #'     If \code{TRUE}, \code{txTable} must be provided.
@@ -68,6 +70,7 @@ addEditedAlleles <- function(guideSet,
                              editingWindow=NULL,
                              nMaxAlleles=100,
                              minEditingWeight=0.3,
+                             minMutationScore=0.3,
                              addFunctionalConsequence=TRUE,
                              addSummary=TRUE,
                              txTable=NULL,
@@ -112,12 +115,12 @@ addEditedAlleles <- function(guideSet,
 
     if (addSummary){
         guideSet <- .addSummaryFromEditingAlleles(guideSet,
-            minEditingWeight=minEditingWeight)
+            minMutationScore=minMutationScore)
     }
     return(guideSet)
 }
 
- 
+
 
 
 
@@ -137,7 +140,7 @@ addEditedAlleles <- function(guideSet,
 # Create a gRNA-level classification of the dominant
 # predicted allele consequence.
 # Either missense, nonsense, silent, or not_targeting.
-.addSummaryFromEditingAlleles <- function(guideSet, minEditingWeight=0.3){
+.addSummaryFromEditingAlleles <- function(guideSet, minMutationScore=0.3){
     alleles <- mcols(guideSet)[["editedAlleles"]]
     choices <- c("missense",
                  "missense_multi",
@@ -162,13 +165,35 @@ addEditedAlleles <- function(guideSet,
     scores <- do.call(rbind, scores)
     scores <- scores[, seq_len(6), drop=FALSE]
     colnames(scores) <- paste0("score_", colnames(scores))
+    scoresSum <- lapply(alleles, function(x){
+        out <- c(missense=0,
+                 missense_multi=0,
+                 nonsense_multi=0,
+                 nonsense=0,
+                 silent=0,
+                 splice_junction=0,
+                 not_targeting=0)
+        x <- split(x$score, f=x$variant)
+        x <- vapply(x, sum, FUN.VALUE=1)
+        out[names(x)] <- x
+        return(out)
+    })
+    scoresSum <- do.call(rbind, scoresSum)
+    scoresSum <- scoresSum[, seq_len(6), drop=FALSE]
+    colnames(scoresSum) <- paste0("score_", colnames(scoresSum))
 
 
     variants <- .voteVariant(scores,
-        minEditingWeight=minEditingWeight)
+        minMutationScore=minMutationScore)
+    variantsSum <- .voteVariant(scoresSum,
+        minMutationScore=minMutationScore)
     mcols(guideSet)[colnames(scores)] <- scores
+    colnames(scoresSum) <- gsub("score_", "scoreSum_", colnames(scoresSum))
+    mcols(guideSet)[colnames(scoresSum)] <- scoresSum
     mcols(guideSet)[["maxVariant"]] <- variants[["class"]]
     mcols(guideSet)[["maxVariantScore"]] <- variants[["score"]]
+    mcols(guideSet)[["maxVariantSum"]] <- variantsSum[["class"]]
+    mcols(guideSet)[["maxVariantSumScore"]] <- variantsSum[["score"]]
     return(guideSet)
 }
 
@@ -179,9 +204,9 @@ addEditedAlleles <- function(guideSet,
 # Choose the variant with the highest probability
 # for each row (gRNA)
 .voteVariant <- function(scores,
-    minEditingWeight=0.3
+    minMutationScore=0.3
 ){
-    scores[scores<minEditingWeight] <- 0
+    scores[scores<minMutationScore] <- 0
     classes <- colnames(scores)
     classes <- gsub("score_", "", classes)
 
@@ -198,7 +223,7 @@ addEditedAlleles <- function(guideSet,
     scores1 <- scores[cands, "score_nonsense_multi"]
     scores2 <- scores[cands, "score_nonsense"]
     scores3 <- scores[cands, "score_splice_junction"]
-    good <- scores1<minEditingWeight & scores2<minEditingWeight & scores3<minEditingWeight
+    good <- scores1<minMutationScore & scores2<minMutationScore & scores3<minMutationScore
     goodCands <- cands[good]
     maxVariant[goodCands] <- "missense_multi"
     maxScore[goodCands] <- maxes[goodCands]
@@ -214,7 +239,7 @@ addEditedAlleles <- function(guideSet,
     scores1 <- scores[cands, "score_nonsense_multi"]
     scores2 <- scores[cands, "score_nonsense"]
     scores3 <- scores[cands, "score_splice_junction"]
-    good <- scores1<minEditingWeight & scores2<minEditingWeight & scores3<minEditingWeight
+    good <- scores1<minMutationScore & scores2<minMutationScore & scores3<minMutationScore
     goodCands <- cands[good]
     maxVariant[goodCands] <- "missense"
     maxScore[goodCands] <- maxes[goodCands]
