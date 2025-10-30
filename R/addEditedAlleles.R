@@ -515,6 +515,7 @@ addEditedAlleles <- function(guideSet,
         editedAlleles$n_mismatches <- integer(0)
         editedAlleles$n_nonsense <- integer(0)
         editedAlleles$n_missense <- integer(0)
+        editedAlleles$positions <- character(0)
         return(editedAlleles)
     }
     
@@ -544,6 +545,15 @@ addEditedAlleles <- function(guideSet,
         editedAlleles$n_mismatches <- NA_integer_
         editedAlleles$n_nonsense <- NA_integer_
         editedAlleles$n_missense <- NA_integer_
+
+        # Adding positions
+        if (any(nonoverlapPositions %in% splicingCoordinates)){
+            coordinate <- .closestCdsCoordinate(nonoverlapPositions,txTable$pos)
+            editedAlleles$positions <- txTable$aa_number[match(coordinate, txTable$pos)]
+        } else {
+            editedAlleles$positions <- NA_character_
+        }
+
         return(editedAlleles)
     }
 
@@ -555,6 +565,8 @@ addEditedAlleles <- function(guideSet,
         editedSeqs <- substr(as.character(editedAlleles$seq), start, end)
         nedits <- adist(editedSeqs, wtSeq)[,1]
         editedAlleles$variant[nedits>0] <- "splice_junction"
+        coordinate <- .closestCdsCoordinate(nonoverlapPositions,txTable$pos)
+        editedAlleles$positions <- txTable$aa_number[match(coordinate, txTable$pos)]
     }
     
 
@@ -585,7 +597,7 @@ addEditedAlleles <- function(guideSet,
         protein_edited <- as.vector(translate(editedNuc))
 
         mismatches <- which(protein_edited!=protein)
-        nmismatches <- ceiling(length(mismatches)/3)
+        nmismatches <- length(mismatches)
         if (nmismatches==0){
             effect <- "silent"
         } else {
@@ -598,6 +610,24 @@ addEditedAlleles <- function(guideSet,
         }
         return(effect)
     }, FUN.VALUE=character(1))
+
+    positions <- vapply(seq_len(nrow(nucs)), function(k){
+        editedNuc <- nuc
+        editedNuc[wh] <- nucs[k,]
+        editedNuc <- DNAString(paste0(editedNuc, collapse=""))
+        protein_edited <- as.vector(translate(editedNuc))
+
+        mismatches <- which(protein_edited!=protein)
+        nmismatches <- length(mismatches)
+        if (nmismatches==0){
+            pos <- NA_character_
+        } else {
+            pos <- paste0(mismatches, collapse=";")
+        }
+        return(pos)
+    }, FUN.VALUE=character(1))
+
+
 
     ns <- lapply(seq_len(nrow(nucs)), function(k){
         editedNuc <- nuc
@@ -635,6 +665,7 @@ addEditedAlleles <- function(guideSet,
     wh <- which(editedAlleles$variant!="splice_junction")
     if (length(wh)>0){
         editedAlleles$variant[wh] <- effects[wh]
+        editedAlleles$positions[wh] <- positions[wh]
     }
     editedAlleles$aa <- aminos
     editedAlleles$n_mismatches <- unlist(ns$n_mismatches)
@@ -644,6 +675,9 @@ addEditedAlleles <- function(guideSet,
         editedAlleles$variant[wh][editedAlleles$n_missense[wh]>1] <- "missense_multi"
         editedAlleles$variant[wh][editedAlleles$n_nonsense[wh]>1] <- "nonsense_multi"        
     }
+
+    # dealing with non-targeting
+    editedAlleles$positions[editedAlleles$variant=="not_targeting"] <- NA
 
     # Adding wildtype amino:
     wildtypeAmino <- rep(protein, each=3)[wh]
@@ -655,8 +689,17 @@ addEditedAlleles <- function(guideSet,
 
 
 
+.closestCdsCoordinate <- function(grnaCoordinates,
+    cdsCoordinates
+){
+  dmat <- abs(outer(grnaCoordinates, cdsCoordinates, "-"))
 
-
+  # Index of the minimum
+  k  <- which.min(dmat)
+  ij <- arrayInd(k, .dim = dim(dmat))
+  out <- cdsCoordinates[ij[[2]]]
+    return(out)
+}
 
 
 
