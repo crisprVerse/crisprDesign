@@ -116,9 +116,12 @@ addEditedAlleles <- function(guideSet,
     if (addSummary){
         guideSet <- .addSummaryFromEditingAlleles(guideSet,
             minMutationScore=minMutationScore)
+        guideSet <- .addAminoAcids(guideSet, txTable=txTable)
     }
     return(guideSet)
 }
+
+
 
 
 
@@ -194,6 +197,23 @@ addEditedAlleles <- function(guideSet,
     mcols(guideSet)[["maxVariantScore"]] <- variants[["score"]]
     mcols(guideSet)[["maxVariantSum"]] <- variantsSum[["class"]]
     mcols(guideSet)[["maxVariantSumScore"]] <- variantsSum[["score"]]
+
+
+    # And dealing with non-targeting:
+    areNtcs <- vapply(alleles, function(x){
+        out <- FALSE
+        if (nrow(x)!=0){
+            choices <- unique(x$variant)    
+            if (length(choices)==1){
+                if (choices=="not_targeting"){
+                    out <- TRUE
+                } 
+            }
+        }
+        out
+    }, FUN.VALUE=TRUE)
+    mcols(guideSet)[["maxVariant"]][areNtcs] <- "not_targeting"
+    mcols(guideSet)[["maxVariantSum"]][areNtcs] <- "not_targeting"
     return(guideSet)
 }
 
@@ -283,6 +303,66 @@ addEditedAlleles <- function(guideSet,
     return(list(class=maxVariant,
                 score=maxScore))
 }
+
+
+.addAminoAcids <- function(guideSet, txTable){
+    editedAlleles <- mcols(guideSet)[["editedAlleles"]]
+    variants <- guideSet$maxVariant
+    aaPos <- vapply(1:length(guideSet), function(i){
+        alleles <- editedAlleles[[i]]
+        variant <- variants[i]
+        if (nrow(alleles)!=0){
+            if (variant=="not_targeting"){
+                pos <- NA_character_
+            } else if (variant=="no_editing"){
+                alleles <- alleles[order(-alleles$score),,drop=FALSE]
+                pos <- as.character(alleles[1,"positions"])
+            } else {
+                alleles <- alleles[alleles$variant==variant,,drop=FALSE]
+                alleles <- alleles[order(-alleles$score),,drop=FALSE]
+                pos <- as.character(alleles[1,"positions"])
+            }
+        } else {
+            if (variant=="not_targeting"){
+                pos <- NA_character_
+            } else {
+                strand <- as.character(strand(gs)[i])
+                baseEditor <- crisprNuclease(gs)
+                pam_site <- pamSites(gs)[i]
+                ws <- editingWeights(baseEditor)
+                maxes <- apply(ws,1, max, na.rm=TRUE)
+                sub <- names(maxes)[which.max(maxes)]
+                coord <- getEditingSiteFromPamSite(pam_site=pam_site,
+                    baseEditor=baseEditor,
+                    strand=strand,
+                    substitution=sub)
+                cdsCoordinates <- txTable[txTable$region=="CDS", "pos"]
+                aaCoord <- .closestCdsCoordinate(coord, cdsCoordinates)
+                pos <- txTable[match(aaCoord, txTable$pos), "aa_number"]
+                pos <- as.character(pos)
+            }
+        }
+        pos
+    }, FUN.VALUE=character(1))
+    guideSet$aaPos <- aaPos
+    return(guideSet)
+}
+
+
+
+
+.closestCdsCoordinate <- function(grnaCoordinates,
+    cdsCoordinates
+){
+  dmat <- abs(outer(grnaCoordinates, cdsCoordinates, "-"))
+
+  # Index of the minimum
+  k  <- which.min(dmat)
+  ij <- arrayInd(k, .dim = dim(dmat))
+  out <- cdsCoordinates[ij[[2]]]
+    return(out)
+}
+
 
 
 
@@ -499,6 +579,8 @@ addEditedAlleles <- function(guideSet,
 
     return(editedAlleles)
 }
+
+
 
 
 
