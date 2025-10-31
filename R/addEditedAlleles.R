@@ -314,7 +314,7 @@ addEditedAlleles <- function(guideSet,
         if (nrow(alleles)!=0){
             if (variant=="not_targeting"){
                 pos <- NA_character_
-            } else if (variant=="no_editing"){
+            } else if (variant=="no_editing" | variant=="unassigned"){
                 alleles <- alleles[order(-alleles$score),,drop=FALSE]
                 pos <- as.character(alleles[1,"positions"])
             } else {
