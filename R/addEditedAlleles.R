@@ -161,42 +161,20 @@ addEditedAlleles <- function(guideSet,
                  splice_junction=0,
                  not_targeting=0)
         x <- split(x$score, f=x$variant)
-        x <- vapply(x, max, FUN.VALUE=1)
+        x <- vapply(x, sum, FUN.VALUE=1)
         out[names(x)] <- x
         return(out)
     })
     scores <- do.call(rbind, scores)
     scores <- scores[, seq_len(6), drop=FALSE]
     colnames(scores) <- paste0("score_", colnames(scores))
-    scoresSum <- lapply(alleles, function(x){
-        out <- c(missense=0,
-                 missense_multi=0,
-                 nonsense_multi=0,
-                 nonsense=0,
-                 silent=0,
-                 splice_junction=0,
-                 not_targeting=0)
-        x <- split(x$score, f=x$variant)
-        x <- vapply(x, sum, FUN.VALUE=1)
-        out[names(x)] <- x
-        return(out)
-    })
-    scoresSum <- do.call(rbind, scoresSum)
-    scoresSum <- scoresSum[, seq_len(6), drop=FALSE]
-    colnames(scoresSum) <- paste0("score_", colnames(scoresSum))
 
 
     variants <- .voteVariant(scores,
         minMutationScore=minMutationScore)
-    variantsSum <- .voteVariant(scoresSum,
-        minMutationScore=minMutationScore)
     mcols(guideSet)[colnames(scores)] <- scores
-    colnames(scoresSum) <- gsub("score_", "scoreSum_", colnames(scoresSum))
-    mcols(guideSet)[colnames(scoresSum)] <- scoresSum
     mcols(guideSet)[["maxVariant"]] <- variants[["class"]]
-    mcols(guideSet)[["maxVariantScore"]] <- variants[["score"]]
-    mcols(guideSet)[["maxVariantSum"]] <- variantsSum[["class"]]
-    mcols(guideSet)[["maxVariantSumScore"]] <- variantsSum[["score"]]
+
 
 
     # And dealing with non-targeting:
@@ -209,11 +187,12 @@ addEditedAlleles <- function(guideSet,
                     out <- TRUE
                 } 
             }
+        } else {
+            out <- TRUE
         }
         out
     }, FUN.VALUE=TRUE)
     mcols(guideSet)[["maxVariant"]][areNtcs] <- "not_targeting"
-    mcols(guideSet)[["maxVariantSum"]][areNtcs] <- "not_targeting"
     return(guideSet)
 }
 
@@ -298,7 +277,6 @@ addEditedAlleles <- function(guideSet,
     # Step 6: finally, if all scores are 0, then we assigned "no_editing"
     cands <- which(maxes==0)
     maxVariant[cands] <- "no_editing"
-
 
     return(list(class=maxVariant,
                 score=maxScore))
@@ -818,22 +796,6 @@ addEditedAlleles <- function(guideSet,
 }
 
 
-# Rescale weights between 0 and 1
-# .rescaleWeights <- function(ws){
-#     ws <- ws/max(ws, na.rm=TRUE)
-#     nucStart <- crisprBase:::.getOriginBaseFromRownames(rownames(ws))
-#     nucEnd   <- crisprBase:::.getTargetBaseFromRownames(rownames(ws))
-
-#     ind <- arrayInd(which.max(ws), c(nrow(ws),ncol(ws)))
-#     maxNuc <- nucStart[ind[1]]
-#     pos <- colnames(ws)[ind[2]]
-#     factor <- sum(ws[nucStart==maxNuc,pos])
-#     ws <- ws/factor
-#     return(ws)
-# }
-
-
-
 # Calculate relative event probabilities
 # when there is no editing for a given base
 .addWildtypeWeights <- function(ws){
@@ -852,8 +814,6 @@ addEditedAlleles <- function(guideSet,
     ws <- rbind(ws, addRows)
     return(ws)
 }
-
-
 
 
 
