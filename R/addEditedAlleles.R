@@ -174,9 +174,8 @@ addEditedAlleles <- function(guideSet,
         minMutationScore=minMutationScore)
     mcols(guideSet)[colnames(scores)] <- scores
     mcols(guideSet)[["maxVariant"]] <- variants[["class"]]
-
-
-
+    mcols(guideSet)[["maxVariantScore"]] <- variants[["score"]]
+    
     # And dealing with non-targeting:
     areNtcs <- vapply(alleles, function(x){
         out <- FALSE
