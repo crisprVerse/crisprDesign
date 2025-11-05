@@ -114,6 +114,9 @@ addEditedAlleles <- function(guideSet,
     mcols(guideSet)[["editedAlleles"]] <- alleles
 
     if (addSummary){
+        if (verbose){
+            message("[addEditedAlleles] Adding summary to GuideSet.")
+        }
         guideSet <- .addSummaryFromEditingAlleles(guideSet,
             minMutationScore=minMutationScore)
         guideSet <- .addAminoAcids(guideSet, txTable=txTable)
@@ -304,7 +307,14 @@ addEditedAlleles <- function(guideSet,
                 alleles <- alleles[order(-alleles$score),,drop=FALSE]
                 pos <- as.character(alleles[1,"positions"])
             } else {
-                alleles <- alleles[alleles$variant==variant,,drop=FALSE]
+                if (variant=="missense"){
+                    cats <- c("missense_single", "missense", "missense_multi")
+                } else if (variant=="nonsense"){
+                    cats <- c("nonsense_single", "nonsense", "nonsense_multi")
+                } else {
+                    cats <- variant
+                }
+                alleles <- alleles[alleles$variant %in% cats,,drop=FALSE]
                 alleles <- alleles[order(-alleles$score),,drop=FALSE]
                 pos <- as.character(alleles[1,"positions"])
             }
