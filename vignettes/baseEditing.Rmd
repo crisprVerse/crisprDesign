@@ -263,9 +263,6 @@ head(guideSet)
 
 For both gRNAs, the highest scores are missense, and therefore the `maxVariant` is set to missense. 
 
-# Allele scoring algorithm in details
-
-
 
 
 
