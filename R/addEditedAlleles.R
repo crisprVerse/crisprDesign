@@ -128,16 +128,7 @@ addEditedAlleles <- function(guideSet,
 
 
 
-.checkEditingWeights <- function(baseEditor){
-    ws <- crisprBase::editingWeights(baseEditor)
-    if (any(ws<0)){
-        stop("Some editing weights are negative. Weights should be scaled to be 0 and 1.")
-    }
-    if (any(ws>1)){
-        stop("Some editing weights are above 1. Weights should be scaled to be 0 and 1.")
-    }
-    return(NULL)
-}
+
 
 
 # Create a gRNA-level classification of the dominant
@@ -145,13 +136,6 @@ addEditedAlleles <- function(guideSet,
 # Either missense, nonsense, silent, or not_targeting.
 .addSummaryFromEditingAlleles <- function(guideSet, minMutationScore=0.3){
     alleles <- mcols(guideSet)[["editedAlleles"]]
-    choices <- c("missense",
-                 "missense_multi",
-                 "nonsense",
-                 "nonsense_multi",
-                 "silent",
-                 "splice_junction",
-                 "not_targeting")
     scores <- lapply(alleles, function(x){
         out <- c(missense=0,
                  missense_multi=0,
@@ -167,6 +151,11 @@ addEditedAlleles <- function(guideSet,
     })
     scores <- do.call(rbind, scores)
     scores <- scores[, seq_len(6), drop=FALSE]
+    colnames(scores)[colnames(scores)=="missense"] <- "missense_single"
+    colnames(scores)[colnames(scores)=="nonsense"] <- "nonsense_single"
+    scores <- as.data.frame(scores)
+    scores$missense <- scores[,"missense_single"]+scores[,"missense_multi"]
+    scores$nonsense <- scores[,"nonsense_single"]+scores[,"nonsense_multi"]
     colnames(scores) <- paste0("score_", colnames(scores))
 
 
@@ -218,12 +207,11 @@ addEditedAlleles <- function(guideSet,
     # Step 1: let's look at missense_multi max variants
     variantCol <- which(classes %in% c("missense_multi"))
     cands <- which(pos %in% variantCol)
-    scores1 <- scores[cands, "score_nonsense_multi"]
-    scores2 <- scores[cands, "score_nonsense"]
-    scores3 <- scores[cands, "score_splice_junction"]
-    good <- scores1<minMutationScore & scores2<minMutationScore & scores3<minMutationScore
+    scores1 <- scores[cands, "score_nonsense"]
+    scores2 <- scores[cands, "score_splice_junction"]
+    good <- scores1<minMutationScore & scores2<minMutationScore
     goodCands <- cands[good]
-    maxVariant[goodCands] <- "missense_multi"
+    maxVariant[goodCands] <- "missense"
     maxScore[goodCands] <- maxes[goodCands]
     badCands  <- cands[!good]
     if (length(badCands)>0){
@@ -231,13 +219,26 @@ addEditedAlleles <- function(guideSet,
     }
 
 
+    # Step 1: let's look at missense_multi max variants
+    variantCol <- which(classes %in% c("missense_single"))
+    cands <- which(pos %in% variantCol)
+    scores1 <- scores[cands, "score_nonsense"]
+    scores2 <- scores[cands, "score_splice_junction"]
+    good <- scores1<minMutationScore & scores2<minMutationScore
+    goodCands <- cands[good]
+    maxVariant[goodCands] <- "missense"
+    maxScore[goodCands] <- maxes[goodCands]
+    badCands  <- cands[!good]
+    if (length(badCands)>0){
+        scores[badCands, variantCol] <- 0
+    }
+
     # Step 2: let's look at missense max variants
     variantCol <- which(classes %in% c("missense"))
     cands <- which(pos %in% variantCol)
-    scores1 <- scores[cands, "score_nonsense_multi"]
     scores2 <- scores[cands, "score_nonsense"]
     scores3 <- scores[cands, "score_splice_junction"]
-    good <- scores1<minMutationScore & scores2<minMutationScore & scores3<minMutationScore
+    good <- scores1<minMutationScore & scores2<minMutationScore
     goodCands <- cands[good]
     maxVariant[goodCands] <- "missense"
     maxScore[goodCands] <- maxes[goodCands]
@@ -257,8 +258,16 @@ addEditedAlleles <- function(guideSet,
     # Step 3: calling nonsense_multi
     variantCol <- which(classes %in% c("nonsense_multi"))
     cands <- which(pos %in% variantCol)
-    maxVariant[cands] <- "nonsense_multi"
+    maxVariant[cands] <- "nonsense"
     maxScore[cands] <- maxes[cands]
+
+    # Step 3: calling nonsense_multi
+    variantCol <- which(classes %in% c("nonsense_single"))
+    cands <- which(pos %in% variantCol)
+    maxVariant[cands] <- "nonsense"
+    maxScore[cands] <- maxes[cands]
+
+
 
     # Step 4: calling nonsense
     variantCol <- which(classes %in% c("nonsense"))
@@ -857,7 +866,16 @@ addEditedAlleles <- function(guideSet,
 }
 
 
-
+.checkEditingWeights <- function(baseEditor){
+    ws <- crisprBase::editingWeights(baseEditor)
+    if (any(ws<0)){
+        stop("Some editing weights are negative. Weights should be scaled to be 0 and 1.")
+    }
+    if (any(ws>1)){
+        stop("Some editing weights are above 1. Weights should be scaled to be 0 and 1.")
+    }
+    return(NULL)
+}
 
 
 
