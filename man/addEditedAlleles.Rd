@@ -9,7 +9,7 @@ addEditedAlleles(
   baseEditor,
   editingWindow = NULL,
   nMaxAlleles = 100,
-  minEditingWeight = 0.3,
+  minEditingWeight = 0,
   minMutationScore = 0.3,
   addFunctionalConsequence = TRUE,
   addSummary = TRUE,
@@ -33,7 +33,7 @@ for each gRNA. Alleles from high to low scores.
 100 by default.}
 
 \item{minEditingWeight}{Numeric value indicating the minimum editing weight
-required for an edited allele to be listed. Default of "0.3".}
+required for an edited allele to be listed. Default of 0.}
 
 \item{minMutationScore}{Numeric value indicating the minimum editing score that
 an allele must have to call a mutation. Default of "0.3".}
@@ -42,8 +42,8 @@ an allele must have to call a mutation. Default of "0.3".}
 of the edited alleles be added? TRUE by default.
 If \code{TRUE}, \code{txTable} must be provided.}
 
-\item{addSummary}{Should a summary of the variant classified
-by added to the metadata columns of the \code{guideSet}
+\item{addSummary}{Should a summary of the variant classification
+be added to the metadata columns of the \code{guideSet}
 object? TRUE by default.}
 
 \item{txTable}{Table of transcript-level nucleotide and amino

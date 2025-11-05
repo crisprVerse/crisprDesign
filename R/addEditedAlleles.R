@@ -12,14 +12,14 @@
 #'     for each gRNA. Alleles from high to low scores.
 #'     100 by default. 
 #' @param minEditingWeight Numeric value indicating the minimum editing weight
-#'     required for an edited allele to be listed. Default of "0.3".  
+#'     required for an edited allele to be listed. Default of 0.  
 #' @param minMutationScore Numeric value indicating the minimum editing score that
 #'     an allele must have to call a mutation. Default of "0.3".  
 #' @param addFunctionalConsequence Should variant classification
 #'     of the edited alleles be added? TRUE by default.
 #'     If \code{TRUE}, \code{txTable} must be provided.
-#' @param addSummary Should a summary of the variant classified
-#'     by added to the metadata columns of the \code{guideSet}
+#' @param addSummary Should a summary of the variant classification
+#'     be added to the metadata columns of the \code{guideSet}
 #'     object? TRUE by default. 
 #' @param txTable Table of transcript-level nucleotide and amino
 #'     acid information needed for variant classification.
@@ -69,7 +69,7 @@ addEditedAlleles <- function(guideSet,
                              baseEditor,
                              editingWindow=NULL,
                              nMaxAlleles=100,
-                             minEditingWeight=0.3,
+                             minEditingWeight=0,
                              minMutationScore=0.3,
                              addFunctionalConsequence=TRUE,
                              addSummary=TRUE,
@@ -236,8 +236,8 @@ addEditedAlleles <- function(guideSet,
     # Step 2: let's look at missense max variants
     variantCol <- which(classes %in% c("missense"))
     cands <- which(pos %in% variantCol)
-    scores2 <- scores[cands, "score_nonsense"]
-    scores3 <- scores[cands, "score_splice_junction"]
+    scores1 <- scores[cands, "score_nonsense"]
+    scores2 <- scores[cands, "score_splice_junction"]
     good <- scores1<minMutationScore & scores2<minMutationScore
     goodCands <- cands[good]
     maxVariant[goodCands] <- "missense"

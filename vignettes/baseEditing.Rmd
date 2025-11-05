@@ -1,0 +1,279 @@
+---
+title: "Base editing design with crisprDesign"
+author: 
+- name: Jean-Philippe Fortin
+  email: fortin946@gmail.com
+date: "`r Sys.Date()`"
+output: 
+  BiocStyle::html_document:
+    toc_float: true
+    #theme: paper
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{Base editing design with crisprDesign}
+  \usepackage[utf8]{inputenc}
+  %\VignetteEngine{knitr::rmarkdown}
+bibliography: references.bib
+---
+
+
+
+# Introduction
+
+
+
+
+```{r, message=FALSE, warning=FALSE,results='hide' }
+library(crisprDesign)
+```
+
+
+
+
+
+
+
+
+
+# Defining the base editor object
+
+
+We illustrate the CRISPR base editing (CRISPRbe) functionalities 
+of `crisprDesign` by designing and characterizing gRNAs targeting the gene
+IQSEC3 using the cytidine base editor BE4max [@koblan2018improving]. 
+
+We first load the BE4max `BaseEditor` object available in `crisprBase`:
+
+```{r}
+data(BE4max, package="crisprBase")
+BE4max
+```
+
+The editing probabilities of the base editor BE4max are stored in a matrix 
+where rows correspond to the different nucleotide substitutions, and columns
+correspond to the genomic coordinate relative to the PAM site. 
+The `editingWeights` function from `crisprBase` allows us to retrieve 
+those probabilities. One can see that C to T editing is optimal 
+around 15 nucleotides upstream of the PAM site for the BE4max base editor:
+
+```{r}
+crisprBase::editingWeights(BE4max)["C2T",]
+```
+
+To learn how to build a \code{BaseEditor} object for your own base editor
+enzyme, see the \code{crisprBase} package vignette.
+
+
+# Designing spacer sequences
+
+Next, we load the
+`grListExample` object in `crisprDesign` that contains gene 
+coordinates in hg38 for exons of all human IQSEC3 isoforms. The object was
+obtained by converting an Ensembl `TxDb` object into a `GRangesList`
+object using the `TxDb2GRangesList` convenience function in `crisprDesign`.
+
+
+```{r}
+data(grListExample, package="crisprDesign")
+```
+
+
+The `queryTxObject` function allows us to query such objects for a specific
+gene and feature. Here, we obtain a `GRanges` object containing the first exon
+of the IQSEC3 gene:
+
+
+```{r}
+gr <- queryTxObject(txObject=grListExample,
+                    featureType="cds",
+                    queryColumn="gene_symbol",
+                    queryValue="IQSEC3")
+```
+
+and retain the first exon only:
+
+```{r}
+gr <- gr[1]
+```
+
+`findSpacers` is the main function to obtain a list of all
+possible spacer sequences targeting protospacers located in the target
+DNA sequence(s). If a `GRanges` object is provided as input, a `BSgenome`
+object (object containing sequences of a reference genome) will need to be
+provided as well:
+
+```{r, warning=FALSE, message=FALSE}
+library(BSgenome.Hsapiens.UCSC.hg38)
+bsgenome <- BSgenome.Hsapiens.UCSC.hg38
+guideSet <- findSpacers(gr,
+                        bsgenome=bsgenome,
+                        crisprNuclease=BE4max,
+                        strict_overlap=FALSE)
+guideSet
+```
+
+
+The argument \code{strict_overlap} set to FALSE enables spacer sequences to be
+not-strictly overlapping with the CDS region; this is useful for base editing
+design as the editing window can extend beyond the protospacer sequence region.
+The function returns a `GuideSet` object that stores genomic coordinates for all spacer
+sequences found in the regions provided by `gr`. The `GuideSet` object is an
+extension of a `GenomicRanges` object that stores additional information about
+gRNAs. For the sake of time, we will retain only two gRNAs:
+
+
+
+```{r}
+guideSet <- guideSet[c(50,51)]
+print(guideSet)
+```
+
+
+# Allele prediction
+
+The function `addEditedAlleles` finds, characterizes, and scores predicted
+edited alleles for each gRNA, for a chosen transcript. It requires a 
+transcript-specific annotation that can be obtained using the 
+function `getTxInfoDataFrame`. Here, we will perform the
+analysis using the main isoform of IQSEC3 (transcript id ENST00000538872).
+
+We first get the transcript table for ENST00000538872, 
+
+```{r}
+txid <- "ENST00000538872"
+txTable <- getTxInfoDataFrame(tx_id=txid,
+                              txObject=grListExample,
+                              bsgenome=bsgenome,
+                              extend=30)
+head(txTable)
+```
+
+The argument `extend` specifies the number of nucleotides upstream and downstream
+of the exons to include. This is useful to characterize gRNAs overlapping
+splice junctions. The `region` column indicates where the location of the 
+nucleotide: 3UTR, 5UTR, CDS, Intron, and Upstream and Downstream of the CDS.
+
+
+We are ready to add predicted alleles to the `GuideSet` object:
+
+```{r}
+editingWindow <- c(-20,-8)
+guideSet <- addEditedAlleles(guideSet,
+                             baseEditor=BE4max,
+                             txTable=txTable,
+                             editingWindow=editingWindow,
+                             minEditingWeight = 0,
+                             minMutationScore = 0.3)
+```
+
+- The `editingWindow` argument specifies the window of editing that
+we are interested in. When not provided, it uses the default window
+provided in the `BaseEditor` object. Note that providing large windows 
+can exponentially increase computing time as the number of possible 
+alleles grows exponentially.
+
+- The `minEditingWeight` specifies the minimum editing weight required for an
+allele to be listed as a predicted allele. Default is 0. A higher threshold can
+be used to omit alleles with low probabilities.
+
+- The `mutationScore` specifies a minimum predicted probability for labeling an 
+allele with a predicted variant. Alleles with scores lower than this threshold
+will be labeled as "not_editing". Default of 0.3.
+
+For each gRNA, a predicted alleles annotation is stored and can be retrieved
+using the `editedAlleles` accessor function. As an example, let's retrieve
+the predicted alleles for the first gRNA:
+
+
+```{r}
+alleles <- editedAlleles(guideSet[1])
+print(alleles)
+```
+
+
+The resulting `DataFrame` is ordered so that the top predicted alleles 
+(based on the `score` column) are shown first. The `score` 
+represents the likelihood of the edited allele to occur relative
+to all possible edited alleles, and is calculated using the editing
+weights stored in the `BE4max` object. The `seq` column represents 
+the edited nucleotide sequences. They are always reported from the 5' to 3' 
+direction on the strand corresponding to the gRNA strand. 
+
+- The `n_mismatches` column indicates the number of amino acid that differs
+between the edited allele and the wildtype allele.
+- The `n_nonsense` and `n_missense` columns indicate the number of mismatches
+that are nonsense and missense mutation, respectively. Those two columns sum to 
+the `n_mismatches` column. 
+- The `variant` column indicates the functional consequence of the allele.
+There are 7 possible choices:
+    - `silent`: single or multiple silent mutations
+    - `missense`: single missense mutation
+    - `nonsense`: single nonsense mutation
+    - `missense_multi`: multiple missense mutations
+    - `nonsense_multi`: multiple nonsense mutations
+    - `splice_junction`: mutation in a splice junction
+    - `not_targeting`: no mutations found in CDS or splice junctions
+In case an edited allele leads to multiple editing events that have different
+variant label, the most detrimental mutation
+(splice junction over nonsense, nonsense over missense,
+missense over silent) is reported. 
+- The `positions` column lists the amino acid numbers where mutations occur. 
+For alleles that are labeled as `splice_junction`, it lists the closest amino 
+acid. 
+- The `aa` column reports the result edited amino acid sequence. 
+
+
+The alleles object also contains useful metadata information that can be
+accessed using the `metadata` accessor function:
+
+```{r}
+metadata(alleles)
+```
+
+The `wildtypeAllele` reports the unedited nucleotide sequence of the
+region specified by the editing window (with respect to the gRNA PAM site).
+It is always reported from the 5' to 3' direction on the strand corresponding 
+to the gRNA strand. The `start` and `end` specify the corresponding 
+coordinates on the transcript. 
+
+
+# gRNA-level aggregate variant scores
+
+For both analysis and visualization purposes, it is often useful to label gRNAs 
+with a score and label that represents the most likely functional consequence
+of that gRNA, for a given base editor. The `addEditedAlleles` function described
+above also implements a gRNA-level aggregate scoring scheme that adds 
+several gRNA-level aggregate scores to the `GuideSet` object:
+
+```{r}
+head(guideSet)
+```
+
+- `score_missense_single`: sum of probability scores across all alleles with a single missense mutation
+- `score_nonsense_single`: sum of probability scores across all alleles with a single nonsense mutation
+- `score_missense_multi`: sum of probability scores across all alleles with multiple missense mutations
+- `score_nonsense_multi`: sum of probability scores across all alleles with multiple nonsense mutations
+- `score_silent`: sum of probability scores across all alleles with only silent mutations
+- `score_splice_junction`: sum of probability scores across all alleles with a splice junction mutation
+- `score_missense`: `score_missense_single` and `score_missense_multiple` added together
+- `score_nonsense`: `score_nonsense_single` and `score_nonsense_multiple` added together
+- `maxVariantScore`: maximum score across all score columns
+- `maxVariant`: variant label for the maximum score
+- `aapos`: amino acid position for the top predicted allele for the variant category that has the maximum score
+
+For both gRNAs, the highest scores are missense, and therefore the `maxVariant` is set to missense. 
+
+# Allele scoring algorithm in details
+
+
+
+
+
+# Session Info
+
+```{r}
+sessionInfo()
+```
+
+# References
+
