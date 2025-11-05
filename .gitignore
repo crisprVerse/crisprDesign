@@ -6,3 +6,4 @@ inst/paired
 vignettes/intro_paper*
 inst/be
 R/rankSpacers_old.R
+.Rhistory
