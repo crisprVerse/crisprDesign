@@ -3,7 +3,7 @@
 \encoding{UTF-8}
 
 
-\section{Version 1.11.2}{
+\section{Version 1.13.1}{
 \itemize{
     \item Added more annotation columns to the addEditedAlleles function.
 }
