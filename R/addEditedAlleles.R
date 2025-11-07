@@ -120,11 +120,10 @@ addEditedAlleles <- function(guideSet,
         guideSet <- .addSummaryFromEditingAlleles(guideSet,
             minMutationScore=minMutationScore)
         guideSet <- .addAminoAcids(guideSet, txTable=txTable)
+        guideSet <- .addAAChanges(guideSet)
     }
     return(guideSet)
 }
-
-
 
 
 
@@ -206,6 +205,21 @@ addEditedAlleles <- function(guideSet,
     pos <- apply(scores, 1, which.max)
     maxes <- apply(scores, 1, max)
 
+    # We will ignore silent mutations if any of the other 
+    # scores is above the mut threshold
+    variantCol <- which(classes %in% c("silent"))
+    cands <- which(pos %in% variantCol) 
+    scores1 <- scores[cands, "score_nonsense"]
+    scores2 <- scores[cands, "score_missense"]
+    scores3 <- scores[cands, "score_splice_junction"]
+    good <- scores1<minMutationScore & scores2<minMutationScore & scores3<minMutationScore
+    badCands  <- cands[!good]
+    if (length(badCands)>0){
+        scores[badCands, variantCol] <- 0
+    }
+    pos <- apply(scores, 1, which.max)
+    maxes <- apply(scores, 1, max)
+    
 
     # Step 1: let's look at missense_multi max variants
     variantCol <- which(classes %in% c("missense_multi"))
@@ -213,6 +227,8 @@ addEditedAlleles <- function(guideSet,
     scores1 <- scores[cands, "score_nonsense"]
     scores2 <- scores[cands, "score_splice_junction"]
     good <- scores1<minMutationScore & scores2<minMutationScore
+    # If both nonsense and splice scores are low, then we call it a missense
+    # otherwise it will stay "unassigned" so that manual checking is done. 
     goodCands <- cands[good]
     maxVariant[goodCands] <- "missense"
     maxScore[goodCands] <- maxes[goodCands]
@@ -344,6 +360,40 @@ addEditedAlleles <- function(guideSet,
     return(guideSet)
 }
 
+
+
+
+.addAAChanges <- function(guideSet){
+    alleles <- mcols(guideSet)$editedAlleles
+    out <- lapply(alleles, function(x){
+        if (nrow(x)==0){
+            aaScores <- NA_character_
+        } else {
+            changes <- strsplit(x$changes, split=";")
+            changes <- lapply(changes, function(x){
+                x[!is.na(x)]
+            })
+            allChanges <- unique(unlist(changes))
+            allChanges <- allChanges[!is.na(allChanges)]
+            changeScores <- matrix(0,nrow(x), length(allChanges))
+            colnames(changeScores) <- allChanges
+            for (k in 1:length(changes)){
+                wh <- match(changes[[k]], colnames(changeScores))
+                if (length(wh)>0){
+                    changeScores[k, wh] <- x$score[k]
+                }
+            }
+            aaScores <- sort(colSums(changeScores), decreasing=TRUE)
+            aaScores <- paste0(names(aaScores), "(",round(aaScores,2), ")")
+            aaScores <- paste0(aaScores, collapse=";")
+        }
+        aaScores
+    })
+    out <- unlist(out)
+    out[out=="()"] <- NA
+    guideSet$aaChanges <- out
+    return(guideSet)
+}
 
 
 
@@ -594,6 +644,7 @@ addEditedAlleles <- function(guideSet,
         editedAlleles$n_nonsense <- integer(0)
         editedAlleles$n_missense <- integer(0)
         editedAlleles$positions <- character(0)
+        editedAlleles$changes <- character(0)
         return(editedAlleles)
     }
     
@@ -631,7 +682,7 @@ addEditedAlleles <- function(guideSet,
         } else {
             editedAlleles$positions <- NA_character_
         }
-
+        editedAlleles$changes <- NA_character_
         return(editedAlleles)
     }
 
@@ -642,9 +693,12 @@ addEditedAlleles <- function(guideSet,
         wtSeq <- substr(metadata(editedAlleles)$wildtypeAllele, start, end)
         editedSeqs <- substr(as.character(editedAlleles$seq), start, end)
         nedits <- adist(editedSeqs, wtSeq)[,1]
+
+        # Only calling splice if there are actual edits:
         editedAlleles$variant[nedits>0] <- "splice_junction"
         coordinate <- .closestCdsCoordinate(nonoverlapPositions,txTable$pos)
-        editedAlleles$positions <- txTable$aa_number[match(coordinate, txTable$pos)]
+        editedAlleles$positions[nedits>0] <- txTable$aa_number[match(coordinate, txTable$pos)][nedits>0]
+        editedAlleles$changes[nedits>0] <- NA_character_
     }
     
 
@@ -705,6 +759,26 @@ addEditedAlleles <- function(guideSet,
         return(pos)
     }, FUN.VALUE=character(1))
 
+    changes <- vapply(seq_len(nrow(nucs)), function(k){
+        editedNuc <- txTable$nuc
+        editedNuc[wh] <- nucs[k,]
+        editedNuc <- DNAString(paste0(editedNuc, collapse=""))
+        protein_edited <- as.vector(translate(editedNuc))
+
+        mismatches <- which(protein_edited!=protein)
+        nmismatches <- length(mismatches)
+        if (nmismatches==0){
+            out <- NA_character_
+        } else {
+            wtAas <- as.character(protein[mismatches])
+            mutAas <- as.character(protein_edited[mismatches])
+            out <- paste0(wtAas, mismatches, mutAas)
+            out <- paste0(out, collapse=";")
+        }
+        return(out)
+    }, FUN.VALUE=character(1))
+
+
 
 
     ns <- lapply(seq_len(nrow(nucs)), function(k){
@@ -740,22 +814,35 @@ addEditedAlleles <- function(guideSet,
         return(aas)
     }, FUN.VALUE=character(1))
 
+
     nonspliceStuff <- which(editedAlleles$variant!="splice_junction")
     if (length(nonspliceStuff)>0){
         editedAlleles$variant[nonspliceStuff]   <- effects[nonspliceStuff]
         editedAlleles$positions[nonspliceStuff] <- positions[nonspliceStuff]
+        editedAlleles$changes[nonspliceStuff]   <- changes[nonspliceStuff]
     }
     editedAlleles$aa <- aminos
     editedAlleles$n_mismatches <- unlist(ns$n_mismatches)
     editedAlleles$n_nonsense <- unlist(ns$n_nonsense)
     editedAlleles$n_missense <- unlist(ns$n_missense)
     if (length(nonspliceStuff)>0){
-        editedAlleles$variant[nonspliceStuff][editedAlleles$n_missense[nonspliceStuff]>1] <- "missense_multi"
-        editedAlleles$variant[nonspliceStuff][editedAlleles$n_nonsense[nonspliceStuff]>1] <- "nonsense_multi"        
+        hasNonSense <- editedAlleles$n_nonsense[nonspliceStuff]==1 
+        hasMultipleNonSense <- editedAlleles$n_nonsense[nonspliceStuff]>1
+        hasMissense <- editedAlleles$n_missense[nonspliceStuff]==1
+        hasMultipleMissense <- editedAlleles$n_missense[nonspliceStuff]>1
+
+        # Calling non sense first:
+        editedAlleles$variant[nonspliceStuff][hasMultipleNonSense] <- "nonsense_multi"
+        editedAlleles$variant[nonspliceStuff][hasNonSense] <- "nonsense"
+        
+        # Then calling missense
+        editedAlleles$variant[nonspliceStuff][hasMissense & !hasNonSense & !hasMultipleNonSense] <- "missense"
+        editedAlleles$variant[nonspliceStuff][hasMultipleMissense & !hasNonSense & !hasMultipleNonSense] <- "missense_multi"
     }
 
     # dealing with non-targeting
     editedAlleles$positions[editedAlleles$variant=="not_targeting"] <- NA
+    editedAlleles$changes[editedAlleles$variant=="not_targeting"] <- NA
 
 
     # dealing with silent mutations
@@ -769,6 +856,7 @@ addEditedAlleles <- function(guideSet,
         coords <- overlapPositions[indexes]
         positions <- txTable$aa_number[match(coords, txTable$pos)]
         editedAlleles$positions[silentStuff] <- positions
+        editedAlleles$changes[silentStuff] <- NA
     }
 
     # Adding wildtype amino:
