@@ -3,6 +3,13 @@
 \encoding{UTF-8}
 
 
+\section{Version 1.11.2}{
+\itemize{
+    \item Added more annotation columns to the addEditedAlleles function.
+}
+}
+
+
 \section{Version 1.7.1}{
 \itemize{
     \item Fixed getTssObjectFromTxObject for negative strand.
