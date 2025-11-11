@@ -119,13 +119,13 @@ addEditedAlleles <- function(guideSet,
         }
         guideSet <- .addSummaryFromEditingAlleles(guideSet,
             minMutationScore=minMutationScore)
-        guideSet <- .addAminoAcids(guideSet, txTable=txTable)
         guideSet <- .addAAChanges(guideSet)
+        guideSet <- .addAminoAcids(guideSet, txTable=txTable, minMutationScore=minMutationScore)
     }
     return(guideSet)
 }
 
-
+ 
 
 
 
@@ -310,7 +310,9 @@ addEditedAlleles <- function(guideSet,
 }
 
 
-.addAminoAcids <- function(guideSet, txTable){
+
+
+.addAminoAcids <- function(guideSet, txTable, minMutationScore){
     editedAlleles <- mcols(guideSet)[["editedAlleles"]]
     variants <- guideSet$maxVariant
     aaPos <- vapply(1:length(guideSet), function(i){
@@ -324,15 +326,35 @@ addEditedAlleles <- function(guideSet,
                 pos <- as.character(alleles[1,"positions"])
             } else {
                 if (variant=="missense"){
-                    cats <- c("missense_single", "missense", "missense_multi")
+                    if (guideSet$score_missense_multi[i]>=minMutationScore){
+                        cats <- c("missense_multi")    
+                        alleles <- alleles[alleles$variant %in% cats,,drop=FALSE]
+                        pos <- as.character(alleles[,"positions"])
+                        pos <- sort(unique(unlist(strsplit(pos, split=";"))))
+                        pos <- paste0(pos, collapse=";")
+                    } else {
+                        cats <- c("missense_single", "missense", "missense_multi")    
+                        alleles <- alleles[alleles$variant %in% cats,,drop=FALSE]
+                        pos <- as.character(alleles[1,"positions"])
+                    }
                 } else if (variant=="nonsense"){
-                    cats <- c("nonsense_single", "nonsense", "nonsense_multi")
+                    if (guideSet$score_nonsense_multi[i]>=minMutationScore){
+                        cats <- c("nonsense_multi")    
+                        alleles <- alleles[alleles$variant %in% cats,,drop=FALSE]
+                        pos <- as.character(alleles[,"positions"])
+                        pos <- sort(unique(unlist(strsplit(pos, split=";"))))
+                        pos <- paste0(pos, collapse=";")
+                    } else {
+                        cats <- c("nonsense_single", "nonsense", "nonsense_multi")    
+                        alleles <- alleles[alleles$variant %in% cats,,drop=FALSE]
+                        pos <- as.character(alleles[1,"positions"])
+                    }
                 } else {
                     cats <- variant
+                     alleles <- alleles[alleles$variant %in% cats,,drop=FALSE]
+                    alleles <- alleles[order(-alleles$score),,drop=FALSE]
+                    pos <- as.character(alleles[1,"positions"])
                 }
-                alleles <- alleles[alleles$variant %in% cats,,drop=FALSE]
-                alleles <- alleles[order(-alleles$score),,drop=FALSE]
-                pos <- as.character(alleles[1,"positions"])
             }
         } else {
             if (variant=="not_targeting"){
