@@ -8,7 +8,7 @@ TxDb2GRangesList(
   txdb,
   standardChromOnly = TRUE,
   genome = NULL,
-  seqlevelsStyle = c("UCSC", "NCBI")
+  seqlevelsStyle = c("UCSC", "NCBI", "custom")
 )
 }
 \arguments{
@@ -22,7 +22,8 @@ added to \code{genome(txdb)}.}
 
 \item{seqlevelsStyle}{String specifying which style should be used
 for sequence names. "UCSC" by default (including "chr").
-"NCBI" will omit "chr" in the sequence names.}
+"NCBI" will omit "chr" in the sequence names. 
+"custom" will leave the sequence names unchanged.}
 }
 \value{
 A named \linkS4class{GRangesList} of length 7 with the

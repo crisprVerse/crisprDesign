@@ -76,6 +76,7 @@ getTxDb <- function(file=NA,
 #' @param seqlevelsStyle String specifying which style should be used
 #'     for sequence names. "UCSC" by default (including "chr").
 #'     "NCBI" will omit "chr" in the sequence names. 
+#'     "custom" will leave the sequence names unchanged. 
 #' @return A named \linkS4class{GRangesList} of length 7 with the
 #'     following elements:
 #'     \code{transcripts}, \code{exons}, \code{introns}, \code{cds},
@@ -108,7 +109,7 @@ getTxDb <- function(file=NA,
 TxDb2GRangesList <- function(txdb,
                              standardChromOnly=TRUE,
                              genome=NULL,
-                             seqlevelsStyle=c("UCSC", "NCBI")
+                             seqlevelsStyle=c("UCSC", "NCBI", "custom")
 ){
     txdb <- .validateTxDb(txdb)
     seqlevelsStyle <- match.arg(seqlevelsStyle)

@@ -488,19 +488,21 @@ compact <- function(x) {
 # the one from GenomeInfoDb does not work consistently
 #' @importFrom Seqinfo seqlevels seqlevels<-
 .changeSeqlevelsStyle <- function(x,
-                                  seqlevelsStyle=c("UCSC", "NCBI")
+                                  seqlevelsStyle=c("UCSC", "NCBI", "custom")
 ){
     seqlevelsStyle <- match.arg(seqlevelsStyle)
     levels <- seqlevels(x)
     if (seqlevelsStyle=="NCBI"){
         levels <- gsub("^chr", "", levels)
-        levels <- gsub("^M$", "MT", levels)
+        out <- gsub("^M$", "MT", levels)
     } else if (seqlevelsStyle=="UCSC"){
         missing <- !grepl("^chr", levels)
         levels[missing] <- paste0("chr", levels[missing])
-        levels <- gsub("^chrMT$", "chrM", levels)
+        out <- gsub("^chrMT$", "chrM", levels)
+    } else if (seqlevelsStyle=="custom"){
+        out <- levels
     }
-    seqlevels(x) <- levels
+    seqlevels(x) <- out
     return(x)
 }
 
