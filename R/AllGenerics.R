@@ -184,11 +184,6 @@ setGeneric("addPamScores",
            function(object, ...) standardGeneric("addPamScores"))
 
 
-#' @rdname addCrispraiScores
-#' @export
-setGeneric("addCrispraiScores",
-           function(object, ...) standardGeneric("addCrispraiScores"))
-
 
 #' @rdname addCompositeScores
 #' @export

@@ -22,6 +22,10 @@
 #'     and "RNAplfold". Each list element is a string specifying
 #'     the path of the binary. If NULL (default), binaries must be
 #'     available on the PATH.
+#' @param condaEnv String specifying the path of the conda environment needed 
+#'     to run the scoring calculations. See the crisprScore vignette for
+#'     instructions on how to build the environment. 
+#'
 #' @param ... Additional arguments, currently ignored.
 #' 
 #' @return \code{guideSet} with columns of on-target scores appended in
@@ -41,6 +45,7 @@
 #' 
 #' @export
 #' @rdname addOnTargetScores
+#' @importFrom reticulate use_condaenv
 setMethod("addOnTargetScores", "GuideSet",
     function(object,
              enzyme=c("WT", "ESP", "HF"),
@@ -48,18 +53,20 @@ setMethod("addOnTargetScores", "GuideSet",
              tracrRNA=c("Hsu2013","Chen2013"),
              directRepeat="aacccctaccaactggtcggggtttgaaac",
              binaries=NULL,
-             methods=c("azimuth",
-                       "ruleset1",
+             methods=c("ruleset1",
                        "ruleset3",
                        "lindel",
-                       "deepcpf1",
                        "deephf",
-                       "deepspcas9",
                        "enpamgb",
                        "casrxrf",
                        "crisprater",
-                       "crisprscan")
+                       "crisprscan"),
+             condaEnv=NULL
 ){
+    if (!is.null(condaEnv)){
+        use_condaenv(condaEnv, required = TRUE)
+    }
+    
     object <- .validateGuideSet(object)
     enzyme <- match.arg(enzyme)
     promoter <- match.arg(promoter)
@@ -109,18 +116,17 @@ setMethod("addOnTargetScores", "PairedGuideSet",
                    tracrRNA=c("Hsu2013","Chen2013"),
                    directRepeat="aacccctaccaactggtcggggtttgaaac",
                    binaries=NULL,
-                   methods=c("azimuth",
-                             "ruleset1",
+                   methods=c("ruleset1",
                              "ruleset3",
                              "lindel",
-                             "deepcpf1",
                              "deephf",
-                             "deepspcas9",
                              "enpamgb",
                              "crisprater",
                              "crisprscan",
-                             "casrxrf")
+                             "casrxrf"),
+                   condaEnv=NULL
 ){
+    use_condaenv(condaEnv, required = TRUE)
     object <- .validatePairedGuideSet(object)
     unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
     unifiedGuideSet <- addOnTargetScores(unifiedGuideSet,
@@ -129,7 +135,8 @@ setMethod("addOnTargetScores", "PairedGuideSet",
                                          tracrRNA=tracrRNA,
                                          methods=methods,
                                          directRepeat=directRepeat,
-                                         binaries=binaries)
+                                         binaries=binaries,
+                                         condaEnv=condaEnv)
     out <- .addColumnsFromUnifiedGuideSet(object,
                                           unifiedGuideSet)
     return(out)
@@ -160,25 +167,22 @@ setMethod("addOnTargetScores", "NULL", function(object){
     data(enAsCas12a, package="crisprBase", envir=environment())
     data(CasRx, package="crisprBase", envir=environment())
     if (.identicalNucleases(crisprNuclease, SpCas9)){
-        choices <- c("azimuth",
-                     "deephf",
-                     "deepspcas9",
+        choices <- c("deephf",
                      "lindel",
                      "ruleset1",
                      "ruleset3",
                      "crisprater",
                      "crisprscan")
     } else if (.identicalNucleases(crisprNuclease, AsCas12a)){
-        choices <- c("deepcpf1")
+        choices <- c("")
     } else if (.identicalNucleases(crisprNuclease, enAsCas12a)){
-        choices <- c("deepcpf1", "enpamgb")
+        choices <- c("enpamgb")
     } else if (.identicalNucleases(crisprNuclease, CasRx)){
         choices <- c("casrxrf")
     } else {
         stop("No scoring method found for crisprNuclease \n")
     }
     badMethods <- setdiff(methods, scoringMethodsInfo$method)
-    #badMethods <- setdiff(badMethods, "casrxrf")
     if (length(badMethods) > 0){
         stop("Scoring methods not recognized: ",
              paste(badMethods, collapse=", "))
@@ -219,11 +223,8 @@ setMethod("addOnTargetScores", "NULL", function(object){
 #' 
 #' @importFrom utils data
 #' @importFrom crisprScore getDeepHFScores
-#' @importFrom crisprScore getDeepSpCas9Scores 
-#' @importFrom crisprScore getAzimuthScores
 #' @importFrom crisprScore getRuleSet1Scores
 #' @importFrom crisprScore getRuleSet3Scores
-#' @importFrom crisprScore getDeepCpf1Scores
 #' @importFrom crisprScore getLindelScores
 #' @importFrom crisprScore getEnPAMGBScores
 #' @importFrom crisprScore getCRISPRscanScores
@@ -264,10 +265,7 @@ setMethod("addOnTargetScores", "NULL", function(object){
                                                           tracrRNA=tracrRNA)
             } else {
               scoreFun <- switch(method,
-                                 "azimuth"=crisprScore::getAzimuthScores,
                                  "ruleset1"=crisprScore::getRuleSet1Scores,
-                                 "deepcpf1"=crisprScore::getDeepCpf1Scores,
-                                 "deepspcas9"=crisprScore::getDeepSpCas9Scores,
                                  "lindel"=crisprScore::getLindelScores,
                                  "enpamgb"=crisprScore::getEnPAMGBScores,
                                  "crisprater"=crisprScore::getCRISPRaterScores,

@@ -23,9 +23,6 @@ designCompleteAnnotation(
   canonical_ontarget = TRUE,
   canonical_offtarget = FALSE,
   all_alignments = TRUE,
-  fastaFile = NULL,
-  chromatinFiles = NULL,
-  geneCol = "gene_symbol",
   conservationFile = NULL,
   nucExtension = 9,
   binaries = NULL,
@@ -91,21 +88,6 @@ during the off-target search? TRUE by default.}
 
 \item{all_alignments}{Should all all possible alignments be returned?
 TRUE by default.}
-
-\item{fastaFile}{String specifying fasta file of the hg38 genome. Only 
-used for CRISPRa/i modality with hg38 genome and SpCas9 nuclease.
-This is needed to generate the CRISPRai scores. See the function
-\code{addCrispraiScores} for more details.}
-
-\item{chromatinFiles}{Named character vector of length 3 specifying
-BigWig files containing chromatin accessibility data. Only 
-used for CRISPRa/i modality with hg38 genome and SpCas9 nuclease.
-This is needed to generate the CRISPRai scores. See the function
-\code{addCrispraiScores} for more details.}
-
-\item{geneCol}{String specifying the column in the \code{tssObject} 
-to be used to specify the gene name for the \code{addCrispraiScores}
-function. "gene_symbol" by default.}
 
 \item{conservationFile}{String specifing the BigWig file containing
 conservation scores.}

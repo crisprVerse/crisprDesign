@@ -348,25 +348,6 @@ test_that("addTxTable handles ntcs in the GuideSet gracefully", {
 })
 
 
-## uses local files
-test_that("addCrispraiScores handles ntcs in the GuideSet gracefully", {
-    # gr <- queryTss(tssObjectExample,
-    #                "gene_symbol",
-    #                "IQSEC3")
-    # gs <- findSpacers(gr,
-    #                   crisprNuclease=SpCas9,
-    #                   bsgenome=BSgenome.Hsapiens.UCSC.hg38)
-    # gs <- addNtcs(head(gs), all_ntcs[1])
-    # chromatinFiles <- "~/crisprIndices/chromatin/hg38"
-    # chromatinFiles <- file.path(chromatinFiles, list.files(chromatinFiles))
-    # names(chromatinFiles) <- c("dnase", "faire", "mnase")
-    # fastaFile <- "~/crisprIndices/genomes/hg38/hg38.fa.gz"
-    # addCrispraiScores(gs,
-    #                   gr=gr,
-    #                   tssObject=tssObjectExample,
-    #                   chromatinFiles=chromatinFiles,
-    #                   fastaFile=fastaFile)
-})
 
 
 test_that("addEditedAlleles handles ntcs in the GuideSet gracefully", {

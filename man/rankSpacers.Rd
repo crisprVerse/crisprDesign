@@ -61,7 +61,7 @@ For each nuclease, we rank gRNAs based on several rounds of priority.
     Within each bin, gRNAs are ranked by a composite 
     on-target activity rank to prioritize active gRNAs. The composite
     on-target activity rank is calculated by taking the average rank
-    across the DeepHF and DeepSpCas9 scores for CRISPRko.
+    across the DeepHF and RuleSet3 scores for CRISPRko.
     For CRISPRa or CRISPRi, the CRISPRai scores are used if available.
 
     The process is identical for enAsCas12a, with the exception that the 

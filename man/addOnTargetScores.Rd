@@ -16,8 +16,9 @@ addOnTargetScores(object, ...)
   tracrRNA = c("Hsu2013", "Chen2013"),
   directRepeat = "aacccctaccaactggtcggggtttgaaac",
   binaries = NULL,
-  methods = c("azimuth", "ruleset1", "ruleset3", "lindel", "deepcpf1", "deephf",
-    "deepspcas9", "enpamgb", "casrxrf", "crisprater", "crisprscan")
+  methods = c("ruleset1", "ruleset3", "lindel", "deephf", "enpamgb", "casrxrf",
+    "crisprater", "crisprscan"),
+  condaEnv = NULL
 )
 
 \S4method{addOnTargetScores}{PairedGuideSet}(
@@ -27,8 +28,9 @@ addOnTargetScores(object, ...)
   tracrRNA = c("Hsu2013", "Chen2013"),
   directRepeat = "aacccctaccaactggtcggggtttgaaac",
   binaries = NULL,
-  methods = c("azimuth", "ruleset1", "ruleset3", "lindel", "deepcpf1", "deephf",
-    "deepspcas9", "enpamgb", "crisprater", "crisprscan", "casrxrf")
+  methods = c("ruleset1", "ruleset3", "lindel", "deephf", "enpamgb", "crisprater",
+    "crisprscan", "casrxrf"),
+  condaEnv = NULL
 )
 
 \S4method{addOnTargetScores}{NULL}(object)
@@ -61,6 +63,10 @@ available on the PATH.}
 
 \item{methods}{Character vector specifying method names for on-target
 efficiency prediction algorithms.}
+
+\item{condaEnv}{String specifying the path of the conda environment needed 
+to run the scoring calculations. See the crisprScore vignette for
+instructions on how to build the environment.}
 }
 \value{
 \code{guideSet} with columns of on-target scores appended in

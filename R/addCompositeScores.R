@@ -35,19 +35,14 @@
 #' @rdname addCompositeScores
 setMethod("addCompositeScores", "GuideSet",
     function(object,
-             methods=c("azimuth",
-                       "ruleset1",
+             methods=c("ruleset1",
                        "ruleset3",
                        "lindel",
-                       "deepcpf1",
                        "deephf",
-                       "deepspcas9",
                        "enpamgb",
                        "casrxrf",
                        "crisprater",
-                       "crisprscan",
-                       "crispra", 
-                       "crispri"),
+                       "crisprscan"),
              scoreName="score_composite"
 ){
     object <- .validateGuideSet(object)
@@ -106,19 +101,14 @@ setMethod("addCompositeScores", "GuideSet",
 #' @export
 setMethod("addCompositeScores", "PairedGuideSet",
           function(object,
-                   methods=c("azimuth",
-                             "ruleset1",
+                   methods=c("ruleset1",
                              "ruleset3",
                              "lindel",
-                             "deepcpf1",
                              "deephf",
-                             "deepspcas9",
                              "enpamgb",
                              "crisprater",
                              "crisprscan",
-                             "casrxrf",
-                             "crispra", 
-                             "crispri"),
+                             "casrxrf"),
                    scoreName="score_composite"
 ){
     object <- .validatePairedGuideSet(object)

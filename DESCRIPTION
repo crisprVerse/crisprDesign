@@ -1,6 +1,6 @@
 Package: crisprDesign
 Title: Comprehensive design of CRISPR gRNAs for nucleases and base editors
-Version: 1.13.2
+Version: 1.13.4
 Authors@R: c(
     person("Jean-Philippe", "Fortin", email = "fortin946@gmail.com", role = c("aut", "cre")),
     person("Luke", "Hoberecht", email = "lukehob3@gmail.com", role = c("aut"))
@@ -22,7 +22,7 @@ Imports:
     Biostrings (>= 2.77.2),
     BSgenome (>= 1.77.1),
     crisprBowtie (>= 0.99.8),
-    crisprScore (>= 1.1.6),
+    crisprScore (>= 1.15.2),
     GenomeInfoDb (>= 1.45.7),
     GenomicFeatures (>= 1.61.4),
     GenomicRanges (>= 1.61.1),
@@ -30,6 +30,7 @@ Imports:
     Matrix,
     MatrixGenerics,
     methods,
+    reticulate,
     rtracklayer (>= 1.69.1),
     S4Vectors,
     Seqinfo,

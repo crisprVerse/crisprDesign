@@ -360,9 +360,9 @@ addEditedAlleles <- function(guideSet,
             if (variant=="not_targeting"){
                 pos <- NA_character_
             } else {
-                strand <- as.character(strand(gs)[i])
-                baseEditor <- crisprNuclease(gs)
-                pam_site <- pamSites(gs)[i]
+                strand <- as.character(strand(guideSet)[i])
+                baseEditor <- crisprNuclease(guideSet)
+                pam_site <- pamSites(guideSet)[i]
                 ws <- editingWeights(baseEditor)
                 maxes <- apply(ws,1, max, na.rm=TRUE)
                 sub <- names(maxes)[which.max(maxes)]
