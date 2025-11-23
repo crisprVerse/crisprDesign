@@ -3,6 +3,12 @@
 \encoding{UTF-8}
 
 
+\section{Version 1.13.4}{
+\itemize{
+    \item Fixed the accessor editedAlleles.
+}
+}
+
 \section{Version 1.13.1}{
 \itemize{
     \item Added more annotation columns to the addEditedAlleles function.

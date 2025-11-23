@@ -770,7 +770,7 @@ setMethod("editedAlleles", "GuideSet",
             split_factor <- names(object)
         }
         if (!unlist){
-            out <- S4Vectors::split(out, f=split_factor)[split_factor]
+            out <- S4Vectors::split(out, f=rownames(out))[split_factor]
         }
     }
     return(out)
