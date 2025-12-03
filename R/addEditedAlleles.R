@@ -878,7 +878,10 @@ addEditedAlleles <- function(guideSet,
         coords <- overlapPositions[indexes]
 
         # Dealing with silent mutations outside of CDS:
-        coords[is.na(coords)] <- .closestCdsCoordinate(nonoverlapPositions,txTable$pos)
+        if (length(nonoverlapPositions)>0){
+            coords[is.na(coords)] <- .closestCdsCoordinate(nonoverlapPositions,txTable$pos)
+        }
+        
         positions <- txTable$aa_number[match(coords, txTable$pos)]
         editedAlleles$positions[silentStuff] <- positions
         editedAlleles$changes[silentStuff] <- NA
