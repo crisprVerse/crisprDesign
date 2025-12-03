@@ -719,7 +719,7 @@ addEditedAlleles <- function(guideSet,
         # Only calling splice if there are actual edits:
         editedAlleles$variant[nedits>0] <- "splice_junction"
         coordinate <- .closestCdsCoordinate(nonoverlapPositions,txTable$pos)
-        editedAlleles$positions[nedits>0] <- txTable$aa_number[match(coordinate, txTable$pos)][nedits>0]
+        editedAlleles$positions[nedits>0] <- txTable$aa_number[match(coordinate, txTable$pos)]
         editedAlleles$changes[nedits>0] <- NA_character_
     }
     
@@ -876,6 +876,9 @@ addEditedAlleles <- function(guideSet,
             mms <- which(a!=wiltypeNucs)[1]    
         }, FUN.VALUE=1)
         coords <- overlapPositions[indexes]
+
+        # Dealing with silent mutations outside of CDS:
+        coords[is.na(coords)] <- .closestCdsCoordinate(nonoverlapPositions,txTable$pos)
         positions <- txTable$aa_number[match(coords, txTable$pos)]
         editedAlleles$positions[silentStuff] <- positions
         editedAlleles$changes[silentStuff] <- NA
