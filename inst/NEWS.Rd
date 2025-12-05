@@ -2,6 +2,13 @@
 \title{crisprDesign News}
 \encoding{UTF-8}
 
+
+\section{Version 1.13.8}{
+\itemize{
+    \item SNPs can now be annotated from a GRanges object. 
+}
+}
+
 \section{Version 1.13.6}{
 \itemize{
     \item Fixed splicing junction aa annotation when low scores

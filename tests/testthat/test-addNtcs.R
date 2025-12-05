@@ -218,7 +218,7 @@ test_that("addSNPAnnotation handles ntcs in GuideSet gracefully", {
     VCF_PATH <- system.file("extdata",
                             file="common_snps_dbsnp151_example.vcf.gz",
                             package="crisprDesign")
-    expect_error(res <- addSNPAnnotation(out, vcf=VCF_PATH),
+    expect_error(res <- addSNPAnnotation(out, snpObject=VCF_PATH),
                  regexp=NA)
     expect_error(snps(res),
                  regexp=NA)

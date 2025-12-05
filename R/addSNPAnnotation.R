@@ -5,8 +5,8 @@
 #' 
 #' @param object A \linkS4class{GuideSet} object or a 
 #'     \linkS4class{PairedGuideSet} object.
-#' @param vcf Either a character string specfying a path to a VCF file
-#'     or connection, or a \linkS4class{VCF} object.
+#' @param snpObject Either a character string specfying a path to a VCF file
+#'     or a GRanges object.
 #' @param maf Minimum minor allele frequency to report (for a least one source
 #'     among 1000Genomes and TOPMED). Must be between 0 and 1 (exclusive).
 #' @param ... Additional arguments, currently ignored.
@@ -14,7 +14,7 @@
 #' @return \code{guideSet} appended with \code{hasSNP} column and \code{snps}
 #'     list-column, both stored in \code{mcols{guideSet}}.
 #' 
-#' @seealso \code{link{snpAnnotation}} to retrieve an existing SNP annotation
+#' @seealso \code{link{snps}} to retrieve an existing SNP annotation
 #'     stored in a \linkS4class{GuideSet} object. See details section for a 
 #'     description of the different columns.
 #' 
@@ -43,7 +43,7 @@
 #'                    file="common_snps_dbsnp151_example.vcf.gz",
 #'                    package="crisprDesign")
 #' data(guideSetExample, package="crisprDesign")
-#' guideSet <- addSNPAnnotation(guideSetExample, vcf=vcf)
+#' guideSet <- addSNPAnnotation(guideSetExample, snpObject=vcf)
 #' 
 #' @rdname addSNPAnnotation
 #' @export
@@ -51,7 +51,7 @@
 setMethod("addSNPAnnotation",
           "GuideSet", 
           function(object,
-                   vcf,
+                   snpObject,
                    maf=0.01
 ){
     stopifnot("maf must be a numeric value in the range [0, 1)" = {
@@ -61,15 +61,22 @@ setMethod("addSNPAnnotation",
             maf < 1
     })
     object <- .validateGuideSet(object)
-    vcf <- .validateVcf(vcf, object)
-    if (!is.null(vcf)){   
+    snpObject <- .validateSnpObject(snpObject, object)
+
+
+    if (!is.null(snpObject)){   
         snps <- .getSNPAnnotation(guideSet=object,
                                   maf=maf,
-                                  vcf=vcf)
-        splitFactor <- factor(BiocGenerics::rownames(snps),
-                              levels=unique(names(object)))
-        snps <- S4Vectors::split(snps, f=splitFactor)
+                                  snpObject=snpObject)
+        if (!is.null(snps)){
+            splitFactor <- factor(BiocGenerics::rownames(snps),
+                                  levels=unique(names(object)))
+            snps <- S4Vectors::split(snps, f=splitFactor)
+        }
     } else {
+        snps <- NULL
+    }
+    if (is.null(snps)){
         snps <- lapply(seq_along(object), .createEmptySnps)
         names(snps) <- names(object)
     }
@@ -87,13 +94,13 @@ setMethod("addSNPAnnotation",
 setMethod("addSNPAnnotation",
           "PairedGuideSet", 
           function(object,
-                   vcf,
+                   snpObject,
                    maf=0.01
 ){
     object <- .validatePairedGuideSet(object)
     unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
     unifiedGuideSet <- addSNPAnnotation(unifiedGuideSet,
-                                        vcf=vcf,
+                                        snpObject=snpObject,
                                         maf=maf)
     out <- .addColumnsFromUnifiedGuideSet(object,
                                           unifiedGuideSet)
@@ -109,6 +116,94 @@ setMethod("addSNPAnnotation", "NULL", function(object){
 })
 
 
+
+
+#.dropNtcs <- crisprDesign:::.dropNtcs
+#guideSet
+#snpObject <- readRDS("../../crisprVerseInputs/snps/gr.snps.db155.rds")
+#guideSet=guideSetExample
+
+.getSNPAnnotation <- function(guideSet, snpObject, maf){
+
+    guideSet <- .dropNtcs(guideSet)
+    genome <- .getGenome(guideSet)
+    stopifnot("SNPs are only applicable for hg38 (human) genome" = {
+        genome == "hg38"
+    })
+
+    # MtDNA not in tabix index
+    validChrs <- paste0("chr", c(seq_len(22),"X","Y"))
+    validChrs <- as.character(Seqinfo::seqnames(guideSet)) %in% validChrs
+    guideSet <- guideSet[validChrs]
+
+
+    if (is(snpObject, "GenomicRanges")){
+        out <- .getSNPAnnotation_granges(guideSet=guideSet, maf=maf, snpObject=snpObject)
+    } else if (is(snpObject, "VCF")){
+        out <- .getSNPAnnotation_vcf(guideSet=guideSet, maf=maf, vcf=snpObject)
+    } else {
+        stop("snpObject must be either a VCF file or a GRanges object")
+    }
+
+    out <- DataFrame(out)
+    metadata(out)$crisprNuclease <- crisprNuclease(guideSet)
+    metadata(out)$genome <- "hg38"
+    return(out) 
+}
+
+
+.getSNPAnnotation_granges <- function(guideSet, maf, snpObject){
+
+        guideSet <- .dropNtcs(guideSet)
+        validChrs <- paste0("chr", c(seq_len(22), "X", "Y"))
+        guidesetChrs <- as.character(Seqinfo::seqnames(guideSet))
+        validChrs <- guidesetChrs %in% validChrs
+        guideSet <- guideSet[validChrs]
+        protoGR <- convertToProtospacerGRanges(guideSet)
+        if (length(protoGR) == 0){
+            return(NULL)
+        }
+        
+        hits <- findOverlaps(snpObject, protoGR, ignore.strand=TRUE)
+        if (length(hits)==0){
+            return(NULL)
+        }
+        hits <- as.data.frame(hits)
+        hits$ID <- names(protoGR)[hits$subjectHits]
+        hits$rs <- names(snpObject)[hits$queryHits]
+        rownames(hits) <- hits$ID
+        hits$queryHits <- hits$subjectHits <- hits$ID <- NULL
+        snpObject <- snpObject[hits$rs]
+        hits$rs_site <- start(snpObject)
+
+        # Relative position:
+        guideIndices <- match(rownames(hits), names(guideSet))
+        rs_site_rel <- hits$rs_site - guideSet$pam_site[guideIndices]
+        negativeStrand <- BiocGenerics::strand(guideSet)[guideIndices] == "-"
+        negativeStrand <- as.logical(negativeStrand)
+        rs_site_rel[negativeStrand] <- -1*rs_site_rel[negativeStrand]
+        hits$rs_site_rel <- rs_site_rel
+        
+        hits$allele_ref <- snpObject$ref
+        hits$allele_minor <- snpObject$minorAllele
+        hits$allele_major <- snpObject$majorAllele
+        hits$MAF_1000G <- snpObject$maf
+        hits$MAF_TOPMED <- NA
+        hits$type <- "snp"
+        hits$length <- 1
+
+        validMaf <- !is.na(hits$MAF_1000G) & (hits$MAF_1000G >= maf)
+        hits <- hits[validMaf, , drop=FALSE]
+        hits$ID <- rownames(hits)
+        hits <- unique(hits)
+        hits$ID <- NULL
+        return(hits)
+}
+
+
+
+
+
 # Core function to get SNP annotation
 #' @importFrom S4Vectors metadata metadata<- DataFrame mcols nchar
 #' @importFrom VariantAnnotation info 
@@ -116,22 +211,10 @@ setMethod("addSNPAnnotation", "NULL", function(object){
 #' @importFrom BiocGenerics strand
 #' @importFrom Seqinfo seqnames
 #' @importFrom Biostrings DNAStringSet
-.getSNPAnnotation <- function(guideSet,
-                              maf,
-                              vcf
+.getSNPAnnotation_vcf <- function(guideSet,
+    maf,
+    vcf
 ){
-    ## ignore NTCs
-    guideSet <- .dropNtcs(guideSet)
-
-    genome <- .getGenome(guideSet)
-    stopifnot("SNPs are only applicable for hg38 (human) genome" = {
-        genome == "hg38"
-    })
-    
-    # MtDNA not in tabix index
-    validChrs <- paste0("chr", c(seq_len(22),"X","Y"))
-    validChrs <- as.character(Seqinfo::seqnames(guideSet)) %in% validChrs
-    guideSet <- guideSet[validChrs]
 
     info <- VariantAnnotation::info(vcf)
     rr <- MatrixGenerics::rowRanges(vcf)
@@ -189,11 +272,8 @@ setMethod("addSNPAnnotation", "NULL", function(object){
     snps$length <- S4Vectors::nchar(snps$allele_minor)
     
     snps <- snps[, c("ID", "rs", "rs_site", "rs_site_rel", "allele_ref",
-                     "allele_minor", "MAF_1000G", "MAF_TOPMED", "type",
+                     "allele_minor",  "MAF_1000G", "MAF_TOPMED", "type",
                      "length")]
-    
-    metadata(snps)$crisprNuclease <- crisprNuclease(guideSet)
-    metadata(snps)$genome <- genome
     
     validMaf <- !is.na(snps$MAF_1000G) &
         !is.na(snps$MAF_TOPMED) &
@@ -203,7 +283,37 @@ setMethod("addSNPAnnotation", "NULL", function(object){
     snps <- unique(snps)
     rownames(snps) <- snps$ID
     snps$ID <- NULL
+
+    snps$allele_major <- rep(NA_character_, nrow(snps))
+    cols <- c("rs", "rs_site", "rs_site_rel",
+        "allele_ref", "allele_minor", "allele_major", 
+        "MAF_1000G", "MAF_TOPMED", "type", "length")
+    snps <- snps[,cols, drop=FALSE]
     return(snps)
+}
+
+
+
+.validateSnpObject <- function(snpObject, guideSet){
+    if (is.character(snpObject)){
+        out <- .validateVcf(vcf=snpObject, guideSet=guideSet)
+    } else if (is(snpObject, "GenomicRanges")){
+        out <- .validateSnpGranges(snpObject=snpObject, guideSet==guideSet)
+    } else {
+        stop("snpObject must be either a path to a VCF file or a GRanges.")
+    }
+    return(out)
+}
+
+
+
+
+.validateSnpGranges <- function(snpObject, guideSet){
+    cols <- c("ref", "majorAllele", "minorAllele", "maf")
+    if (!all(cols %in% colnames(mcols(snpObject)))){
+        stop("ref, majorAllele, minorAllele, and maf must be columns of the GRanges object.")
+    }
+    return(snpObject)
 }
 
 
@@ -220,52 +330,48 @@ setMethod("addSNPAnnotation", "NULL", function(object){
 .validateVcf <- function(vcf,
                          guideSet
 ){
-    if (is.character(vcf)){
-        stopifnot("vcf must be a single file path" = {
-            length(vcf) == 1
-        })
-        if (!file.exists(vcf) && !RCurl::url.exists(vcf)){
-            missingFileMessage <- paste0("Could not find the file '", vcf, "'")
-            stop(missingFileMessage)
-        } else {
-            # MtDNA not in tabix index
-            guideSet <- .dropNtcs(guideSet)
-            validChrs <- paste0("chr", c(seq_len(22), "X", "Y"))
-            guidesetChrs <- as.character(Seqinfo::seqnames(guideSet))
-            validChrs <- guidesetChrs %in% validChrs
-            guideSet <- guideSet[validChrs]
-            protoGR <- convertToProtospacerGRanges(guideSet)
-            if (length(protoGR) == 0){
-                return(NULL)
-            }
-            
-            GenomeInfoDb::seqlevelsStyle(protoGR) <- "Ensembl"
-            genome <- Seqinfo::seqinfo(protoGR)
-            genome <- Seqinfo::genome(genome)
-            infoFields <- VariantAnnotation::scanVcfHeader(vcf)
-            infoFields <- VariantAnnotation::info(infoFields)
-            infoFields <- intersect(c("RS", "RSPOS", "CAF", "TOPMED"),
-                                    rownames(infoFields))
-            svp <- VariantAnnotation::ScanVcfParam(fixed="ALT",
-                                                   info=infoFields,
-                                                   which=protoGR)
-            vcf <- VariantAnnotation::readVcf(vcf,
-                                              genome=genome,
-                                              param=svp)
-        }
+    stopifnot("vcf must be a single file path" = {
+        length(vcf) == 1
+    })
+    if (!file.exists(vcf) && !RCurl::url.exists(vcf)){
+        missingFileMessage <- paste0("Could not find the file '", vcf, "'")
+        stop(missingFileMessage)
     } else {
-        stopifnot("vcf must be either a VCF object or path to a vcf file" = {
-            is(vcf, "VCF")
-        })
+        # MtDNA not in tabix index
+        guideSet <- .dropNtcs(guideSet)
+        validChrs <- paste0("chr", c(seq_len(22), "X", "Y"))
+        guidesetChrs <- as.character(Seqinfo::seqnames(guideSet))
+        validChrs <- guidesetChrs %in% validChrs
+        guideSet <- guideSet[validChrs]
+        protoGR <- convertToProtospacerGRanges(guideSet)
+        if (length(protoGR) == 0){
+            return(NULL)
+        }
+        
+        GenomeInfoDb::seqlevelsStyle(protoGR) <- "Ensembl"
+        genome <- Seqinfo::seqinfo(protoGR)
+        genome <- Seqinfo::genome(genome)
+        infoFields <- VariantAnnotation::scanVcfHeader(vcf)
+        infoFields <- VariantAnnotation::info(infoFields)
+        infoFields <- intersect(c("RS", "RSPOS", "CAF", "TOPMED"),
+                                rownames(infoFields))
+        svp <- VariantAnnotation::ScanVcfParam(fixed="ALT",
+                                               info=infoFields,
+                                               which=protoGR)
+        vcf <- VariantAnnotation::readVcf(vcf,
+                                          genome=genome,
+                                          param=svp)
     }
     return(vcf)
 }
+
+
 
 # Create empty SNP annotation data.frame when no SNPs overlap
 #' @importFrom S4Vectors DataFrame
 .createEmptySnps <- function(foo){
     cols <- c("rs", "rs_site", "rs_site_rel",
-              "allele_ref", "allele_minor", 
+              "allele_ref", "allele_minor", "allele_major",
               "MAF_1000G", "MAF_TOPMED",
               "type", "length")
     out <- DataFrame(matrix(0, ncol=length(cols)))

@@ -13,9 +13,9 @@ addSNPAnnotation(object, ...)
 
 \S4method{addGeneAnnotation}{NULL}(object)
 
-\S4method{addSNPAnnotation}{GuideSet}(object, vcf, maf = 0.01)
+\S4method{addSNPAnnotation}{GuideSet}(object, snpObject, maf = 0.01)
 
-\S4method{addSNPAnnotation}{PairedGuideSet}(object, vcf, maf = 0.01)
+\S4method{addSNPAnnotation}{PairedGuideSet}(object, snpObject, maf = 0.01)
 
 \S4method{addSNPAnnotation}{NULL}(object)
 }
@@ -25,8 +25,8 @@ addSNPAnnotation(object, ...)
 
 \item{...}{Additional arguments, currently ignored.}
 
-\item{vcf}{Either a character string specfying a path to a VCF file
-or connection, or a \linkS4class{VCF} object.}
+\item{snpObject}{Either a character string specfying a path to a VCF file
+or a GRanges object.}
 
 \item{maf}{Minimum minor allele frequency to report (for a least one source
 among 1000Genomes and TOPMED). Must be between 0 and 1 (exclusive).}
@@ -63,11 +63,11 @@ vcf <- system.file("extdata",
                    file="common_snps_dbsnp151_example.vcf.gz",
                    package="crisprDesign")
 data(guideSetExample, package="crisprDesign")
-guideSet <- addSNPAnnotation(guideSetExample, vcf=vcf)
+guideSet <- addSNPAnnotation(guideSetExample, snpObject=vcf)
 
 }
 \seealso{
-\code{link{snpAnnotation}} to retrieve an existing SNP annotation
+\code{link{snps}} to retrieve an existing SNP annotation
     stored in a \linkS4class{GuideSet} object. See details section for a 
     description of the different columns.
 }

@@ -102,3 +102,17 @@
 #' @format A \linkS4class{GRanges} object. 
 #' @usage data(grRepeatsExample, package="crisprDesign")
 "grRepeatsExample"
+
+
+
+#' Example of a \linkS4class{GRanges} object containing SNPs
+#'
+#' Example of a \linkS4class{GRanges} object containing genomic coordinates
+#'     of SNPs in the neighborhood of human gene IQSEC3
+#'     (ENSG00000120645).
+#' 
+#' @format A \linkS4class{GRanges} object. 
+#' @usage data(snpObjectExample, package="crisprDesign")
+"snpObjectExample"
+
+
