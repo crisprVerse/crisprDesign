@@ -95,7 +95,8 @@ setMethod("addOnTargetScores", "GuideSet",
                                      tracrRNA=tracrRNA,
                                      enzyme=enzyme,
                                      directRepeat=directRepeat,
-                                     binaries=binaries)
+                                     binaries=binaries,
+                                     condaEnv=condaEnv)
         scoreColname <- paste0("score_", i)
         S4Vectors::mcols(object)[[scoreColname]] <- rep(NA,
                                                           length(object))
@@ -235,7 +236,8 @@ setMethod("addOnTargetScores", "NULL", function(object){
                                promoter,
                                tracrRNA,
                                directRepeat,
-                               binaries
+                               binaries,
+                               condaEnv=NULL
 ){
     if (method=="casrxrf"){
         scores <- .getCasRxRFScores(guideSet,
@@ -259,15 +261,19 @@ setMethod("addOnTargetScores", "NULL", function(object){
             if (method == "deephf"){
                 results <- crisprScore::getDeepHFScores(seqs,
                                                         enzyme=enzyme,
-                                                        promoter=promoter)
+                                                        promoter=promoter,
+                                                        condaEnv=condaEnv)
             } else if (method == "ruleset3"){
                 results <- crisprScore::getRuleSet3Scores(seqs,
-                                                          tracrRNA=tracrRNA)
+                                                          tracrRNA=tracrRNA,
+                                                          condaEnv=condaEnv)
+            } else if (method=="lindel"){
+                results <- crisprScore::getLindelScores(seqs, condaEnv=condaEnv)
+            } else if (method=="enpamgb"){
+                results <- crisprScore::getEnPAMGBScores(seqs, condaEnv=condaEnv)
             } else {
               scoreFun <- switch(method,
                                  "ruleset1"=crisprScore::getRuleSet1Scores,
-                                 "lindel"=crisprScore::getLindelScores,
-                                 "enpamgb"=crisprScore::getEnPAMGBScores,
                                  "crisprater"=crisprScore::getCRISPRaterScores,
                                  "crisprscan"=crisprScore::getCRISPRscanScores)
               results <- scoreFun(seqs)
