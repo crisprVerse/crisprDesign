@@ -8,6 +8,9 @@
 #'     respect to the PAM site. If \code{NULL} (default),
 #'     the editing window of the \code{BaseEditor} object
 #'     will be considered. 
+#' @param substitutions A character vector indicating the substitutions to be
+#'     considered in predicting the edited alleles. If NULL (default),
+#'     all substitutions are considered. 
 #' @param nMaxAlleles Maximum number of edited alleles to report
 #'     for each gRNA. Alleles from high to low scores.
 #'     100 by default. 
@@ -60,7 +63,8 @@
 #' gs <- addEditedAlleles(gs,
 #'                        baseEditor=BE4max,
 #'                        txTable=txTable,
-#'                        editingWindow=editingWindow)
+#'                        editingWindow=editingWindow,
+#'                        substitutions="C2T")
 #' 
 #' @author Jean-Philippe Fortin
 #' 
@@ -68,6 +72,7 @@
 addEditedAlleles <- function(guideSet,
                              baseEditor,
                              editingWindow=NULL,
+                             substitutions=NULL,
                              nMaxAlleles=100,
                              minEditingWeight=0,
                              minMutationScore=0.3,
@@ -82,6 +87,26 @@ addEditedAlleles <- function(guideSet,
     }
 
     .checkEditingWeights(baseEditor)
+
+
+    # Removing substitutions that are not specified by user:
+    if (!is.null(substitutions)){
+        ws <- editingWeights(baseEditor)
+        choices <- rownames(ws)
+        if (!all(substitutions %in% choices)){
+            mess <- paste0("substitutions must be either NULL or a character vector",
+                " with at least one of the following: choices  ")
+            cs <- paste0(choices, collapse="; ")
+            mess <- paste0(mess,cs)
+            stop(mess)
+        }
+
+        # Setting up other subs to 0
+        otherSubs <- setdiff(choices, substitutions)
+        ws[otherSubs,] <- 0
+        baseEditor@editingWeights <- ws
+    }
+
 
     if (verbose){
         message("[addEditedAlleles] Obtaining edited alleles at ",

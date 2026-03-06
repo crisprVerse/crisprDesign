@@ -8,6 +8,7 @@ addEditedAlleles(
   guideSet,
   baseEditor,
   editingWindow = NULL,
+  substitutions = NULL,
   nMaxAlleles = 100,
   minEditingWeight = 0,
   minMutationScore = 0.3,
@@ -27,6 +28,10 @@ start and end positions of the editing window with
 respect to the PAM site. If \code{NULL} (default),
 the editing window of the \code{BaseEditor} object
 will be considered.}
+
+\item{substitutions}{A character vector indicating the substitutions to be
+considered in predicting the edited alleles. If NULL (default),
+all substitutions are considered.}
 
 \item{nMaxAlleles}{Maximum number of edited alleles to report
 for each gRNA. Alleles from high to low scores.
@@ -90,7 +95,8 @@ editingWindow <- c(-20,-8)
 gs <- addEditedAlleles(gs,
                        baseEditor=BE4max,
                        txTable=txTable,
-                       editingWindow=editingWindow)
+                       editingWindow=editingWindow,
+                       substitutions="C2T")
 
 }
 \author{

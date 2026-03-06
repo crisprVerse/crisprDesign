@@ -3,6 +3,12 @@
 \encoding{UTF-8}
 
 
+\section{Version 1.13.10}{
+\itemize{
+    \item Added optional argument substitutions to addEditedAlleles"
+}
+}
+
 \section{Version 1.13.9}{
 \itemize{
     \item Fixed condaEnv argument for addOnTargetScores
