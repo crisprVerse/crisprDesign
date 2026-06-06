@@ -3,6 +3,12 @@
 \encoding{UTF-8}
 
 
+\section{Version 1.15.1}{
+\itemize{
+    \item Added addSpecificityProxyScore functionality.
+}
+}
+
 \section{Version 1.13.10}{
 \itemize{
     \item Added optional argument substitutions to addEditedAlleles"
