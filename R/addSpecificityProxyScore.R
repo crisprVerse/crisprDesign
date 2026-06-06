@@ -77,7 +77,7 @@ addSpecificityProxyScore <- function(guideSet,
     }
     
     scores <- .getAggregateScore()
-    scores <- scores[match(spacers(guideSet), names(scores))]
+    scores <- scores[match(as.character(spacers(guideSet)), names(scores))]
     S4Vectors::mcols(guideSet)[["score_specificity_proxy"]] <- scores
     return(guideSet)
 }
