@@ -3,6 +3,13 @@
 \encoding{UTF-8}
 
 
+\section{Version 1.15.3}{
+\itemize{
+    \item Fixed splicing junctions calls for addEditedAlleles.
+}
+}
+
+
 \section{Version 1.15.1}{
 \itemize{
     \item Added addSpecificityProxyScore functionality.

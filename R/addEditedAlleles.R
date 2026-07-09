@@ -735,8 +735,20 @@ addEditedAlleles <- function(guideSet,
 
     # Calling splicing junctions:
     if (length(nonoverlapPositions)>0){
-        start <- nonoverlapPositions[1]-metadata(editedAlleles)$start+1
-        end <- nonoverlapPositions[length(nonoverlapPositions)]-metadata(editedAlleles)$start+1
+
+        # In which genomic context are we:
+        exonToIntron <- mean(overlapPositions)<mean(nonoverlapPositions)
+        cond <- (guideStrand=="+" & exonToIntron) | (guideStrand=="-" & !exonToIntron)
+        spliceLenght <- length(nonoverlapPositions)
+        windowLength <- length(editingPositions)
+        if (cond){
+            start <- windowLength-spliceLenght+1
+            end <- windowLength
+        } else {
+            start <- 1
+            end <- spliceLenght
+        }
+
         wtSeq <- substr(metadata(editedAlleles)$wildtypeAllele, start, end)
         editedSeqs <- substr(as.character(editedAlleles$seq), start, end)
         nedits <- adist(editedSeqs, wtSeq)[,1]
@@ -747,6 +759,7 @@ addEditedAlleles <- function(guideSet,
         editedAlleles$positions[nedits>0] <- txTable$aa_number[match(coordinate, txTable$pos)]
         editedAlleles$changes[nedits>0] <- NA_character_
     }
+    
     
 
     # Getting nucleotide to replace
