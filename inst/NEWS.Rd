@@ -2,6 +2,13 @@
 \title{crisprDesign News}
 \encoding{UTF-8}
 
+\section{Version 1.15.5}{
+\itemize{
+    \item Added addRepCoordinates function.
+}
+}
+
+
 
 \section{Version 1.15.4}{
 \itemize{
