@@ -3,6 +3,13 @@
 \encoding{UTF-8}
 
 
+\section{Version 1.15.4}{
+\itemize{
+    \item Added parallelization to addEditedAlleles.
+}
+}
+
+
 \section{Version 1.15.3}{
 \itemize{
     \item Fixed splicing junctions calls for addEditedAlleles.

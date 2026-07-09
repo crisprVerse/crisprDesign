@@ -15,7 +15,8 @@ addEditedAlleles(
   addFunctionalConsequence = TRUE,
   addSummary = TRUE,
   txTable = NULL,
-  verbose = TRUE
+  verbose = TRUE,
+  BPPARAM = MulticoreParam()
 )
 }
 \arguments{
@@ -57,6 +58,11 @@ Usually returned by \code{\link{getTxInfoDataFrame}}.}
 
 \item{verbose}{Should messages be printed to console?
 TRUE by default.}
+
+\item{BPPARAM}{A BiocParallelParam object specifying the parallel 
+back-end to use for computation. See the BiocParallel package 
+for available back-ends (e.g., SerialParam(), MulticoreParam(), SnowParam()).
+The default is MulticoreParam.}
 }
 \value{
 The original \code{guideSet} object with an additional

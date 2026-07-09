@@ -29,7 +29,11 @@
 #'     Usually returned by \code{\link{getTxInfoDataFrame}}.
 #' @param verbose Should messages be printed to console?
 #'     TRUE by default. 
-#' 
+#' @param BPPARAM A BiocParallelParam object specifying the parallel 
+#'     back-end to use for computation. See the BiocParallel package 
+#'     for available back-ends (e.g., SerialParam(), MulticoreParam(), SnowParam()).
+#'     The default is MulticoreParam.
+#'
 #' @return The original \code{guideSet} object with an additional
 #'     metadata column (\code{editedAlleles}) storing the annotated
 #'     edited alelles. The edited alleles are always reported 
@@ -68,6 +72,7 @@
 #' 
 #' @author Jean-Philippe Fortin
 #' 
+#' @importFrom BiocParallel MulticoreParam bplapply
 #' @export
 addEditedAlleles <- function(guideSet,
                              baseEditor,
@@ -79,7 +84,8 @@ addEditedAlleles <- function(guideSet,
                              addFunctionalConsequence=TRUE,
                              addSummary=TRUE,
                              txTable=NULL,
-                             verbose=TRUE
+                             verbose=TRUE,
+                             BPPARAM=MulticoreParam()
 ){
     if (addFunctionalConsequence & is.null(txTable)){
         stop("txTable must be provided when ",
@@ -112,7 +118,7 @@ addEditedAlleles <- function(guideSet,
         message("[addEditedAlleles] Obtaining edited alleles at ",
                 "each gRNA target site.")
     }
-    alleles <- lapply(seq_along(guideSet), function(guide){
+    alleles <- bplapply(seq_along(guideSet), function(guide){
         seqname <- as.character(Seqinfo::seqnames(guideSet[guide]))
         genome <- Seqinfo::genome(guideSet[guide])
         genome <- genome[seqname]
@@ -125,15 +131,16 @@ addEditedAlleles <- function(guideSet,
                                       nMaxAlleles=nMaxAlleles,
                                       minEditingWeight=minEditingWeight)
         }
-    })
+    }, BPPARAM=BPPARAM)
     if (addFunctionalConsequence){
         if (verbose){
             message("[addEditedAlleles] Adding functional ",
                     "consequences to alleles.")
         }
-        alleles <- lapply(alleles,
+        alleles <- bplapply(alleles,
                           .addFunctionalConsequences,
-                          txTable)
+                          txTable, 
+                          BPPARAM=BPPARAM)
     }
     names(alleles) <- names(guideSet)
     mcols(guideSet)[["editedAlleles"]] <- alleles
