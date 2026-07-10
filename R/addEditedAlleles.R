@@ -709,6 +709,7 @@ addEditedAlleles <- function(guideSet,
     editedAlleles$variant <- "not_targeting"
     splicingCoordinates <- txTable[txTable$region=="Intron","pos"]
     txTable <- txTable[txTable$region == "CDS", , drop=FALSE]
+    txTable <- txTable[order(txTable$pos_cds), , drop = FALSE]
 
 
     geneStrand  <- metadata(txTable)$gene_strand
@@ -782,28 +783,47 @@ addEditedAlleles <- function(guideSet,
     nucs <- allNucs[, as.character(overlapPositions), drop=FALSE]
     
 
-    # Get wildtype protein:
-    wh <- match(overlapPositions, txTable$pos)
-    txTable <- txTable[order(txTable$pos_cds), , drop=FALSE]
-    protein <- translate(DNAString(paste0(txTable$nuc, collapse="")))
-    protein <- as.vector(protein)
-    wiltypeNucs <- txTable$nuc[wh]
+    # Let's first only get the possible affected codons by the editing window:
+    wh <- match(overlapPositions, txTable$pos) #Mapping rows in the txTable
+    wildtypeNucs <- txTable$nuc[wh]
+    cdsPosition <- txTable$pos_cds[wh]
+    codonIndex <- ((cdsPosition - 1L) %/% 3L) + 1L 
 
 
+    affectedCodons <- sort(unique(codonIndex))
 
+    affectedCdsPositions <- unlist(
+        lapply(affectedCodons, function(i) {
+            3L * i + c(-2L, -1L, 0L)
+        }), use.names = FALSE
+    ) 
+    affectedCdsIndices <- match(affectedCdsPositions,txTable$pos_cds)
+
+    if (anyNA(affectedCdsIndices)) {
+        stop("Unable to recover all nucleotide positions for affected codons.")
+    }
+    localNucs <- txTable$nuc[affectedCdsIndices] #wildtype nucs
+    localEditIndices <- match(wh, affectedCdsIndices)
+
+    referenceLocalProtein <- translate(DNAString(paste0(localNucs, collapse = "")), 
+        no.init.codon = TRUE)
+    referenceLocalProtein <- as.vector(referenceLocalProtein)
+    localAaPositions <- affectedCodons
     
 
     annotations <- lapply(seq_len(nrow(nucs)), function(k){
-        editedNuc <- txTable$nuc
-        editedNuc[wh] <- nucs[k,]
-        proteinEdited <- Biostrings::translate(
-            Biostrings::DNAString(paste0(editedNuc, collapse = ""))
+        editedLocalNucs <- localNucs
+        editedLocalNucs[localEditIndices] <- nucs[k, ]
+
+        editedLocalProtein <- Biostrings::translate(
+            Biostrings::DNAString(paste0(editedLocalNucs, collapse = "")),
+            no.init.codon = TRUE
         )
-        proteinEdited <- as.vector(proteinEdited)
+        editedLocalProtein <- as.vector(editedLocalProtein)
 
         # Getting mismatches
-        mismatches <- which(proteinEdited!=protein)
-        nMismatches <- length(mismatches)
+        localMismatches <- which(editedLocalProtein != referenceLocalProtein)
+        nMismatches <- length(localMismatches)
 
         if (nMismatches == 0L){
             effect <- "silent"
@@ -812,19 +832,24 @@ addEditedAlleles <- function(guideSet,
             nNonsense <- 0L
             nMissense <- 0L
         } else {
-            mutatedAA <- proteinEdited[mismatches]
+            globalPositions <- localAaPositions[localMismatches]
+            mutatedAA <- editedLocalProtein[localMismatches]
+            referenceAA <- referenceLocalProtein[localMismatches]
+
             nNonsense <- sum(mutatedAA == "*", na.rm=TRUE)
             nMissense <- nMismatches - nNonsense
             effect <- if (nNonsense > 0L) "nonsense" else "missense"
-            positions <- paste(mismatches, collapse = ";")
+            positions <- paste(globalPositions, collapse = ";")
             changes <- paste0(
-                protein[mismatches],
-                mismatches,
+                referenceAA,
+                globalPositions,
                 mutatedAA,
                 collapse = ";")
         }
 
-        aminoWindow <- paste0(rep(proteinEdited, each=3L)[wh], collapse="")
+        # Amino acid corresponding to each overlapping nucleotide.
+        localCodonForNucleotide <- match(codonIndex, affectedCodons)
+        aminoWindow <- paste0(editedLocalProtein[localCodonForNucleotide],collapse="")
 
         list(effect = effect,
             positions = positions,
@@ -844,8 +869,6 @@ addEditedAlleles <- function(guideSet,
     editedAlleles$n_nonsense   <- vapply(annotations, `[[`, integer(1), "n_nonsense")
     editedAlleles$n_missense   <- vapply(annotations, `[[`, integer(1), "n_missense")
 
-
-
     nonspliceStuff <- which(editedAlleles$variant!="splice_junction")
     if (length(nonspliceStuff)>0){
         editedAlleles$variant[nonspliceStuff]   <- effects[nonspliceStuff]
@@ -854,19 +877,24 @@ addEditedAlleles <- function(guideSet,
     }
     editedAlleles$aa <- aminos
 
-    if (length(nonspliceStuff)>0){
-        hasNonSense <- editedAlleles$n_nonsense[nonspliceStuff]==1 
-        hasMultipleNonSense <- editedAlleles$n_nonsense[nonspliceStuff]>1
-        hasMissense <- editedAlleles$n_missense[nonspliceStuff]==1
-        hasMultipleMissense <- editedAlleles$n_missense[nonspliceStuff]>1
+    if (length(nonspliceStuff) > 0L) {
+        nNonsense <- editedAlleles$n_nonsense[nonspliceStuff]
+        nMissense <- editedAlleles$n_missense[nonspliceStuff]
 
-        # Calling non sense first:
-        editedAlleles$variant[nonspliceStuff][hasMultipleNonSense] <- "nonsense_multi"
-        editedAlleles$variant[nonspliceStuff][hasNonSense] <- "nonsense"
-        
-        # Then calling missense
-        editedAlleles$variant[nonspliceStuff][hasMissense & !hasNonSense & !hasMultipleNonSense] <- "missense"
-        editedAlleles$variant[nonspliceStuff][hasMultipleMissense & !hasNonSense & !hasMultipleNonSense] <- "missense_multi"
+        idx <- nonspliceStuff[nNonsense > 1L]
+        editedAlleles$variant[idx] <- "nonsense_multi"
+
+        idx <- nonspliceStuff[nNonsense == 1L]
+        editedAlleles$variant[idx] <- "nonsense"
+
+        idx <- nonspliceStuff[nNonsense == 0L & nMissense > 1L]
+        editedAlleles$variant[idx] <- "missense_multi"
+
+        idx <- nonspliceStuff[nNonsense == 0L & nMissense == 1L]
+        editedAlleles$variant[idx] <- "missense"
+
+        idx <- nonspliceStuff[nNonsense == 0L & nMissense == 0L]
+        editedAlleles$variant[idx] <- "silent"
     }
 
     # dealing with non-targeting
@@ -874,29 +902,41 @@ addEditedAlleles <- function(guideSet,
     editedAlleles$changes[editedAlleles$variant=="not_targeting"] <- NA
 
 
-    # dealing with silent mutations
-    silentStuff <- which(editedAlleles$variant=="silent")
-    if (length(silentStuff)>0){
-        silentNucs <- nucs[silentStuff,,drop=FALSE]
-        indexes <- vapply(1:length(silentStuff), function(i){
-            a <- silentNucs[i,]
-            mms <- which(a!=wiltypeNucs)[1]    
-        }, FUN.VALUE=1)
-        coords <- overlapPositions[indexes]
+    # Dealing with silent mutations
+    silentStuff <- which(editedAlleles$variant == "silent")
 
-        # Dealing with silent mutations outside of CDS:
-        if (length(nonoverlapPositions)>0){
-            coords[is.na(coords)] <- .closestCdsCoordinate(nonoverlapPositions,txTable$pos)
+    if (length(silentStuff) > 0L) {
+        silentNucs <- nucs[silentStuff, , drop = FALSE]
+
+        # Compare each allele's CDS-overlapping nucleotides with wildtype.
+        silentMismatchMatrix <- sweep(silentNucs, MARGIN=2L, STATS=wildtypeNucs, FUN="!=")
+        hasCdsEdit <- rowSums(silentMismatchMatrix) > 0L
+        silentPositions <- rep(NA_character_, length(silentStuff))
+
+        # For alleles with at least one synonymous edit inside the CDS,
+        # report the amino-acid position of the first edited CDS nucleotide.
+        if (any(hasCdsEdit)) {
+            firstEditedColumn <- max.col(
+                silentMismatchMatrix[hasCdsEdit, , drop = FALSE],
+                ties.method = "first")
+            cdsRows <- wh[firstEditedColumn]
+            silentPositions[hasCdsEdit] <- as.character(txTable$aa_number[cdsRows])
         }
-        
-        positions <- txTable$aa_number[match(coords, txTable$pos)]
-        editedAlleles$positions[silentStuff] <- positions
-        editedAlleles$changes[silentStuff] <- NA
+
+        # An allele may have edits only outside the CDS.
+        if (any(!hasCdsEdit) && length(nonoverlapPositions) > 0L) {
+            closestCoordinate <- .closestCdsCoordinate(nonoverlapPositions, txTable$pos)
+            closestAa <- txTable$aa_number[match(closestCoordinate, txTable$pos)]
+            silentPositions[!hasCdsEdit] <- as.character(closestAa)
+        }
+        editedAlleles$positions[silentStuff] <- silentPositions
+        editedAlleles$changes[silentStuff] <- NA_character_
     }
 
+
     # Adding wildtype amino:
-    wildtypeAmino <- rep(protein, each=3)[wh]
-    wildtypeAmino <- paste0(wildtypeAmino, collapse="")
+    localCodonForNucleotide <- match(codonIndex, affectedCodons)
+    wildtypeAmino <- paste0(referenceLocalProtein[localCodonForNucleotide],collapse="")
     metadata(editedAlleles)$wildtypeAmino <- wildtypeAmino
     return(editedAlleles)
 }
