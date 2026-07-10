@@ -2,6 +2,15 @@
 \title{crisprDesign News}
 \encoding{UTF-8}
 
+
+\section{Version 1.15.6}{
+\itemize{
+    \item Optimized addEditedAlleles for speed.
+}
+}
+
+
+
 \section{Version 1.15.5}{
 \itemize{
     \item Added addRepCoordinates function.

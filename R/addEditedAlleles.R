@@ -789,97 +789,61 @@ addEditedAlleles <- function(guideSet,
     protein <- as.vector(protein)
     wiltypeNucs <- txTable$nuc[wh]
 
-    effects <- vapply(seq_len(nrow(nucs)), function(k){
-        editedNuc <- txTable$nuc
-        editedNuc[wh] <- nucs[k,]
-        editedNuc <- DNAString(paste0(editedNuc, collapse=""))
-        protein_edited <- as.vector(translate(editedNuc))
-
-        mismatches <- which(protein_edited!=protein)
-        nmismatches <- length(mismatches)
-        if (nmismatches==0){
-            effect <- "silent"
-        } else {
-            variants <- protein_edited[mismatches]
-            if ("*" %in% variants){
-                effect <- "nonsense"
-            } else {
-                effect <- "missense"
-            }
-        }
-        return(effect)
-    }, FUN.VALUE=character(1))
-
-    positions <- vapply(seq_len(nrow(nucs)), function(k){
-        editedNuc <- txTable$nuc
-        editedNuc[wh] <- nucs[k,]
-        editedNuc <- DNAString(paste0(editedNuc, collapse=""))
-        protein_edited <- as.vector(translate(editedNuc))
-
-        mismatches <- which(protein_edited!=protein)
-        nmismatches <- length(mismatches)
-        if (nmismatches==0){
-            pos <- NA_character_
-        } else {
-            pos <- paste0(mismatches, collapse=";")
-        }
-        return(pos)
-    }, FUN.VALUE=character(1))
-
-    changes <- vapply(seq_len(nrow(nucs)), function(k){
-        editedNuc <- txTable$nuc
-        editedNuc[wh] <- nucs[k,]
-        editedNuc <- DNAString(paste0(editedNuc, collapse=""))
-        protein_edited <- as.vector(translate(editedNuc))
-
-        mismatches <- which(protein_edited!=protein)
-        nmismatches <- length(mismatches)
-        if (nmismatches==0){
-            out <- NA_character_
-        } else {
-            wtAas <- as.character(protein[mismatches])
-            mutAas <- as.character(protein_edited[mismatches])
-            out <- paste0(wtAas, mismatches, mutAas)
-            out <- paste0(out, collapse=";")
-        }
-        return(out)
-    }, FUN.VALUE=character(1))
 
 
-
-
-    ns <- lapply(seq_len(nrow(nucs)), function(k){
-        editedNuc <- txTable$nuc
-        editedNuc[wh] <- nucs[k,]
-        editedNuc <- DNAString(paste0(editedNuc, collapse=""))
-        protein_edited <- as.vector(translate(editedNuc))
-        mms <- which(protein_edited!=protein)
-        n_mismatches <- length(mms)
-        if (length(mms)>0){
-            n_nonsense <- sum(protein_edited[mms]=="*")
-            n_missense <- n_mismatches - n_nonsense
-        } else {
-            n_nonsense <- n_missense <- 0
-        }
-        out <- list(n_mismatches=n_mismatches,
-            n_nonsense=n_nonsense,
-            n_missense=n_missense)
-        return(out)
-    })
-    ns <- data.frame(do.call(rbind, ns))
     
-    aminos <- vapply(seq_len(nrow(nucs)), function(k){
+
+    annotations <- lapply(seq_len(nrow(nucs)), function(k){
         editedNuc <- txTable$nuc
         editedNuc[wh] <- nucs[k,]
-        editedNuc <- DNAString(paste0(editedNuc, collapse=""))
-        protein_edited <- as.vector(translate(editedNuc))
-        # Getting amino acids
-        aas <- rep(protein_edited, each=3)
-        aas <- aas[wh]
-        aas <- paste0(aas, collapse="")
+        proteinEdited <- Biostrings::translate(
+            Biostrings::DNAString(paste0(editedNuc, collapse = ""))
+        )
+        proteinEdited <- as.vector(proteinEdited)
 
-        return(aas)
-    }, FUN.VALUE=character(1))
+        # Getting mismatches
+        mismatches <- which(proteinEdited!=protein)
+        nMismatches <- length(mismatches)
+
+        if (nMismatches == 0L){
+            effect <- "silent"
+            positions <- NA_character_
+            changes <- NA_character_
+            nNonsense <- 0L
+            nMissense <- 0L
+        } else {
+            mutatedAA <- proteinEdited[mismatches]
+            nNonsense <- sum(mutatedAA == "*", na.rm=TRUE)
+            nMissense <- nMismatches - nNonsense
+            effect <- if (nNonsense > 0L) "nonsense" else "missense"
+            positions <- paste(mismatches, collapse = ";")
+            changes <- paste0(
+                protein[mismatches],
+                mismatches,
+                mutatedAA,
+                collapse = ";")
+        }
+
+        aminoWindow <- paste0(rep(proteinEdited, each=3L)[wh], collapse="")
+
+        list(effect = effect,
+            positions = positions,
+            changes = changes,
+            n_mismatches = nMismatches,
+            n_nonsense = nNonsense,
+            n_missense = nMissense,
+            aa = aminoWindow)
+    })
+
+    effects   <- vapply(annotations, `[[`, character(1), "effect")
+    positions <- vapply(annotations, `[[`, character(1), "positions")
+    changes   <- vapply(annotations, `[[`, character(1), "changes")
+    aminos    <- vapply(annotations, `[[`, character(1), "aa")
+
+    editedAlleles$n_mismatches <- vapply(annotations, `[[`, integer(1), "n_mismatches")
+    editedAlleles$n_nonsense   <- vapply(annotations, `[[`, integer(1), "n_nonsense")
+    editedAlleles$n_missense   <- vapply(annotations, `[[`, integer(1), "n_missense")
+
 
 
     nonspliceStuff <- which(editedAlleles$variant!="splice_junction")
@@ -889,9 +853,7 @@ addEditedAlleles <- function(guideSet,
         editedAlleles$changes[nonspliceStuff]   <- changes[nonspliceStuff]
     }
     editedAlleles$aa <- aminos
-    editedAlleles$n_mismatches <- unlist(ns$n_mismatches)
-    editedAlleles$n_nonsense <- unlist(ns$n_nonsense)
-    editedAlleles$n_missense <- unlist(ns$n_missense)
+
     if (length(nonspliceStuff)>0){
         hasNonSense <- editedAlleles$n_nonsense[nonspliceStuff]==1 
         hasMultipleNonSense <- editedAlleles$n_nonsense[nonspliceStuff]>1
