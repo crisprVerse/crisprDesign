@@ -2,6 +2,13 @@
 \title{crisprDesign News}
 \encoding{UTF-8}
 
+
+\section{Version 1.15.8}{
+\itemize{
+    \item Remove harmless error message when crisprBwa not installed.
+}
+}
+
 \section{Version 1.15.7}{
 \itemize{
     \item Another big time optimization for addEditedAlleles.
