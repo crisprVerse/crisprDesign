@@ -9,9 +9,21 @@
 \usage{
 addOffTargetScores(object, ...)
 
-\S4method{addOffTargetScores}{GuideSet}(object, max_mm = 2, includeDistance = TRUE, offset = 0)
+\S4method{addOffTargetScores}{GuideSet}(
+  object,
+  max_mm = 2,
+  includeDistance = TRUE,
+  offset = 0,
+  version = c("2016", "2026")
+)
 
-\S4method{addOffTargetScores}{PairedGuideSet}(object, max_mm = 2, includeDistance = TRUE, offset = 0)
+\S4method{addOffTargetScores}{PairedGuideSet}(
+  object,
+  max_mm = 2,
+  includeDistance = TRUE,
+  offset = 0,
+  version = c("2016", "2026")
+)
 
 \S4method{addOffTargetScores}{NULL}(object)
 }
@@ -27,7 +39,9 @@ and the protospacer off-target sequence to be considered in the
 off-target score calculations. Off-targets with a number of 
 mismatches greater than \code{max_mm} will be excluded; this is useful
 if one wants to avoid the aggregated off-target scores to be driven by a
-large number of off-targets that have low probability of cutting.}
+large number of off-targets that have low probability of cutting.
+Note that if the argument "version" is set to 2026, max_mm is automatically
+set to 1.}
 
 \item{includeDistance}{Should a distance penalty for the MIT score be
 included? TRUE by default.}
@@ -35,6 +49,11 @@ included? TRUE by default.}
 \item{offset}{Numeric value specifying an offset to add to the denominator
 when calcuting the aggregated score (inverse summation formula).
 0 by default.}
+
+\item{version}{String specifying the version of the CFD score for SpCas9. 
+"2016" (default) refers to the CFD score described in the Nat Biotech paper in 2016.
+"2026" refers to the CFD score restricted to the 4-20 spacer region described in 
+the 2026 Cell Genomics paper. See crisprScore package vignette.}
 }
 \value{
 A \code{GuideSet} or a \code{PairedGuideSet} object with added 

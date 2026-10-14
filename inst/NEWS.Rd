@@ -3,6 +3,12 @@
 \encoding{UTF-8}
 
 
+\section{Version 1.15.9}{
+\itemize{
+    \item Implemented latest CFD score (2026 CRISPick score).
+}
+}
+
 \section{Version 1.15.8}{
 \itemize{
     \item Remove harmless error message when crisprBwa not installed.

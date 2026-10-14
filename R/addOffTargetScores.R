@@ -14,11 +14,17 @@
 #'     mismatches greater than \code{max_mm} will be excluded; this is useful
 #'     if one wants to avoid the aggregated off-target scores to be driven by a
 #'     large number of off-targets that have low probability of cutting.
+#'     Note that if the argument "version" is set to 2026, max_mm is automatically
+#'     set to 1. 
 #' @param includeDistance Should a distance penalty for the MIT score be
 #'     included? TRUE by default. 
 #' @param offset Numeric value specifying an offset to add to the denominator
 #'     when calcuting the aggregated score (inverse summation formula).
 #'     0 by default.
+#' @param version String specifying the version of the CFD score for SpCas9. 
+#'    "2016" (default) refers to the CFD score described in the Nat Biotech paper in 2016.
+#'    "2026" refers to the CFD score restricted to the 4-20 spacer region described in 
+#'    the 2026 Cell Genomics paper. See crisprScore package vignette. 
 #' @param ... Additional arguments, currently ignored.
 #' 
 #' @return A \code{GuideSet} or a \code{PairedGuideSet} object with added 
@@ -50,7 +56,8 @@ setMethod("addOffTargetScores",
           function(object,
                    max_mm=2,
                    includeDistance=TRUE,
-                   offset=0
+                   offset=0,
+                   version=c("2016", "2026")
 ){
     
     object <- .validateGuideSet(object)
@@ -65,10 +72,12 @@ setMethod("addOffTargetScores",
     }
     
     object <- .addOffTargetScoresToAlignments(guideSet=object,
-                                              includeDistance=includeDistance)
+                                              includeDistance=includeDistance,
+                                              version=version)
     object <- .addOffTargetScoresToGuideSet(guideSet=object,
                                               max_mm=max_mm,
-                                              offset=offset)
+                                              offset=offset,
+                                              version=version)
     return(object)
 })
 
@@ -79,14 +88,16 @@ setMethod("addOffTargetScores",
           function(object,
                    max_mm=2,
                    includeDistance=TRUE,
-                   offset=0
+                   offset=0,
+                   version=c("2016", "2026")
 ){
     object <- .validatePairedGuideSet(object)
     unifiedGuideSet <- .pairedGuideSet2GuideSet(object)
     unifiedGuideSet <- addOffTargetScores(unifiedGuideSet,
-                                          max_mm=2,
-                                          includeDistance=TRUE,
-                                          offset=0)
+                                          max_mm=max_mm,
+                                          includeDistance=includeDistance,
+                                          offset=offset,
+                                          version=version)
     out <- .addColumnsFromUnifiedGuideSet(object,
                                           unifiedGuideSet)
     
@@ -139,8 +150,10 @@ setMethod("addOffTargetScores", "NULL", function(object){
 #' @importFrom crisprScore getCFDScores
 #' @importFrom crisprScore getMITScores
 .addOffTargetScoresToAlignments <- function(guideSet,
-                                            includeDistance=TRUE
+                                            includeDistance=TRUE,
+                                            version=c("2016", "2026")
 ){
+    version <- match.arg(version)
     crisprNuclease <- crisprNuclease(guideSet)
     utils::data(SpCas9,
                 package="crisprBase",
@@ -192,7 +205,8 @@ setMethod("addOffTargetScores", "NULL", function(object){
         score_cfd <- crisprScore::getCFDScores(spacers=spacers,
                                                protospacers=protospacers,
                                                pams=pams,
-                                               nuclease=nuclease)
+                                               nuclease=nuclease,
+                                               version=version)
         aln$score_cfd <- score_cfd$score
     }
     if (isCas9){
@@ -221,8 +235,13 @@ setMethod("addOffTargetScores", "NULL", function(object){
 #' @importFrom S4Vectors mcols mcols<-
 .addOffTargetScoresToGuideSet <- function(guideSet,
                                           max_mm,
-                                          offset
+                                          offset,
+                                          version=c("2016", "2026")
 ){
+    version <- match.arg(version)
+    if (version=="2026"){
+        max_mm <- 1
+    }
     aln <- alignments(guideSet)
     aln <- as.data.frame(S4Vectors::mcols(aln),
                          stringsAsFactors=FALSE)
@@ -242,6 +261,15 @@ setMethod("addOffTargetScores", "NULL", function(object){
             return(1/x)
         }, FUN.VALUE=numeric(1))
     }
+
+    .getAggregateScore_2026 <- function(score){
+        vapply(aln, function(x){
+            nmm <- x[["n_mismatches"]]
+            x <- x[[score]]
+            x <- sum(x, na.rm=TRUE)
+            return(x)
+        }, FUN.VALUE=numeric(1))
+    }
     
     spacers <- spacers(guideSet, as.character=TRUE)
     crisprNuclease <- crisprNuclease(guideSet)
@@ -257,22 +285,25 @@ setMethod("addOffTargetScores", "NULL", function(object){
     isCasRx <- .identicalNucleases(crisprNuclease,
                                    CasRx,
                                    checkSpacerLength=FALSE)
-
-
     if (isCasRx){
         stop("Aggregation is not implemented yet for CasRx")
     }
     if (isCas9){
-        cfd <- .getAggregateScore("score_cfd")
-        cfdIndices <- match(spacers, names(cfd))
-        S4Vectors::mcols(guideSet)[["score_cfd"]] <- cfd[cfdIndices]
+        if (version=="2016"){
+            cfd <- .getAggregateScore("score_cfd")
+            cfdIndices <- match(spacers, names(cfd))
+            S4Vectors::mcols(guideSet)[["score_cfd"]] <- cfd[cfdIndices]
+        } else if (version=="2026"){
+            cfd <- .getAggregateScore_2026("score_cfd")
+            cfdIndices <- match(spacers, names(cfd))
+            S4Vectors::mcols(guideSet)[["score_cfd_crispick"]] <- cfd[cfdIndices]
+        }
     } 
     if (isCas9){
         mit <- .getAggregateScore("score_mit")
         mitIndices <- match(spacers, names(mit))
         S4Vectors::mcols(guideSet)[["score_mit"]] <- mit[mitIndices]
     }
-    
     return(guideSet)
 }
 
