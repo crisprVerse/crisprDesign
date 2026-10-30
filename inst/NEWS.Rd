@@ -3,6 +3,13 @@
 \encoding{UTF-8}
 
 
+\section{Version 1.15.10}{
+\itemize{
+    \item Changed default of standard_chr_only (now TRUE).
+}
+}
+
+
 \section{Version 1.15.9}{
 \itemize{
     \item Implemented latest CFD score (2026 CRISPick score).
